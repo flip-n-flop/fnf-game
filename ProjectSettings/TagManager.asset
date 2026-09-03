@@ -9,7 +9,7 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Background
   - Water
   - UI
   - Ground
@@ -48,5 +48,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Ground
+    uniqueID: 2389195581
+    locked: 0
+  - name: Camera
+    uniqueID: 2544689349
+    locked: 0
   m_RenderingLayers:
   - Default
+  m_MigratedRenderPipelines: []
