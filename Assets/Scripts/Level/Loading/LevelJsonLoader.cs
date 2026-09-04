@@ -293,11 +293,11 @@ public class LevelJsonLoader : MonoBehaviour
         tilemapRenderer.ClearAllTilemaps();
 
         bool hasAsync = ParsedPresetSignal != null || ParsedClearSignal != null;
-        int jY = 12;
-        int kY = hasAsync ? 10 : 8;
-        int presetY = 8;
-        int clearY = 6;
-        int clockY = 4;
+        int jY = 13;
+        int kY = hasAsync ? 11 : 9;
+        int presetY = 9;
+        int clearY = 7;
+        int clockY = 5;
 
         _hasPreset = ParsedPresetSignal != null;
         _hasClear = ParsedClearSignal != null;
