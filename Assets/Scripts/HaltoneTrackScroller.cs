@@ -2,45 +2,65 @@ using UnityEngine;
 
 public class HalftoneTrackScroller : MonoBehaviour
 {
-    [Header("Dimensões")]
-    [Tooltip("Largura de UMA imagem no RectTransform (Width)")]
-    [SerializeField] private float pieceWidth = 1000f;
+    [Tooltip("Velocidade do movimento")]
+    [SerializeField] private float speed = 2f;
 
-    [Tooltip("Overlap em pixels entre as imagens")]
-    [SerializeField] private float overlapPixels = 15f;
+    [Tooltip("Ajuste manual para puxar a esteira para trás/frente no trilho")]
+    [SerializeField] private float startOffset = 0f;
 
-    [Header("Movimento")]
-    [Tooltip("Velocidade em pixels/segundo (positivo = esquerda, negativo = direita)")]
-    [SerializeField] private float speed = 100f;
+    [Tooltip("Pequena sobreposição para evitar linhas pretas/gaps")]
+    [SerializeField] private float overlap = 0.02f;
 
-    private RectTransform rectTransform;
-    private float startPosX;
-    private float cycleDistance;
+    [Tooltip("Arraste as 3 peças filhas aqui na ordem")]
+    [SerializeField] private Transform[] pieces;
 
-    void Awake()
+    private float pieceWidth;
+
+    void Start()
     {
-        rectTransform = GetComponent<RectTransform>();
-        startPosX = rectTransform.anchoredPosition.x;
-        // Distância exata até o próximo encaixe perfeito
-        cycleDistance = pieceWidth - overlapPixels;
+        if (pieces == null || pieces.Length == 0)
+        {
+            pieces = new Transform[transform.childCount];
+            for (int i = 0; i < transform.childCount; i++)
+                pieces[i] = transform.GetChild(i);
+        }
+
+        if (pieces.Length == 0) return;
+
+        SpriteRenderer sr = pieces[0].GetComponent<SpriteRenderer>();
+        if (sr != null && sr.sprite != null)
+        {
+            pieceWidth = (sr.sprite.rect.width / sr.sprite.pixelsPerUnit) - overlap;
+        }
+
+        // Em vez de começar em 0, centraliza a fila (ex: com 3 peças, começa em -1, 0, +1)
+        // Isso faz uma peça já nascer cobrindo o canto inferior/esquerdo
+        float startIndex = -Mathf.Floor(pieces.Length / 2f);
+
+        for (int i = 0; i < pieces.Length; i++)
+        {
+            float xPos = (startIndex + i) * pieceWidth + startOffset;
+            pieces[i].localPosition = new Vector3(xPos, 0, 0);
+        }
     }
 
     void Update()
     {
-        Vector2 pos = rectTransform.anchoredPosition;
+        if (pieceWidth <= 0f || pieces.Length == 0) return;
 
-        // Desloca continuamente
-        pos.x -= speed * Time.deltaTime;
+        float totalWidth = pieceWidth * pieces.Length;
+        // Limite baseado em onde a fila foi centralizada
+        float leftThreshold = (-Mathf.Floor(pieces.Length / 2f) - 1f) * pieceWidth + startOffset;
 
-        // Quando deslocar exatamente a largura útil de 1 imagem, reseta a distância
-        float traveled = pos.x - startPosX;
-        if (Mathf.Abs(traveled) >= cycleDistance)
+        for (int i = 0; i < pieces.Length; i++)
         {
-            float direction = Mathf.Sign(traveled);
-            pos.x -= direction * cycleDistance;
-            startPosX = pos.x; // Atualiza para manter precisão contínua
-        }
+            pieces[i].localPosition += Vector3.left * (speed * Time.deltaTime);
 
-        rectTransform.anchoredPosition = pos;
+            // Quando passar completamente do limite esquerdo, pula para o final
+            if (pieces[i].localPosition.x <= leftThreshold)
+            {
+                pieces[i].localPosition += new Vector3(totalWidth, 0, 0);
+            }
+        }
     }
 }
