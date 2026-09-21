@@ -17,4 +17,9 @@ public class TutorialData : ScriptableObject
     [Tooltip("Referência à InputAction real do jogo — a mesma usada no RebindManager. " +
              "O texto exibido reflete o binding atual, incluindo rebinds do jogador.")]
     public InputActionReference acaoInput;
+
+    [Header("Timer (opcional)")]
+    [Tooltip("Se true, o tutorial só aparece após o jogador ficar parado, mesmo ao entrar na zona " +
+            "(ex: tutorial de movimento). Se false, aparece instantaneamente ao entrar na zona.")]
+    public bool aguardarOciosidadeParaExibir = false;
 }

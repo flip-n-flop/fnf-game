@@ -9,6 +9,13 @@ public class TutorialManager : MonoBehaviour
     // Sempre exibimos apenas o mais recente (topo), garantindo um por vez.
     private readonly List<TutorialData> _pilha = new();
 
+    [Header("Timers (aplicados a todos os tutoriais interativos)")]
+    [SerializeField] private float tempoOciosidadeParaReexibir = 5f;
+    [SerializeField] private float atrasoAoAvancarParaEsconder = 2f;
+
+    public float TempoOciosidadeParaReexibir => tempoOciosidadeParaReexibir;
+    public float AtrasoAoAvancarParaEsconder => atrasoAoAvancarParaEsconder;
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }

@@ -15,3 +15,4 @@ MonoBehaviour:
   id: '"movimento"'
   tipo: 0
   acaoInput: {fileID: -1680190386980627800, guid: cbc2af35a9502f14eaf2db9b7d191ca4, type: 3}
+  aguardarOciosidadeParaExibir: 1

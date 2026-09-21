@@ -30,11 +30,16 @@ public class InputDeviceTracker : MonoBehaviour
 
     private void Update()
     {
-        if (DetectouTecladoMouse())
-            DefinirDispositivo(TipoDispositivoInput.TecladoMouse);
-        else if (DetectouControle())
-            DefinirDispositivo(TipoDispositivoInput.Controle);
+        bool teclado = DetectouTecladoMouse();
+        bool controle = !teclado && DetectouControle();
+
+        HouveInputEsteFrame = teclado || controle;
+
+        if (teclado) DefinirDispositivo(TipoDispositivoInput.TecladoMouse);
+        else if (controle) DefinirDispositivo(TipoDispositivoInput.Controle);
     }
+
+    public bool HouveInputEsteFrame { get; private set; }
 
     private bool DetectouTecladoMouse()
     {
