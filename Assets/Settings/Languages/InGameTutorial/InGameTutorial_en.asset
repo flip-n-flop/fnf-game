@@ -26,6 +26,14 @@ MonoBehaviour:
     m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to dash!
     m_Metadata:
       m_Items: []
+  - m_Id: 4863671705821184
+    m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to invert gravity!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4864163613794304
+    m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to move!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

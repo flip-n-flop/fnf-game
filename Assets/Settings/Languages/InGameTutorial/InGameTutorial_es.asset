@@ -27,6 +27,15 @@ MonoBehaviour:
       dash!"
     m_Metadata:
       m_Items: []
+  - m_Id: 4863671705821184
+    m_Localized: "\xA1Presiona <b><color=#FFD700>{TECLA}</color></b> para invertir
+      la gravedad!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4864163613794304
+    m_Localized: "\xA1Presiona <b><color=#FFD700>{TECLA}</color></b> para se moverte!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
