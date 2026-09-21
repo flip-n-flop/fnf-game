@@ -14,6 +14,7 @@ public class TutorialZone : MonoBehaviour
     private bool _jogadorDentro;
     private bool _visivelAtualmente;
     private bool _aguardandoParaEsconder;
+    private bool _entrouAlgumaVez; // controla o "instantâneo só na primeira vez"
     private float _tempoParado;
     private float _contagemParaEsconder;
 
@@ -26,13 +27,17 @@ public class TutorialZone : MonoBehaviour
 
         if (tutorial.tipo == TipoTutorial.Observacional)
         {
-            Mostrar(); // comportamento simples, sem timer — igual já era
+            Mostrar(); // sem timer, comportamento inalterado
             return;
         }
 
-        if (!tutorial.aguardarOciosidadeParaExibir)
-            Mostrar(); // interativo padrão: instantâneo
-        // se aguardarOciosidadeParaExibir = true, só aparece via Update() abaixo
+        bool primeiraVez = !_entrouAlgumaVez;
+        _entrouAlgumaVez = true;
+
+        // Instantâneo só na primeira entrada. Da segunda em diante, o timer de
+        // ociosidade no Update() decide quando reaparecer — nada a fazer aqui.
+        if (primeiraVez && !tutorial.aguardarOciosidadeParaExibir)
+            Mostrar();
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -47,19 +52,17 @@ public class TutorialZone : MonoBehaviour
     private void Update()
     {
         if (!_jogadorDentro || tutorial == null) return;
-        if (tutorial.tipo != TipoTutorial.Interativo) return; // Observacional não usa timer
+        if (tutorial.tipo != TipoTutorial.Interativo) return;
 
-        bool parado = InputDeviceTracker.Instance == null || !InputDeviceTracker.Instance.HouveInputEsteFrame;
+        bool parado = EstaOciosoParaEsteTutorial();
         _tempoParado = parado ? _tempoParado + Time.deltaTime : 0f;
 
-        // Primeira aparição (ou reaparição) via ociosidade
         if (!_visivelAtualmente && !_aguardandoParaEsconder &&
             _tempoParado >= TutorialManager.Instance.TempoOciosidadeParaReexibir)
         {
             Mostrar();
         }
 
-        // Detecta "avanço" (ação executada) enquanto visível
         if (_visivelAtualmente && !_aguardandoParaEsconder &&
             tutorial.acaoInput != null && tutorial.acaoInput.action != null &&
             tutorial.acaoInput.action.triggered)
@@ -75,9 +78,23 @@ public class TutorialZone : MonoBehaviour
             {
                 _aguardandoParaEsconder = false;
                 Esconder();
-                _tempoParado = 0f; // recomeça a contagem pra uma possível reaparição
+                _tempoParado = 0f;
             }
         }
+    }
+
+    /// <summary>
+    /// "Ocioso" agora é relativo apenas à ação que este tutorial específico ensina —
+    /// pressionar outras ações do jogo não afeta este timer.
+    /// </summary>
+    private bool EstaOciosoParaEsteTutorial()
+    {
+        if (tutorial.acaoInput != null && tutorial.acaoInput.action != null)
+            return !tutorial.acaoInput.action.IsPressed();
+
+        // Fallback, caso o tutorial não tenha uma ação associada (não deveria acontecer
+        // em tutoriais Interativos, mas evita erro caso o campo fique vazio por engano).
+        return InputDeviceTracker.Instance == null || !InputDeviceTracker.Instance.HouveInputEsteFrame;
     }
 
     private void Mostrar()
