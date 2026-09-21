@@ -27,8 +27,24 @@ public class TutorialUI : MonoBehaviour
         _texto = root.Q<Label>("TutorialText");
     }
 
-    private void OnEnable() => LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
-    private void OnDisable() => LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+    private void OnEnable()
+    {
+        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
+        if (InputDeviceTracker.Instance != null)
+            InputDeviceTracker.Instance.OnDispositivoAlterado += OnDispositivoAlterado;
+    }
+
+    private void OnDisable()
+    {
+        LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+        if (InputDeviceTracker.Instance != null)
+            InputDeviceTracker.Instance.OnDispositivoAlterado -= OnDispositivoAlterado;
+    }
+
+    private void OnDispositivoAlterado(TipoDispositivoInput _)
+    {
+        if (_dadosAtuais != null) Mostrar(_dadosAtuais); // reexibe com o texto/tecla atualizados
+    }
 
     public void Mostrar(TutorialData dados)
     {
@@ -68,6 +84,9 @@ public class TutorialUI : MonoBehaviour
     {
         if (acaoRef == null || acaoRef.action == null) return "???";
 
+        bool querControle = InputDeviceTracker.Instance != null &&
+                             InputDeviceTracker.Instance.DispositivoAtual == TipoDispositivoInput.Controle;
+
         var nomes = new List<string>();
         foreach (var binding in acaoRef.action.bindings)
         {
@@ -76,11 +95,28 @@ public class TutorialUI : MonoBehaviour
             string path = binding.hasOverrides ? binding.overridePath : binding.path;
             if (string.IsNullOrEmpty(path)) continue;
 
+            bool ehDeControle = path.Contains("<Gamepad>");
+            if (querControle != ehDeControle) continue; // filtra pelo dispositivo atual
+
             string legivel = InputControlPath.ToHumanReadableString(
                 path, InputControlPath.HumanReadableStringOptions.OmitDevice);
 
             if (!nomes.Contains(legivel)) nomes.Add(legivel);
         }
+
+        // Fallback: se não achou nenhum binding do dispositivo atual, mostra qualquer um disponível
+        // if (nomes.Count == 0)
+        // {
+        //     foreach (var binding in acaoRef.action.bindings)
+        //     {
+        //         if (binding.isComposite || binding.isPartOfComposite) continue;
+        //         string path = binding.hasOverrides ? binding.overridePath : binding.path;
+        //         if (string.IsNullOrEmpty(path)) continue;
+
+        //         nomes.Add(InputControlPath.ToHumanReadableString(
+        //             path, InputControlPath.HumanReadableStringOptions.OmitDevice));
+        //     }
+        // }
 
         return nomes.Count > 0 ? string.Join(" ou ", nomes) : "???";
     }
