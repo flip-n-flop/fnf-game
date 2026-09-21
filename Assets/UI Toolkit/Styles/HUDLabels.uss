@@ -115,3 +115,33 @@
     padding: 0;
     margin: 0;
 }
+
+/* ── Tutorial Panel (Bottom-Center) ── */
+
+.tutorial-container {
+    position: absolute;
+    bottom: 150px;
+    left: 100px;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 600px;
+    min-height: 64px;
+    padding: 16px 24px;
+    background-color: rgba(30, 30, 30, 0.95);
+    border-radius: 15px;
+    align-items: center;
+    justify-content: center;
+    display: none;
+}
+
+.tutorial-text {
+    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/Exo2-VariableFont_wght.ttf?fileID=12800000&guid=06cc052497f62034fb43e3edf087d21a&type=3#Exo2-VariableFont_wght");
+    -unity-font-style: bold;
+    font-size: 22px;
+    color: #F5F7FA;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    padding: 0;
+    margin: 0;
+}

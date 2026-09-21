@@ -44,5 +44,8 @@
                 <ui:Label text="CLK" class="signal-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="TutorialContainer" class="tutorial-container">
+            <ui:Label text="" name="TutorialText" class="tutorial-text"/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
