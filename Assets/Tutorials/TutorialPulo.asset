@@ -13,7 +13,5 @@ MonoBehaviour:
   m_Name: TutorialPulo
   m_EditorClassIdentifier: Assembly-CSharp::TutorialData
   id: '"pulo"'
-  titulo: '"tutorial_de_pulo"'
   tipo: 0
-  texto: Aperte {TECLA} para Pular!
-  teclaAlvo: 32
+  acaoInput: {fileID: -2099379676528639254, guid: cbc2af35a9502f14eaf2db9b7d191ca4, type: 3}

@@ -13,7 +13,5 @@ MonoBehaviour:
   m_Name: TutorialDash
   m_EditorClassIdentifier: Assembly-CSharp::TutorialData
   id: '"dash"'
-  titulo: '"tutorial_de_dash"'
   tipo: 0
-  texto: Aperte {TECLA} para dar o Dash!
-  teclaAlvo: 304
+  acaoInput: {fileID: -7093669063402427910, guid: cbc2af35a9502f14eaf2db9b7d191ca4, type: 3}

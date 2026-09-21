@@ -14,6 +14,7 @@ public class TutorialZone : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
+
         TutorialManager.Instance.Mostrar(tutorial);
     }
 
@@ -25,7 +26,6 @@ public class TutorialZone : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Debug.Log("OnDrawGizmos rodando");
         var collider = GetComponent<BoxCollider2D>();
         if (collider == null) return;
 

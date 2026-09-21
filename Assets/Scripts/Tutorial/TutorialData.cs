@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public enum TipoTutorial { Interativo, Observacional }
 
@@ -6,17 +7,14 @@ public enum TipoTutorial { Interativo, Observacional }
 public class TutorialData : ScriptableObject
 {
     [Header("Identificação")]
+    [Tooltip("Também usado como chave na String Table 'Tutorial' para buscar o texto localizado.")]
     public string id;
-    public string titulo;
 
-    [Header("Exibição")]
-    [Tooltip("Interativo mostra a tecla-alvo como prompt visual; Observacional mostra só texto/ícone. " +
-             "Não afeta mais a lógica de conclusão — ambos concluem ao sair da zona.")]
+    [Header("Comportamento")]
     public TipoTutorial tipo;
 
-    [TextArea] public string texto;
-    // public Sprite icone;
-
-    [Tooltip("Usado apenas como prompt visual quando tipo = Interativo (ex: ícone da tecla Space).")]
-    public KeyCode teclaAlvo;
+    [Header("Interativo (se aplicável)")]
+    [Tooltip("Referência à InputAction real do jogo — a mesma usada no RebindManager. " +
+             "O texto exibido reflete o binding atual, incluindo rebinds do jogador.")]
+    public InputActionReference acaoInput;
 }

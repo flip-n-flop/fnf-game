@@ -33,9 +33,16 @@ MonoBehaviour:
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-es
+    - Preload
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8819f3c1529e9a042b1e6f8db76b6500
     m_Address: Tutorial_es
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-es
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9f08de7ae779bdc43bbcb02979e0e07c
+    m_Address: InGameTutorial_es
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-es
