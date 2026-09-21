@@ -1,3 +1,12 @@
+# [0.14.0](https://github.com/flip-n-flop/fnf-game/compare/v0.13.0...v0.14.0) (2026-09-21)
+
+
+### Features
+
+* **common:** add InputDeviceTracker for keyboard/mouse vs gamepad detection ([5ac8813](https://github.com/flip-n-flop/fnf-game/commit/5ac88132b94a72af37a53beca9f6327ff38724b2))
+
+
+
 # [0.13.0](https://github.com/flip-n-flop/fnf-game/compare/v0.12.9...v0.13.0) (2026-09-21)
 
 
@@ -33,15 +42,6 @@
 
 * add settings menu to main menu ([542f1ed](https://github.com/flip-n-flop/fnf-game/commit/542f1edf1eac31d3b5fe40a540c725db8edb7161))
 * music slider now change mainMenu music volume ([5d1aa33](https://github.com/flip-n-flop/fnf-game/commit/5d1aa33d06ce8914b83d5f4a2c2281eec0bf101d))
-
-
-
-## [0.12.6](https://github.com/flip-n-flop/fnf-game/compare/v0.12.5...v0.12.6) (2026-08-03)
-
-
-### Bug Fixes
-
-* change cofig button name ([7620fae](https://github.com/flip-n-flop/fnf-game/commit/7620fae84a94e9b6e312b7dbab7eca57b578904e))
 
 
 
