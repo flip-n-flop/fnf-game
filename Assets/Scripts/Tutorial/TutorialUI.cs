@@ -30,6 +30,8 @@ public class TutorialUI : MonoBehaviour
     private void OnEnable()
     {
         LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
+        RebindManager.OnBindingsChanged += OnBindingsChanged;
+
         if (InputDeviceTracker.Instance != null)
             InputDeviceTracker.Instance.OnDispositivoAlterado += OnDispositivoAlterado;
     }
@@ -37,8 +39,15 @@ public class TutorialUI : MonoBehaviour
     private void OnDisable()
     {
         LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+        RebindManager.OnBindingsChanged -= OnBindingsChanged;
+
         if (InputDeviceTracker.Instance != null)
             InputDeviceTracker.Instance.OnDispositivoAlterado -= OnDispositivoAlterado;
+    }
+
+    private void OnBindingsChanged()
+    {
+        if (_dadosAtuais != null) Mostrar(_dadosAtuais);
     }
 
     private void OnDispositivoAlterado(TipoDispositivoInput _)
