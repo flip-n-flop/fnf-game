@@ -93,8 +93,7 @@
 
 .btn,
 .menu-button,
-.secondary-button,
-.hud-menu-button {
+.secondary-button {
     height: 64px;
     background-color: #1C2B5C;
     color: #F5F7FA;
@@ -116,9 +115,7 @@
 .menu-button:hover,
 .menu-button:focus,
 .secondary-button:hover,
-.secondary-button:focus,
-.hud-menu-button:hover,
-.hud-menu-button:focus {
+.secondary-button:focus {
     background-color: #2F5BFF;
 }
 
@@ -251,11 +248,111 @@
     color: #F5F7FA;
 }
 
+/* ── HUD Hexagonal Menu Button (Bottom-Right) ── */
+
 .hud-menu-button {
-    width: 128px;
     position: absolute;
-    top: 8px;
-    right: 8px;
+    bottom: 24px;
+    right: 24px;
+    width: 76px;
+    height: 76px;
+    background-color: rgba(0, 0, 0, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.hud-menu-button:hover,
+.hud-menu-button:focus,
+.hud-menu-button:active {
+    background-color: rgba(0, 0, 0, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+}
+
+/* Sombra: Fundo do botão (estática e mais próxima da box) */
+.hud-menu-btn-shadow {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    top: 2px;
+    left: 8px;
+    background-image: url("project://database/Assets/Arts/InGameUI/Bot%C3%B5es/Sombra.png?fileID=-114595351847970599&guid=c6e3048f710863c47a326db6c3497be5&type=3#Sombra_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Caixa: No normal fica reta em 0° e branca (#FFFFFF) */
+.hud-menu-btn-box {
+    position: absolute;
+    width: 72px;
+    height: 70px;
+    top: 0;
+    left: 0;
+    background-image: url("project://database/Assets/Arts/InGameUI/Bot%C3%B5es/Caixa.png?fileID=-860264664590275695&guid=3e7c5d6572b489d4f8c9ff09731886e3&type=3#Caixa_0");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: #FFFFFF;
+    rotate: 0deg;
+    translate: 0 0;
+    scale: 1 1;
+    transform-origin: 45% 40%;
+    transition-property: rotate, -unity-background-image-tint-color, scale, translate;
+    transition-duration: 0.25s, 0.25s, 0.2s, 0.2s;
+    transition-timing-function: ease-out, ease-out, ease-out, ease-out;
+}
+
+/* Ícone de Configurações: Centralizado na face do hexágono (gira junto com a box) */
+.hud-menu-btn-icon {
+    position: absolute;
+    width: 48%;
+    height: 48%;
+    left: 44%;
+    top: 38%;
+    translate: -50% -50%;
+    background-image: url("project://database/Assets/Arts/InGameUI/Bot%C3%B5es/%C3%8Dcone_Configura%C3%A7%C3%B5es.png?fileID=-3148450962777015629&guid=3034eae473042f242b24b5fecd3cb983&type=3#%C3%8Dcone_Configura%C3%A7%C3%B5es_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Badge ESC: Tecla SVG do teclado dentro da box, na aba preta */
+.hud-menu-btn-esc {
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    left: 76%;
+    top: 78%;
+    translate: -50% -50%;
+    background-image: url("../../Arts/Keyboard/keyboard_escape_outline.svg");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ── Efeitos de Hover e Clique (apenas na box) ── */
+
+/* Hover: Cresce um pouco, anda para esquerda e cima (-3px -3px), gira ~30° anti-horário e fica roxo */
+.hud-menu-button:hover .hud-menu-btn-box {
+    rotate: -8deg;
+    -unity-background-image-tint-color: #C772CA;
+    scale: 1.08 1.08;
+    translate: -2px -2px;
+}
+
+/* Active: Leve recuo ao clicar */
+.hud-menu-button:active .hud-menu-btn-box {
+    rotate: -15deg;
+    scale: 0.96 0.96;
+    translate: 2px 2px;
 }
 
 .game-menu-card {

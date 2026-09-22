@@ -4,16 +4,17 @@
     <ui:Template name="ConfigMenu"
         src="project://database/Assets/UI%20Toolkit/Layouts/ConfigMenu.uxml?fileID=9197481963319205126&amp;guid=c9199edad8332b34db99cecc978a6c8d&amp;type=3#ConfigMenu" />
     <ui:Template name="HowToPlayMenu"
-        src="project://database/Assets/UI%20Toolkit/Layouts/HowToPlayMenu.uxml?fileID=9197481963319205126&amp;guid=bc0db67d26e0fe54f90c3c6cc9e71f26&amp;type=3#HowToPlayMenu" />
+        src="project://database/Assets/UI%20Toolkit/Layouts/TutorialMenu.uxml?fileID=9197481963319205126&amp;guid=bc0db67d26e0fe54f90c3c6cc9e71f26&amp;type=3#TutorialMenu" />
     <Style
         src="project://database/Assets/UI%20Toolkit/Styles/Panel.uss?fileID=7433441132597879392&amp;guid=5b6ccb061d6f6e54b939846c701d8098&amp;type=3#Panel" />
     <Style
         src="project://database/Assets/UI%20Toolkit/Styles/MainMenu.uss?fileID=7433441132597879392&amp;guid=914addff2ff73d644a3f7eeeebd54bb4&amp;type=3#MainMenu" />
-    <ui:Button text="Menu" name="MenuButton" class="hud-menu-button">
-        <Bindings>
-            <UnityEngine.Localization.LocalizedString property="text" table="GUID:1335d71b210ede741858eb8a611103b6"
-                entry="Id(12584910848)" />
-        </Bindings>
+    <ui:Button name="MenuButton" class="hud-menu-button" focusable="false">
+        <ui:VisualElement name="MenuButtonShadow" class="hud-menu-btn-shadow" picking-mode="Ignore" />
+        <ui:VisualElement name="MenuButtonBox" class="hud-menu-btn-box" picking-mode="Ignore">
+            <ui:VisualElement name="MenuButtonIcon" class="hud-menu-btn-icon" picking-mode="Ignore" />
+            <ui:VisualElement name="MenuButtonEsc" class="hud-menu-btn-esc" picking-mode="Ignore" />
+        </ui:VisualElement>
     </ui:Button>
     <ui:VisualElement name="GameMenu" class="flip-screen" style="display: flex;">
         <ui:VisualElement name="Background" class="flip-screen bg-main">
