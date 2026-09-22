@@ -253,9 +253,10 @@
 .hud-menu-button {
     position: absolute;
     bottom: 24px;
-    right: 24px;
+    right: 56px;
     width: 76px;
     height: 76px;
+    scale: 0.9 0.9;
     background-color: rgba(0, 0, 0, 0);
     border-left-width: 0;
     border-right-width: 0;
@@ -317,8 +318,8 @@
 /* Ícone de Configurações: Centralizado na face do hexágono (gira junto com a box) */
 .hud-menu-btn-icon {
     position: absolute;
-    width: 48%;
-    height: 48%;
+    width: 50%;
+    height: 50%;
     left: 44%;
     top: 38%;
     translate: -50% -50%;
