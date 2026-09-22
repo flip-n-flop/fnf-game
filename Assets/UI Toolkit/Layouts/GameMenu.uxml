@@ -9,6 +9,14 @@
         src="project://database/Assets/UI%20Toolkit/Styles/Panel.uss?fileID=7433441132597879392&amp;guid=5b6ccb061d6f6e54b939846c701d8098&amp;type=3#Panel" />
     <Style
         src="project://database/Assets/UI%20Toolkit/Styles/MainMenu.uss?fileID=7433441132597879392&amp;guid=914addff2ff73d644a3f7eeeebd54bb4&amp;type=3#MainMenu" />
+    <ui:Button name="ControlsButton" class="hud-menu-button hud-controls-button" focusable="false">
+        <ui:VisualElement name="ControlsButtonShadow" class="hud-menu-btn-shadow" picking-mode="Ignore" />
+        <ui:VisualElement name="ControlsButtonBox" class="hud-menu-btn-box" picking-mode="Ignore">
+            <ui:VisualElement name="ControlsButtonIcon" class="hud-menu-btn-icon hud-icon-controls"
+                picking-mode="Ignore" />
+            <ui:VisualElement name="ControlsButtonTab" class="hud-menu-btn-esc hud-badge-tab" picking-mode="Ignore" />
+        </ui:VisualElement>
+    </ui:Button>
     <ui:Button name="MenuButton" class="hud-menu-button" focusable="false">
         <ui:VisualElement name="MenuButtonShadow" class="hud-menu-btn-shadow" picking-mode="Ignore" />
         <ui:VisualElement name="MenuButtonBox" class="hud-menu-btn-box" picking-mode="Ignore">

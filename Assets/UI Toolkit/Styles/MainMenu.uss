@@ -315,6 +315,11 @@
     transition-timing-function: ease-out, ease-out, ease-out, ease-out;
 }
 
+.hud-controls-button {
+    right: 124px;
+    bottom: 36px;
+}
+
 /* Ícone de Configurações: Centralizado na face do hexágono (gira junto com a box) */
 .hud-menu-btn-icon {
     position: absolute;
@@ -327,6 +332,11 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
+/* Ícone de Controles: substitui apenas a textura */
+.hud-icon-controls {
+    background-image: url("project://database/Assets/Arts/InGameUI/Bot%C3%B5es/%C3%8Dcone_Controles.png?fileID=192893356250108789&guid=a1f8aa4af19b9644889182691fd2a478&type=3#%C3%8Dcone_Controles_0");
+}
+
 /* Badge ESC: Tecla SVG do teclado dentro da box, na aba preta */
 .hud-menu-btn-esc {
     position: absolute;
@@ -337,6 +347,12 @@
     translate: -50% -50%;
     background-image: url("../../Arts/Keyboard/keyboard_escape_outline.svg");
     -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Badge TAB: substitui a textura e ajusta levemente a largura */
+.hud-badge-tab {
+    width: 19px;
+    background-image: url("../../Arts/Keyboard/keyboard_tab_outline.svg");
 }
 
 /* ── Efeitos de Hover e Clique (apenas na box) ── */

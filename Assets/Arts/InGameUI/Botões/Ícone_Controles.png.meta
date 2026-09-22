@@ -5,9 +5,6 @@ TextureImporter:
   - first:
       213: 192893356250108789
     second: "\xCDcone_Controles_0"
-  - first:
-      213: -2321456643119977989
-    second: "\xCDcone_Controles_1"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -120,11 +117,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 58
-        width: 57
-        height: 32
+        y: 0
+        width: 98
+        height: 90
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -133,28 +130,6 @@ TextureImporter:
       bones: []
       spriteID: 57312da4c7b4da200800000000000000
       internalID: 192893356250108789
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: "\xCDcone_Controles_1"
-      rect:
-        serializedVersion: 2
-        x: 7
-        y: 0
-        width: 91
-        height: 69
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bf9ec519b7788cfd0800000000000000
-      internalID: -2321456643119977989
       vertices: []
       indices: 
       edges: []
@@ -174,7 +149,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       "\xCDcone_Controles_0": 192893356250108789
-      "\xCDcone_Controles_1": -2321456643119977989
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
