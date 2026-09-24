@@ -253,7 +253,7 @@
 .hud-menu-button {
     position: absolute;
     bottom: 24px;
-    right: 56px;
+    right: 52px;
     width: 76px;
     height: 76px;
     scale: 0.9 0.9;
@@ -316,7 +316,7 @@
 }
 
 .hud-controls-button {
-    right: 124px;
+    right: 120px;
     bottom: 36px;
 }
 

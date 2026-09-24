@@ -1,47 +1,52 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI%20Toolkit/Styles/HUDLabels.uss?fileID=7433441132597879392&amp;guid=c6ecc659333acba40a615535c06fc108&amp;type=3#HUDLabels"/>
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements"
+    noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style
+        src="project://database/Assets/UI%20Toolkit/Styles/HUDLabels.uss?fileID=7433441132597879392&amp;guid=c6ecc659333acba40a615535c06fc108&amp;type=3#HUDLabels" />
     <ui:VisualElement name="HudRoot" class="hud-root">
         <ui:VisualElement name="TimerContainer" class="hud-timer-container" style="left: 64px;">
-            <ui:Label text="00:00" name="TimerText" class="hud-timer-text"/>
+            <ui:Label text="00:00" name="TimerText" class="hud-timer-text" />
         </ui:VisualElement>
         <ui:VisualElement class="hud-title-wrapper">
             <ui:VisualElement name="TitleContainer" class="hud-title-container">
-                <ui:Label text="Flip-Flop JK" name="TitleText" class="hud-title-text"/>
+                <ui:Label text="&lt;cspace=-0.06em&gt;FLIP FLOP JK&lt;/cspace&gt;" name="TitleText"
+                    class="hud-title-text" />
+                <ui:Label text="&lt;cspace=-0.04em&gt;COM ENTRADAS ASSÍNCRONAS&lt;/cspace&gt;" name="SubtitleText"
+                    class="hud-subtitle-text" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="J_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon"/>
+            <ui:VisualElement class="signal-icon" />
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline"/>
-                <ui:Label text="J" class="signal-text"/>
+                <ui:VisualElement class="signal-overline" />
+                <ui:Label text="J" class="signal-text" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="K_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon"/>
+            <ui:VisualElement class="signal-icon" />
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline"/>
-                <ui:Label text="K" class="signal-text"/>
+                <ui:VisualElement class="signal-overline" />
+                <ui:Label text="K" class="signal-text" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Preset_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon"/>
+            <ui:VisualElement class="signal-icon" />
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline"/>
-                <ui:Label text="PRE" class="signal-text"/>
+                <ui:VisualElement class="signal-overline" />
+                <ui:Label text="PRE" class="signal-text" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Clear_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon"/>
+            <ui:VisualElement class="signal-icon" />
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline"/>
-                <ui:Label text="CLR" class="signal-text"/>
+                <ui:VisualElement class="signal-overline" />
+                <ui:Label text="CLR" class="signal-text" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Clock_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon"/>
+            <ui:VisualElement class="signal-icon" />
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline"/>
-                <ui:Label text="CLK" class="signal-text"/>
+                <ui:VisualElement class="signal-overline" />
+                <ui:Label text="CLK" class="signal-text" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

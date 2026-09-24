@@ -41,33 +41,48 @@
     margin: 0;
 }
 
-/* ── Level Title (Top-Center) ── */
+/* ── Level Title (Bottom-Left) ── */
 
 .hud-title-wrapper {
     position: absolute;
-    top: 18px;
-    left: 0;
-    right: 0;
-    align-items: center;
-    justify-content: flex-start;
+    bottom: 28px;
+    left: 68px;
+    align-items: flex-start;
+    justify-content: flex-end;
     pointer-events: none;
 }
 
 .hud-title-container {
     background-color: transparent;
     border-width: 0;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-end;
 }
 
 .hud-title-text {
-    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/Exo2-VariableFont_wght.ttf?fileID=12800000&guid=06cc052497f62034fb43e3edf087d21a&type=3#Exo2-VariableFont_wght");
+    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
-    font-size: 28px;
+    font-size: 38px;
     color: #FFFFFF;
-    -unity-text-align: middle-center;
+    -unity-text-align: middle-left;
     padding: 0;
     margin: 0;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: #000000;
+    text-shadow: 4px 4px 0px #000000;
+    letter-spacing: -2px;
+}
+
+.hud-subtitle-text {
+    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Italic.otf?fileID=12800000&guid=3216756f7c4a20146a30909395f0db55&type=3#FS Industrie Italic");
+    font-size: 26px;
+    color: #FFFFFF;
+    -unity-text-align: middle-left;
+    padding: 0;
+    margin-top: 2px;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /* ── Signal HUD Labels ── */
