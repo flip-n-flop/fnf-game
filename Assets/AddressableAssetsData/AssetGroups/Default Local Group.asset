@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Default Local Group
   m_GUID: ebd7331100d84af48b1b3c05ef497217
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 2bbd195ae471f6740b804e576e15fa3c
+    m_Address: Assets/TextMesh Pro/Fonts/FS Industrie Bold Italic.otf
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: cb163caadce02a747889fda2a70b2e68, type: 2}
   m_SchemaSet:
