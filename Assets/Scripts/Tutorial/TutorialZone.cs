@@ -27,15 +27,13 @@ public class TutorialZone : MonoBehaviour
 
         if (tutorial.tipo == TipoTutorial.Observacional)
         {
-            Mostrar(); // sem timer, comportamento inalterado
+            Mostrar();
             return;
         }
 
-        bool primeiraVez = !_entrouAlgumaVez;
-        _entrouAlgumaVez = true;
+        bool primeiraVez = !TutorialManager.Instance.JaVisitou(tutorial.id);
+        TutorialManager.Instance.MarcarVisitado(tutorial.id);
 
-        // Instantâneo só na primeira entrada. Da segunda em diante, o timer de
-        // ociosidade no Update() decide quando reaparecer — nada a fazer aqui.
         if (primeiraVez && !tutorial.aguardarOciosidadeParaExibir)
             Mostrar();
     }
