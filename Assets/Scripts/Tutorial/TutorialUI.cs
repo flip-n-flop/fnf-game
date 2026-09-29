@@ -93,8 +93,9 @@ public class TutorialUI : MonoBehaviour
     {
         if (acaoRef == null || acaoRef.action == null) return "???";
 
-        bool querControle = InputDeviceTracker.Instance != null &&
-                             InputDeviceTracker.Instance.DispositivoAtual == TipoDispositivoInput.Controle;
+        TipoDispositivoInput dispositivoAtivo = InputDeviceTracker.Instance != null
+            ? InputDeviceTracker.Instance.DispositivoAtual
+            : TipoDispositivoInput.TecladoMouse;
 
         var bindings = acaoRef.action.bindings;
         var nomes = new List<string>();
@@ -106,17 +107,15 @@ public class TutorialUI : MonoBehaviour
 
             if (binding.isComposite)
             {
-                // Junta todas as partes deste composite (ex: AD -> A, D) num único grupo
                 var partes = new List<string>();
                 int j = i + 1;
-                while (j < bindings.Count && bindings[i].isPartOfComposite)
+                while (j < bindings.Count && bindings[j].isPartOfComposite)
                 {
                     string pathParte = bindings[j].hasOverrides ? bindings[j].overridePath : bindings[j].path;
-                    if (!string.IsNullOrEmpty(pathParte))
+                    if (!string.IsNullOrEmpty(pathParte) && ClassificarPath(pathParte) == dispositivoAtivo)
                     {
-                        bool parteEhDeControle = pathParte.Contains("<Gamepad>");
-                        if (querControle == parteEhDeControle)
-                            partes.Add(InputControlPath.ToHumanReadableString(pathParte, InputControlPath.HumanReadableStringOptions.OmitDevice));
+                        partes.Add(InputControlPath.ToHumanReadableString(
+                            pathParte, InputControlPath.HumanReadableStringOptions.OmitDevice));
                     }
                     j++;
                 }
@@ -130,38 +129,32 @@ public class TutorialUI : MonoBehaviour
 
             if (!binding.isPartOfComposite)
             {
-                // Binding simples, como já era antes
                 string path = binding.hasOverrides ? binding.overridePath : binding.path;
-                if (!string.IsNullOrEmpty(path))
+                if (!string.IsNullOrEmpty(path) && ClassificarPath(path) == dispositivoAtivo)
                 {
-                    bool ehDeControle = path.Contains("<Gamepad>");
-                    if (querControle == ehDeControle)
-                    {
-                        string legivel = InputControlPath.ToHumanReadableString(
-                            path, InputControlPath.HumanReadableStringOptions.OmitDevice);
-                        if (!nomes.Contains(legivel)) nomes.Add(legivel);
-                    }
+                    string legivel = InputControlPath.ToHumanReadableString(
+                        path, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                    if (!nomes.Contains(legivel)) nomes.Add(legivel);
                 }
             }
 
             i++;
         }
 
-        // Fallback: se não achou nenhum binding do dispositivo atual, mostra qualquer um disponível
-        // if (nomes.Count == 0)
-        // {
-        //     foreach (var binding in acaoRef.action.bindings)
-        //     {
-        //         if (binding.isComposite || binding.isPartOfComposite) continue;
-        //         string path = binding.hasOverrides ? binding.overridePath : binding.path;
-        //         if (string.IsNullOrEmpty(path)) continue;
-
-        //         nomes.Add(InputControlPath.ToHumanReadableString(
-        //             path, InputControlPath.HumanReadableStringOptions.OmitDevice));
-        //     }
-        // }
-
         return nomes.Count > 0 ? string.Join(" ou ", nomes) : "???";
+    }
+
+    /// <summary>
+    /// Maps a binding path to its device group, based on the Input System control-path prefix.
+    /// Returns null for unrecognized device groups (excluded from the tutorial text).
+    /// </summary>
+    private TipoDispositivoInput? ClassificarPath(string path)
+    {
+        if (path.Contains("<Keyboard>") || path.Contains("<Mouse>")) return TipoDispositivoInput.TecladoMouse;
+        if (path.Contains("<Gamepad>")) return TipoDispositivoInput.Gamepad;
+        if (path.Contains("<Joystick>")) return TipoDispositivoInput.Joystick;
+        if (path.Contains("<XRController>")) return TipoDispositivoInput.XRController;
+        return null;
     }
 
     private void OnLocaleChanged(Locale _)
