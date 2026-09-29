@@ -96,21 +96,55 @@ public class TutorialUI : MonoBehaviour
         bool querControle = InputDeviceTracker.Instance != null &&
                              InputDeviceTracker.Instance.DispositivoAtual == TipoDispositivoInput.Controle;
 
+        var bindings = acaoRef.action.bindings;
         var nomes = new List<string>();
-        foreach (var binding in acaoRef.action.bindings)
+        int i = 0;
+
+        while (i < bindings.Count)
         {
-            if (binding.isComposite || binding.isPartOfComposite) continue;
+            var binding = bindings[i];
 
-            string path = binding.hasOverrides ? binding.overridePath : binding.path;
-            if (string.IsNullOrEmpty(path)) continue;
+            if (binding.isComposite)
+            {
+                // Junta todas as partes deste composite (ex: AD -> A, D) num único grupo
+                var partes = new List<string>();
+                int j = i + 1;
+                while (j < bindings.Count && bindings[i].isPartOfComposite)
+                {
+                    string pathParte = bindings[j].hasOverrides ? bindings[j].overridePath : bindings[j].path;
+                    if (!string.IsNullOrEmpty(pathParte))
+                    {
+                        bool parteEhDeControle = pathParte.Contains("<Gamepad>");
+                        if (querControle == parteEhDeControle)
+                            partes.Add(InputControlPath.ToHumanReadableString(pathParte, InputControlPath.HumanReadableStringOptions.OmitDevice));
+                    }
+                    j++;
+                }
 
-            bool ehDeControle = path.Contains("<Gamepad>");
-            if (querControle != ehDeControle) continue; // filtra pelo dispositivo atual
+                if (partes.Count > 0)
+                    nomes.Add(string.Join("/", partes));
 
-            string legivel = InputControlPath.ToHumanReadableString(
-                path, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                i = j;
+                continue;
+            }
 
-            if (!nomes.Contains(legivel)) nomes.Add(legivel);
+            if (!binding.isPartOfComposite)
+            {
+                // Binding simples, como já era antes
+                string path = binding.hasOverrides ? binding.overridePath : binding.path;
+                if (!string.IsNullOrEmpty(path))
+                {
+                    bool ehDeControle = path.Contains("<Gamepad>");
+                    if (querControle == ehDeControle)
+                    {
+                        string legivel = InputControlPath.ToHumanReadableString(
+                            path, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                        if (!nomes.Contains(legivel)) nomes.Add(legivel);
+                    }
+                }
+            }
+
+            i++;
         }
 
         // Fallback: se não achou nenhum binding do dispositivo atual, mostra qualquer um disponível
