@@ -1,11 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Marks a trigger zone that shows a tutorial while the Player is inside it,
-/// and hides it on exit. No success/failure logic — purely presence-based.
-/// Meant to be spawned by <see cref="TutorialSpawner"/> from level JSON data,
-/// mirroring how <see cref="ObstacleSpawner"/> spawns obstacle GameObjects.
-/// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class TutorialZone : MonoBehaviour
 {
@@ -14,13 +8,13 @@ public class TutorialZone : MonoBehaviour
     private bool _jogadorDentro;
     private bool _visivelAtualmente;
     private bool _aguardandoParaEsconder;
-    private bool _entrouAlgumaVez; // controla o "instantâneo só na primeira vez"
     private float _tempoParado;
     private float _contagemParaEsconder;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player") || tutorial == null) return;
+        if (tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id)) return; // nunca mais aparece
 
         _jogadorDentro = true;
         _tempoParado = 0f;
@@ -51,12 +45,14 @@ public class TutorialZone : MonoBehaviour
     {
         if (!_jogadorDentro || tutorial == null) return;
         if (tutorial.tipo != TipoTutorial.Interativo) return;
+        if (tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id)) return;
 
         bool parado = EstaOciosoParaEsteTutorial();
         _tempoParado = parado ? _tempoParado + Time.deltaTime : 0f;
 
-        if (!_visivelAtualmente && !_aguardandoParaEsconder &&
-            _tempoParado >= TutorialManager.Instance.TempoOciosidadeParaReexibir)
+        float tempoOciosidade = TutorialManager.Instance.ResolverTempoOciosidade(tutorial);
+
+        if (!_visivelAtualmente && !_aguardandoParaEsconder && _tempoParado >= tempoOciosidade)
         {
             Mostrar();
         }
@@ -65,8 +61,9 @@ public class TutorialZone : MonoBehaviour
             tutorial.acaoInput != null && tutorial.acaoInput.action != null &&
             tutorial.acaoInput.action.triggered)
         {
+            TutorialManager.Instance.MarcarConcluido(tutorial.id); // aprendeu — marca aqui, independente do delay de sumir
             _aguardandoParaEsconder = true;
-            _contagemParaEsconder = TutorialManager.Instance.AtrasoAoAvancarParaEsconder;
+            _contagemParaEsconder = TutorialManager.Instance.ResolverAtrasoAoAvancar(tutorial);
         }
 
         if (_aguardandoParaEsconder)
@@ -81,17 +78,11 @@ public class TutorialZone : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// "Ocioso" agora é relativo apenas à ação que este tutorial específico ensina —
-    /// pressionar outras ações do jogo não afeta este timer.
-    /// </summary>
     private bool EstaOciosoParaEsteTutorial()
     {
         if (tutorial.acaoInput != null && tutorial.acaoInput.action != null)
             return !tutorial.acaoInput.action.IsPressed();
 
-        // Fallback, caso o tutorial não tenha uma ação associada (não deveria acontecer
-        // em tutoriais Interativos, mas evita erro caso o campo fique vazio por engano).
         return InputDeviceTracker.Instance == null || !InputDeviceTracker.Instance.HouveInputEsteFrame;
     }
 
