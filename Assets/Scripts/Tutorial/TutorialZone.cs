@@ -14,7 +14,7 @@ public class TutorialZone : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player") || tutorial == null) return;
-        if (tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id)) return; // nunca mais aparece
+        if (tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id)) return;
 
         _jogadorDentro = true;
         _tempoParado = 0f;
@@ -45,14 +45,17 @@ public class TutorialZone : MonoBehaviour
     {
         if (!_jogadorDentro || tutorial == null) return;
         if (tutorial.tipo != TipoTutorial.Interativo) return;
-        if (tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id)) return;
+
+        bool bloqueadoPorMostrarUmaVez = tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id);
 
         bool parado = EstaOciosoParaEsteTutorial();
         _tempoParado = parado ? _tempoParado + Time.deltaTime : 0f;
 
         float tempoOciosidade = TutorialManager.Instance.ResolverTempoOciosidade(tutorial);
 
-        if (!_visivelAtualmente && !_aguardandoParaEsconder && _tempoParado >= tempoOciosidade)
+        // Só impede NOVAS exibições por ociosidade se já foi concluído e a flag estiver ativa
+        if (!bloqueadoPorMostrarUmaVez && !_visivelAtualmente && !_aguardandoParaEsconder &&
+            _tempoParado >= tempoOciosidade)
         {
             Mostrar();
         }
@@ -61,11 +64,12 @@ public class TutorialZone : MonoBehaviour
             tutorial.acaoInput != null && tutorial.acaoInput.action != null &&
             tutorial.acaoInput.action.triggered)
         {
-            TutorialManager.Instance.MarcarConcluido(tutorial.id); // aprendeu — marca aqui, independente do delay de sumir
+            TutorialManager.Instance.MarcarConcluido(tutorial.id);
             _aguardandoParaEsconder = true;
             _contagemParaEsconder = TutorialManager.Instance.ResolverAtrasoAoAvancar(tutorial);
         }
 
+        // Esse bloco roda SEMPRE, mesmo já concluído — garante que o tutorial atual termine de sumir
         if (_aguardandoParaEsconder)
         {
             _contagemParaEsconder -= Time.deltaTime;
