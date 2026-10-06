@@ -48,6 +48,12 @@ public class RebindManager : MonoBehaviour
     private const string SaveKey = "ControlBindingsSaved";
 
     /// <summary>
+    /// Raised whenever a binding override changes (rebind completed or restored to defaults).
+    /// Allows other systems (e.g. TutorialUI) to react without a direct reference to RebindManager.
+    /// </summary>
+    public static event System.Action OnBindingsChanged;
+
+    /// <summary>
     /// Input Action Asset containing action maps and default key bindings.
     /// </summary>
     [Header("Key Configuration")]
@@ -234,7 +240,6 @@ public class RebindManager : MonoBehaviour
     #endregion
 
     #region Rebinding Logic
-
     /// <summary>
     /// Initiates an interactive rebinding operation for the specified input action.
     /// Disables action, displays listening prompt on button, and configures cancellation / completion callbacks.
@@ -286,6 +291,8 @@ public class RebindManager : MonoBehaviour
         action.Enable();
         SaveBindings();
         DrawUI();
+
+        OnBindingsChanged?.Invoke();
     }
 
     /// <summary>
@@ -396,6 +403,8 @@ public class RebindManager : MonoBehaviour
         }
 
         DrawUI();
+
+        OnBindingsChanged?.Invoke();
     }
 
     #endregion

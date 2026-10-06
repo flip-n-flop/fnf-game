@@ -27,8 +27,33 @@ public class TutorialUI : MonoBehaviour
         _texto = root.Q<Label>("TutorialText");
     }
 
-    private void OnEnable() => LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
-    private void OnDisable() => LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+    private void OnEnable()
+    {
+        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
+        RebindManager.OnBindingsChanged += OnBindingsChanged;
+
+        if (InputDeviceTracker.Instance != null)
+            InputDeviceTracker.Instance.OnDispositivoAlterado += OnDispositivoAlterado;
+    }
+
+    private void OnDisable()
+    {
+        LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+        RebindManager.OnBindingsChanged -= OnBindingsChanged;
+
+        if (InputDeviceTracker.Instance != null)
+            InputDeviceTracker.Instance.OnDispositivoAlterado -= OnDispositivoAlterado;
+    }
+
+    private void OnBindingsChanged()
+    {
+        if (_dadosAtuais != null) Mostrar(_dadosAtuais);
+    }
+
+    private void OnDispositivoAlterado(TipoDispositivoInput _)
+    {
+        if (_dadosAtuais != null) Mostrar(_dadosAtuais); // reexibe com o texto/tecla atualizados
+    }
 
     public void Mostrar(TutorialData dados)
     {
@@ -68,21 +93,68 @@ public class TutorialUI : MonoBehaviour
     {
         if (acaoRef == null || acaoRef.action == null) return "???";
 
+        TipoDispositivoInput dispositivoAtivo = InputDeviceTracker.Instance != null
+            ? InputDeviceTracker.Instance.DispositivoAtual
+            : TipoDispositivoInput.TecladoMouse;
+
+        var bindings = acaoRef.action.bindings;
         var nomes = new List<string>();
-        foreach (var binding in acaoRef.action.bindings)
+        int i = 0;
+
+        while (i < bindings.Count)
         {
-            if (binding.isComposite || binding.isPartOfComposite) continue;
+            var binding = bindings[i];
 
-            string path = binding.hasOverrides ? binding.overridePath : binding.path;
-            if (string.IsNullOrEmpty(path)) continue;
+            if (binding.isComposite)
+            {
+                var partes = new List<string>();
+                int j = i + 1;
+                while (j < bindings.Count && bindings[j].isPartOfComposite)
+                {
+                    string pathParte = bindings[j].hasOverrides ? bindings[j].overridePath : bindings[j].path;
+                    if (!string.IsNullOrEmpty(pathParte) && ClassificarPath(pathParte) == dispositivoAtivo)
+                    {
+                        partes.Add(InputControlPath.ToHumanReadableString(
+                            pathParte, InputControlPath.HumanReadableStringOptions.OmitDevice));
+                    }
+                    j++;
+                }
 
-            string legivel = InputControlPath.ToHumanReadableString(
-                path, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                if (partes.Count > 0)
+                    nomes.Add(string.Join("/", partes));
 
-            if (!nomes.Contains(legivel)) nomes.Add(legivel);
+                i = j;
+                continue;
+            }
+
+            if (!binding.isPartOfComposite)
+            {
+                string path = binding.hasOverrides ? binding.overridePath : binding.path;
+                if (!string.IsNullOrEmpty(path) && ClassificarPath(path) == dispositivoAtivo)
+                {
+                    string legivel = InputControlPath.ToHumanReadableString(
+                        path, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                    if (!nomes.Contains(legivel)) nomes.Add(legivel);
+                }
+            }
+
+            i++;
         }
 
         return nomes.Count > 0 ? string.Join(" ou ", nomes) : "???";
+    }
+
+    /// <summary>
+    /// Maps a binding path to its device group, based on the Input System control-path prefix.
+    /// Returns null for unrecognized device groups (excluded from the tutorial text).
+    /// </summary>
+    private TipoDispositivoInput? ClassificarPath(string path)
+    {
+        if (path.Contains("<Keyboard>") || path.Contains("<Mouse>")) return TipoDispositivoInput.TecladoMouse;
+        if (path.Contains("<Gamepad>")) return TipoDispositivoInput.Gamepad;
+        if (path.Contains("<Joystick>")) return TipoDispositivoInput.Joystick;
+        if (path.Contains("<XRController>")) return TipoDispositivoInput.XRController;
+        return null;
     }
 
     private void OnLocaleChanged(Locale _)

@@ -26,6 +26,14 @@ MonoBehaviour:
     m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para dar o dash!
     m_Metadata:
       m_Items: []
+  - m_Id: 4863671705821184
+    m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para inverter de gravidade!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4864163613794304
+    m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para se mover!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
