@@ -34,6 +34,25 @@ MonoBehaviour:
     m_Localized: Press {TECLA} to move!
     m_Metadata:
       m_Items: []
+  - m_Id: 10141638556147712
+    m_Localized: When {COR_J}J = 0{FIM} and {COR_K}K = 0{FIM}, remain in the same
+      output position!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141641429245952
+    m_Localized: When {COR_J}J = 1{FIM} and {COR_K}K = 0{FIM}, remain at output position
+      1 (high)!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141643106967552
+    m_Localized: When {COR_J}J = 0{FIM} and {COR_K}K = 1{FIM}, stay at output position
+      0 (low)!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141644545613824
+    m_Localized: When {COR_J}J = 1{FIM} and {COR_K}K = 1{FIM}, switch output positions!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

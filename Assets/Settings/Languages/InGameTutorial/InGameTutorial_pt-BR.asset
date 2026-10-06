@@ -34,6 +34,26 @@ MonoBehaviour:
     m_Localized: Aperte {TECLA} para se mover!
     m_Metadata:
       m_Items: []
+  - m_Id: 10141638556147712
+    m_Localized: "Quando {COR_J}J = 0{FIM} e {COR_K}K = 0{FIM}, mantenha-se na mesma
+      posi\xE7\xE3o de sa\xEDda!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141641429245952
+    m_Localized: "Quando {COR_J}J = 1{FIM} e {COR_K}K = 0{FIM}, mantenha-se na posi\xE7\xE3o
+      1 de sa\xEDda (no teto)!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141643106967552
+    m_Localized: "Quando {COR_J}J = 0{FIM} e {COR_K}K = 1{FIM}, mantenha-se na posi\xE7\xE3o
+      0 de sa\xEDda (no ch\xE3o)!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141644545613824
+    m_Localized: "Quando {COR_J}J = 1{FIM} e {COR_K}K = 1{FIM}, troque de posi\xE7\xE3o
+      de sa\xEDda!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

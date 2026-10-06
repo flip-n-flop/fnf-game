@@ -31,6 +31,22 @@ MonoBehaviour:
     m_Key: '"movimento"'
     m_Metadata:
       m_Items: []
+  - m_Id: 10141638556147712
+    m_Key: "\"mant\xE9m\""
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141641429245952
+    m_Key: '"set"'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141643106967552
+    m_Key: '"reset"'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141644545613824
+    m_Key: '"comuta"'
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

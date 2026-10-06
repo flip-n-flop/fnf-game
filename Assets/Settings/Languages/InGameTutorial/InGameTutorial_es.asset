@@ -34,6 +34,26 @@ MonoBehaviour:
     m_Localized: "\xA1Presiona {TECLA} para se moverte!"
     m_Metadata:
       m_Items: []
+  - m_Id: 10141644545613824
+    m_Localized: "Cuando {COR_J}J = 1{FIM} y {COR_K}K = 1{FIM}, \xA1cambia la posici\xF3n
+      de salida!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141643106967552
+    m_Localized: "Cuando {COR_J}J = 0{FIM} y {COR_K}K = 1{FIM}, \xA1mantente en la
+      posici\xF3n de salida 0 (en el suelo)!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141641429245952
+    m_Localized: "Cuando {COR_J}J = 1{FIM} y {COR_K}K = 0{FIM}, \xA1mant\xE9ngase
+      en la posici\xF3n 1 de salida (en el techo)!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10141638556147712
+    m_Localized: "Cuando {COR_J}J = 0{FIM} y {COR_K}K = 0{FIM}, \xA1mantente en la
+      misma posici\xF3n de salida!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
