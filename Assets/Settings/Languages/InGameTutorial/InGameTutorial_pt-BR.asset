@@ -19,19 +19,19 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 42221199360
-    m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para pular!
+    m_Localized: Aperte {TECLA} para pular!
     m_Metadata:
       m_Items: []
   - m_Id: 207099289600
-    m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para dar o dash!
+    m_Localized: Aperte {TECLA} para dar o dash!
     m_Metadata:
       m_Items: []
   - m_Id: 4863671705821184
-    m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para inverter de gravidade!
+    m_Localized: Aperte {TECLA} para inverter de gravidade!
     m_Metadata:
       m_Items: []
   - m_Id: 4864163613794304
-    m_Localized: Aperte <b><color=#FFD700>{TECLA}</color></b> para se mover!
+    m_Localized: Aperte {TECLA} para se mover!
     m_Metadata:
       m_Items: []
   references:

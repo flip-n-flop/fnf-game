@@ -19,19 +19,19 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 42221199360
-    m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to jump!
+    m_Localized: Press {TECLA} to jump!
     m_Metadata:
       m_Items: []
   - m_Id: 207099289600
-    m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to dash!
+    m_Localized: Press {TECLA} to dash!
     m_Metadata:
       m_Items: []
   - m_Id: 4863671705821184
-    m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to invert gravity!
+    m_Localized: Press {TECLA} to invert gravity!
     m_Metadata:
       m_Items: []
   - m_Id: 4864163613794304
-    m_Localized: Press <b><color=#FFD700>{TECLA}</color></b> to move!
+    m_Localized: Press {TECLA} to move!
     m_Metadata:
       m_Items: []
   references:

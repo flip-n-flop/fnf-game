@@ -45,7 +45,11 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="TutorialContainer" class="tutorial-container">
-            <ui:Label text="" name="TutorialText" class="tutorial-text"/>
+            <ui:VisualElement name="TutorialContainer" class="tutorial-container">
+                <ui:Label text="" name="TutorialTextoAntes" class="tutorial-text"/>
+                <ui:VisualElement name="TutorialIcones" class="tutorial-icones"/>
+                <ui:Label text="" name="TutorialTextoDepois" class="tutorial-text"/>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
