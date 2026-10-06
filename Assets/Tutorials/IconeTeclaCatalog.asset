@@ -182,11 +182,11 @@ MonoBehaviour:
   - path: <Keyboard>/z
     icone: {fileID: 7388822144124034973, guid: 54cf5e71c57a423489cd6a0f9b4c2598, type: 3}
   - path: <Keyboard>/leftArrow
-    icone: {fileID: 7388822144124034973, guid: dd5d75853f93b0044a619999ef852343, type: 3}
+    icone: {fileID: 7388822144124034973, guid: f2adddaa6353f6f45a0ec37eb712727b, type: 3}
   - path: <Mouse>/delta
     icone: {fileID: 7388822144124034973, guid: 622977eb59f5ef4498c35727fd6e4e19, type: 3}
   - path: <Keyboard>/rightArrow
-    icone: {fileID: 7388822144124034973, guid: a810d9931c862524caaf094bcadddae9, type: 3}
+    icone: {fileID: 7388822144124034973, guid: 019bc525f4f0085428b8fb887c63a92f, type: 3}
   - path: <Mouse>/scroll
     icone: {fileID: 7388822144124034973, guid: 59e45c17b46c3c1469a6e22926bb9ca4, type: 3}
   - path: <Mouse>/backButton

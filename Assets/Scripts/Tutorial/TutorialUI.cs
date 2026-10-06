@@ -55,11 +55,17 @@ public class TutorialUI : MonoBehaviour
     {
         if (_container == null || dados == null) return;
 
+        Debug.Log($"Mostrar chamado. textoAntes null? {_textoAntes == null}, textoDepois null? {_textoDepois == null}, icones null? {_icones == null}, catalogo null? {catalogoIcones == null}");
+
         _dadosAtuais = dados;
         _container.style.display = DisplayStyle.Flex;
 
         var operacao = LocalizationSettings.StringDatabase.GetLocalizedStringAsync(tabelaLocalizacao, dados.id);
-        operacao.Completed += handle => AplicarTexto(dados, handle.Result);
+        operacao.Completed += handle =>
+        {
+            Debug.Log($"Localization completou: status={handle.Status}, resultado='{handle.Result}'");
+            AplicarTexto(dados, handle.Result);
+        };
         if (operacao.IsDone) AplicarTexto(dados, operacao.Result);
     }
 
@@ -75,6 +81,8 @@ public class TutorialUI : MonoBehaviour
         if (_textoAntes == null || textoLocalizado == null || _dadosAtuais != dados) return;
 
         int indice = textoLocalizado.IndexOf("{TECLA}");
+        Debug.Log($"Texto recebido: '{textoLocalizado}', índice de {{TECLA}}: {indice}, tipo: {dados.tipo}");
+
         if (indice >= 0 && dados.tipo == TipoTutorial.Interativo)
         {
             _textoAntes.text = textoLocalizado.Substring(0, indice);
