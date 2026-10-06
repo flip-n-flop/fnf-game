@@ -35,6 +35,8 @@ public class TutorialUI : MonoBehaviour
     {
         LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
         RebindManager.OnBindingsChanged += OnBindingsChanged;
+        SignalColorManager.OnColorsChanged += OnCoresAlteradas; // novo
+
         if (InputDeviceTracker.Instance != null)
             InputDeviceTracker.Instance.OnDispositivoAlterado += OnDispositivoAlterado;
     }
@@ -43,9 +45,13 @@ public class TutorialUI : MonoBehaviour
     {
         LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
         RebindManager.OnBindingsChanged -= OnBindingsChanged;
+        SignalColorManager.OnColorsChanged -= OnCoresAlteradas; // novo
+
         if (InputDeviceTracker.Instance != null)
             InputDeviceTracker.Instance.OnDispositivoAlterado -= OnDispositivoAlterado;
     }
+
+    private void OnCoresAlteradas() { if (_dadosAtuais != null) Mostrar(_dadosAtuais); }
 
     private void OnBindingsChanged() { if (_dadosAtuais != null) Mostrar(_dadosAtuais); }
     private void OnDispositivoAlterado(TipoDispositivoInput _) { if (_dadosAtuais != null) Mostrar(_dadosAtuais); }
@@ -80,6 +86,8 @@ public class TutorialUI : MonoBehaviour
     {
         if (_textoAntes == null || textoLocalizado == null || _dadosAtuais != dados) return;
 
+        string textoComCores = ProcessarMarcadoresDeCor(textoLocalizado);
+
         int indice = textoLocalizado.IndexOf("{TECLA}");
         Debug.Log($"Texto recebido: '{textoLocalizado}', índice de {{TECLA}}: {indice}, tipo: {dados.tipo}");
 
@@ -95,6 +103,44 @@ public class TutorialUI : MonoBehaviour
             _textoDepois.text = "";
             _icones.Clear();
         }
+    }
+
+    /// <summary>
+    /// Substitui marcadores {COR_SINAL}texto{FIM} por rich text <color> usando a cor
+    /// atual do sinal correspondente no SignalColorManager (reflete customização do jogador).
+    /// </summary>
+    private string ProcessarMarcadoresDeCor(string texto)
+    {
+        var regex = new System.Text.RegularExpressions.Regex(
+            @"\{COR_(\w+)\}(.*?)\{FIM\}",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+
+        return regex.Replace(texto, match =>
+        {
+            string sinal = match.Groups[1].Value.ToUpperInvariant();
+            string conteudo = match.Groups[2].Value;
+
+            Color cor = ObterCorDoSinal(sinal);
+            string hex = ColorUtility.ToHtmlStringRGB(cor);
+
+            return $"<color=#{hex}>{conteudo}</color>";
+        });
+    }
+
+    private Color ObterCorDoSinal(string sinal)
+    {
+        var manager = SignalColorManager.Instance;
+        return sinal switch
+        {
+            "J" => manager.ColorJ,
+            "K" => manager.ColorK,
+            "CLK" => manager.ColorCLK,
+            "PRESET" => manager.ColorPreset,
+            "CLEAR" => manager.ColorClear,
+            "FEEDBACKSUCCESS" => manager.ColorFeedbackSuccess,
+            "FEEDBACKFAILURE" => manager.ColorFeedbackFailure,
+            _ => Color.white // marcador desconhecido — não quebra, só não colore
+        };
     }
 
     private void MontarIcones(InputActionReference acaoRef)
