@@ -19,12 +19,6 @@ public class TutorialZone : MonoBehaviour
         _jogadorDentro = true;
         _tempoParado = 0f;
 
-        if (tutorial.tipo == TipoTutorial.Observacional)
-        {
-            Mostrar();
-            return;
-        }
-
         bool primeiraVez = !TutorialManager.Instance.JaVisitou(tutorial.id);
         TutorialManager.Instance.MarcarVisitado(tutorial.id);
 
@@ -38,29 +32,36 @@ public class TutorialZone : MonoBehaviour
 
         _jogadorDentro = false;
         _aguardandoParaEsconder = false;
-        if (_visivelAtualmente) Esconder();
+
+        if (_visivelAtualmente)
+        {
+            // Observacional não tem "ação" pra marcar conclusão — conta como concluído
+            // ao terminar de ler e sair da zona.
+            if (tutorial.tipo == TipoTutorial.Observacional)
+                TutorialManager.Instance.MarcarConcluido(tutorial.id);
+
+            Esconder();
+        }
     }
 
     private void Update()
     {
         if (!_jogadorDentro || tutorial == null) return;
-        if (tutorial.tipo != TipoTutorial.Interativo) return;
-
-        bool bloqueadoPorMostrarUmaVez = tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id);
+        if (tutorial.mostrarApenasUmaVez && TutorialManager.Instance.JaConcluiu(tutorial.id)) return;
 
         bool parado = EstaOciosoParaEsteTutorial();
         _tempoParado = parado ? _tempoParado + Time.deltaTime : 0f;
 
         float tempoOciosidade = TutorialManager.Instance.ResolverTempoOciosidade(tutorial);
 
-        // Só impede NOVAS exibições por ociosidade se já foi concluído e a flag estiver ativa
-        if (!bloqueadoPorMostrarUmaVez && !_visivelAtualmente && !_aguardandoParaEsconder &&
-            _tempoParado >= tempoOciosidade)
+        if (!_visivelAtualmente && !_aguardandoParaEsconder && _tempoParado >= tempoOciosidade)
         {
             Mostrar();
         }
 
-        if (_visivelAtualmente && !_aguardandoParaEsconder &&
+        // Só tutoriais Interativos têm uma "ação" que dispara o esconder antecipado
+        if (tutorial.tipo == TipoTutorial.Interativo &&
+            _visivelAtualmente && !_aguardandoParaEsconder &&
             tutorial.acaoInput != null && tutorial.acaoInput.action != null &&
             tutorial.acaoInput.action.triggered)
         {
@@ -69,7 +70,6 @@ public class TutorialZone : MonoBehaviour
             _contagemParaEsconder = TutorialManager.Instance.ResolverAtrasoAoAvancar(tutorial);
         }
 
-        // Esse bloco roda SEMPRE, mesmo já concluído — garante que o tutorial atual termine de sumir
         if (_aguardandoParaEsconder)
         {
             _contagemParaEsconder -= Time.deltaTime;
@@ -84,9 +84,15 @@ public class TutorialZone : MonoBehaviour
 
     private bool EstaOciosoParaEsteTutorial()
     {
-        if (tutorial.acaoInput != null && tutorial.acaoInput.action != null)
+        if (tutorial.tipo == TipoTutorial.Interativo &&
+            tutorial.acaoInput != null && tutorial.acaoInput.action != null)
+        {
             return !tutorial.acaoInput.action.IsPressed();
+        }
 
+        // Observacional (ou Interativo sem ação definida): ocioso = o jogador não fez
+        // nenhum input geral. Para Observacional, isso cobre exatamente o seu pedido:
+        // "aguardar o jogador ficar um tempo parado ali".
         return InputDeviceTracker.Instance == null || !InputDeviceTracker.Instance.HouveInputEsteFrame;
     }
 
