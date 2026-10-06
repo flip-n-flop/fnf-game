@@ -93,13 +93,13 @@ public class TutorialUI : MonoBehaviour
 
         if (indice >= 0 && dados.tipo == TipoTutorial.Interativo)
         {
-            _textoAntes.text = textoLocalizado.Substring(0, indice);
-            _textoDepois.text = textoLocalizado.Substring(indice + "{TECLA}".Length);
+            _textoAntes.text = textoComCores.Substring(0, indice);
+            _textoDepois.text = textoComCores.Substring(indice + "{TECLA}".Length);
             MontarIcones(dados.acaoInput);
         }
         else
         {
-            _textoAntes.text = textoLocalizado;
+            _textoAntes.text = textoComCores;
             _textoDepois.text = "";
             _icones.Clear();
         }
