@@ -59,14 +59,8 @@ public class PathVerifier : MonoBehaviour
     public float CornerTolerance => cornerTolerance;
 
     [Header("Tolerance Visual Guide")]
-    [Tooltip("SpriteRenderer da linha/feixe visual de tolerância (filho 'Guia' do Player usando Guia.png).")]
+    [Tooltip("SpriteRenderer of the visual tolerance guide line (child of Player).")]
     [SerializeField] private SpriteRenderer toleranceGuide;
-
-    [Tooltip("Multiplicador da largura da tolerância (2x cobre o intervalo [-tolerância, +tolerância]).")]
-    [SerializeField] private float guideWidthMultiplier = 2f;
-
-    [Tooltip("Se ativado, mantém o Y da guia alinhado ao centro da câmera para não oscilar quando a aranha pula.")]
-    [SerializeField] private bool lockGuideYToCamera = true;
 
     [Header("Visual Feedback")]
     [Tooltip("Line color when the path segment is correct.")]
@@ -126,47 +120,15 @@ public class PathVerifier : MonoBehaviour
     }
 
     /// <summary>
-    /// Keeps the tolerance guide vertically centered with the camera if lockGuideYToCamera is enabled.
+    /// Configures the horizontal scale of the tolerance guide line to match double the corner tolerance.
+    /// Interacts with <see cref="toleranceGuide"/> to adjust local scale.
     /// </summary>
-    private void LateUpdate()
+    private void UpdateToleranceGuide()
     {
-        if (lockGuideYToCamera && toleranceGuide != null && Camera.main != null)
-        {
-            Vector3 pos = toleranceGuide.transform.position;
-            pos.y = Camera.main.transform.position.y;
-            toleranceGuide.transform.position = pos;
-        }
-    }
-
-    private void OnValidate()
-    {
-        UpdateToleranceGuide();
-    }
-
-    /// <summary>
-    /// Updates the horizontal scale of the tolerance guide visual line to match cornerTolerance.
-    /// </summary>
-    public void UpdateToleranceGuide()
-    {
-        if (toleranceGuide == null)
-        {
-            var player = FindFirstObjectByType<PlayerController>();
-            if (player != null)
-            {
-                var child = player.transform.Find("Guia");
-                if (child != null)
-                    toleranceGuide = child.GetComponent<SpriteRenderer>();
-            }
-        }
-
         if (toleranceGuide == null) return;
 
-        // Tolerância de 0.2 com multiplicador 2 resulta em scale.x = 0.4 (0.2 para cada lado)
-        float scaleX = cornerTolerance * guideWidthMultiplier;
-
         Vector3 scale = toleranceGuide.transform.localScale;
-        scale.x = scaleX;
-        if (scale.y < 1f) scale.y = 1f;
+        scale.x = cornerTolerance * 2f;
         toleranceGuide.transform.localScale = scale;
     }
 
