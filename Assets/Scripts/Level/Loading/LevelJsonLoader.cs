@@ -43,6 +43,10 @@ public class LevelJsonLoader : MonoBehaviour
     [SerializeField] private Transform obstaclesParent;
     [SerializeField] private List<ObstacleSpawner.ObstaclePrefabEntry> obstaclePrefabs = new List<ObstacleSpawner.ObstaclePrefabEntry>();
 
+    [Header("Signal Rendering")]
+    [Tooltip("Optional LineRenderer-based signal visualizer. When assigned, replaces tilemap rendering for diagram signals.")]
+    [SerializeField] private SignalLineRenderer signalLineRenderer;
+
     [Header("HUD Labels")]
     [SerializeField] private SignalLabelRenderer signalLabelRenderer;
 
@@ -245,6 +249,20 @@ public class LevelJsonLoader : MonoBehaviour
         obstacleSpawner = new ObstacleSpawner(
             obstaclesParent, obstaclePrefabs, terrainTilemap,
             startX, floorYRow, obstacleYRelativeToFloor);
+
+        if (signalLineRenderer == null)
+        {
+            signalLineRenderer = GetComponent<SignalLineRenderer>() ??
+                                 GetComponentInChildren<SignalLineRenderer>() ??
+                                 FindFirstObjectByType<SignalLineRenderer>();
+
+            if (signalLineRenderer == null)
+            {
+                var lineObj = new GameObject("SignalLineRenderer");
+                lineObj.transform.SetParent(transform, false);
+                signalLineRenderer = lineObj.AddComponent<SignalLineRenderer>();
+            }
+        }
     }
 
     /// <summary>
@@ -310,11 +328,6 @@ public class LevelJsonLoader : MonoBehaviour
         Color clearColor = SignalColorManager.Instance != null ? SignalColorManager.Instance.ColorClear : data.ClearSignalColor;
         Color clockColor = SignalColorManager.Instance != null ? SignalColorManager.Instance.ColorCLK : data.ClockSignalColor;
 
-        tilemapRenderer.RenderDiagram(ParsedJSignal, jY, jColor);
-        tilemapRenderer.RenderDiagram(ParsedKSignal, kY, kColor);
-        if (ParsedPresetSignal != null) tilemapRenderer.RenderDiagram(ParsedPresetSignal, presetY, presetColor);
-        if (ParsedClearSignal != null) tilemapRenderer.RenderDiagram(ParsedClearSignal, clearY, clearColor);
-
         GetClockSamplingParameters(out int clockStep, out _);
         int levelLength = LevelManager.Instance != null
             ? Mathf.RoundToInt(LevelManager.Instance.levelEndX)
@@ -328,7 +341,24 @@ public class LevelJsonLoader : MonoBehaviour
         bool risingEdge = string.Equals(data.ActiveClockEdge, "rising", StringComparison.OrdinalIgnoreCase);
         var clockPattern = BuildClockPattern(levelLength, clockStep, risingEdge);
 
-        tilemapRenderer.RenderClock(clockPattern, clockY, clockColor);
+        if (signalLineRenderer != null)
+        {
+            signalLineRenderer.ClearAllSignals();
+            signalLineRenderer.RenderSignals(
+                ParsedJSignal, ParsedKSignal, ParsedPresetSignal, ParsedClearSignal,
+                clockPattern,
+                jColor, kColor, presetColor, clearColor, clockColor,
+                startX);
+        }
+        else
+        {
+            tilemapRenderer.RenderDiagram(ParsedJSignal, jY, jColor);
+            tilemapRenderer.RenderDiagram(ParsedKSignal, kY, kColor);
+            if (ParsedPresetSignal != null) tilemapRenderer.RenderDiagram(ParsedPresetSignal, presetY, presetColor);
+            if (ParsedClearSignal != null) tilemapRenderer.RenderDiagram(ParsedClearSignal, clearY, clearColor);
+            tilemapRenderer.RenderClock(clockPattern, clockY, clockColor);
+        }
+
         tilemapRenderer.RenderTerrain(data.Floor, data.Ceiling, floorYRow, ceilingYRow, 3);
         tilemapRenderer.CompleteStaticScenery(floorYRow, ceilingYRow);
 
@@ -339,13 +369,35 @@ public class LevelJsonLoader : MonoBehaviour
         {
             bool asyncIsHigh = data.AsyncActive == 1;
 
-            signalLabelRenderer.GenerateLabels(
-                jY, kY, presetY, clearY, clockY,
-                ParsedPresetSignal != null,
-                ParsedClearSignal != null,
-                asyncIsHigh,
-                risingEdge
-            );
+            if (signalLineRenderer != null)
+            {
+                bool hasK = ParsedKSignal != null && ParsedKSignal.Length > 0;
+                string mainLabel = hasK ? "J" : "D";
+
+                signalLabelRenderer.GenerateLabels(
+                    signalLineRenderer.GetJWorldY(),
+                    signalLineRenderer.GetKWorldY(),
+                    signalLineRenderer.GetPresetWorldY(),
+                    signalLineRenderer.GetClearWorldY(),
+                    signalLineRenderer.GetClockWorldY(),
+                    ParsedPresetSignal != null,
+                    ParsedClearSignal != null,
+                    asyncIsHigh,
+                    risingEdge,
+                    hasK,
+                    mainLabel
+                );
+            }
+            else
+            {
+                signalLabelRenderer.GenerateLabels(
+                    jY, kY, presetY, clearY, clockY,
+                    ParsedPresetSignal != null,
+                    ParsedClearSignal != null,
+                    asyncIsHigh,
+                    risingEdge
+                );
+            }
         }
     }
 
@@ -354,18 +406,26 @@ public class LevelJsonLoader : MonoBehaviour
     #region Real-time Color Updates
 
     /// <summary>
-    /// Reapplies signal line colors to tilemaps when custom user colors are modified in settings.
+    /// Reapplies signal line colors to LineRenderers or tilemaps when custom user colors are modified in settings.
     /// Responds to the <see cref="SignalColorManager.OnColorsChanged"/> event.
     /// </summary>
     private void ApplySignalColors()
     {
-        if (tilemapRenderer == null) return;
         if (SignalColorManager.Instance == null) return;
-        if (_cachedLevelLength <= 0) return;
 
         Color jColor = SignalColorManager.Instance.ColorJ;
         Color kColor = SignalColorManager.Instance.ColorK;
         Color clkColor = SignalColorManager.Instance.ColorCLK;
+        Color presetColor = _hasPreset ? SignalColorManager.Instance.ColorPreset : Color.white;
+        Color clearColor = _hasClear ? SignalColorManager.Instance.ColorClear : Color.white;
+
+        if (signalLineRenderer != null)
+        {
+            signalLineRenderer.UpdateColors(jColor, kColor, clkColor, presetColor, clearColor);
+            return;
+        }
+
+        if (tilemapRenderer == null || _cachedLevelLength <= 0) return;
 
         ColorRow(inputTilemap, _cachedLevelLength, _cachedJ_Y, startX, jColor);
         ColorRow(inputTilemap, _cachedLevelLength, _cachedK_Y, startX, kColor);
@@ -373,13 +433,11 @@ public class LevelJsonLoader : MonoBehaviour
 
         if (_hasPreset)
         {
-            Color presetColor = SignalColorManager.Instance.ColorPreset;
             ColorRow(inputTilemap, _cachedLevelLength, _cachedPresetY, startX, presetColor);
         }
 
         if (_hasClear)
         {
-            Color clearColor = SignalColorManager.Instance.ColorClear;
             ColorRow(inputTilemap, _cachedLevelLength, _cachedClearY, startX, clearColor);
         }
     }

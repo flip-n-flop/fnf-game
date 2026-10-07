@@ -52,10 +52,10 @@ public class SignalLabelRenderer : MonoBehaviour
     private Label jText, kText, presetText, clearText, clockText;
 
     /// <summary>
-    /// Cached Y row coordinates and active state configurations for real-time positioning updates.
+    /// Cached world Y coordinates and active state configurations for real-time positioning updates.
     /// </summary>
-    private int curJY, curKY, curPresetY, curClearY, curClockY;
-    private bool curHasPreset, curHasClear;
+    private float curJY, curKY, curPresetY, curClearY, curClockY;
+    private bool curHasPreset, curHasClear, curHasK;
     private bool curAsyncActiveHigh, curClockActiveHigh;
     private bool labelsConfigured;
 
@@ -138,48 +138,89 @@ public class SignalLabelRenderer : MonoBehaviour
     public void GenerateLabels(int jY, int kY, int presetY, int clearY, int clockY, bool hasPreset, bool hasClear,
                                bool isAsyncActiveHigh = true, bool isClockActiveHigh = true)
     {
-        curJY = jY; curKY = kY; curPresetY = presetY;
-        curClearY = clearY; curClockY = clockY;
-        curHasPreset = hasPreset; curHasClear = hasClear;
+        float jWorld = TileToWorldY(jY);
+        float kWorld = TileToWorldY(kY);
+        float preWorld = TileToWorldY(presetY);
+        float clrWorld = TileToWorldY(clearY);
+        float clkWorld = TileToWorldY(clockY);
+
+        GenerateLabels(jWorld, kWorld, preWorld, clrWorld, clkWorld,
+            hasPreset, hasClear, isAsyncActiveHigh, isClockActiveHigh);
+    }
+
+    /// <summary>
+    /// Generates and positions labels at specified world Y coordinates (e.g. from <see cref="SignalLineRenderer"/>).
+    /// Interacts with <see cref="UIDocument"/> to project world positions onto screen panel space.
+    /// </summary>
+    /// <param name="jWorldY">World Y coordinate for J signal label.</param>
+    /// <param name="kWorldY">World Y coordinate for K signal label.</param>
+    /// <param name="presetWorldY">World Y coordinate for Preset signal label.</param>
+    /// <param name="clearWorldY">World Y coordinate for Clear signal label.</param>
+    /// <param name="clockWorldY">World Y coordinate for Clock signal label.</param>
+    /// <param name="hasPreset">Whether Preset signal line exists in current level.</param>
+    /// <param name="hasClear">Whether Clear signal line exists in current level.</param>
+    /// <param name="isAsyncActiveHigh">True if asynchronous signals are active high; false if active low (overlined).</param>
+    /// <param name="isClockActiveHigh">True if clock active edge is rising; false if falling (overlined).</param>
+    public void GenerateLabels(float jWorldY, float kWorldY, float presetWorldY, float clearWorldY, float clockWorldY,
+                               bool hasPreset, bool hasClear,
+                               bool isAsyncActiveHigh = true, bool isClockActiveHigh = true,
+                               bool hasK = true, string mainLabelText = "J")
+    {
+        curJY = jWorldY;
+        curKY = kWorldY;
+        curPresetY = presetWorldY;
+        curClearY = clearWorldY;
+        curClockY = clockWorldY;
+        curHasPreset = hasPreset;
+        curHasClear = hasClear;
+        curHasK = hasK;
         curAsyncActiveHigh = isAsyncActiveHigh;
         curClockActiveHigh = isClockActiveHigh;
 
-        if (mainCamera == null || inputTilemap == null || uiDocument == null)
+        if (mainCamera == null || uiDocument == null)
         {
-            Debug.LogWarning("SignalLabelRenderer: Camera, Tilemap, or UIDocument reference missing!");
+            Debug.LogWarning("SignalLabelRenderer: Camera or UIDocument reference missing!");
             return;
         }
 
         if (hudRoot == null) CacheUIElements();
 
-        // Configure sprites
         SetSprite(jIcon, jLabelSprite);
         SetSprite(kIcon, kLabelSprite);
         SetSprite(presetIcon, presetLabelSprite);
         SetSprite(clearIcon, clearLabelSprite);
         SetSprite(clockIcon, clockLabelSprite);
 
-        // Configure text
-        if (jText != null) jText.text = "J";
+        if (jText != null) jText.text = string.IsNullOrEmpty(mainLabelText) ? "J" : mainLabelText;
         if (kText != null) kText.text = "K";
         if (presetText != null) presetText.text = "PRE";
         if (clearText != null) clearText.text = "CLR";
         if (clockText != null) clockText.text = "CLK";
 
-        // Configure overline visibility for active-low signals
         SetOverline(presetOverline, !isAsyncActiveHigh);
         SetOverline(clearOverline, !isAsyncActiveHigh);
         SetOverline(clockOverline, !isClockActiveHigh);
 
-        // Show/hide based on level configuration
         ShowLabel(jLabel, true);
-        ShowLabel(kLabel, true);
+        ShowLabel(kLabel, hasK);
         ShowLabel(clockLabel, true);
         ShowLabel(presetLabel, hasPreset);
         ShowLabel(clearLabel, hasClear);
 
         labelsConfigured = true;
         PositionAllLabels();
+    }
+
+    /// <summary>
+    /// Converts an integer tile row index to its corresponding world Y center.
+    /// </summary>
+    private float TileToWorldY(int tileY)
+    {
+        if (inputTilemap != null)
+        {
+            return inputTilemap.CellToWorld(new Vector3Int(0, tileY, 0)).y + (inputTilemap.cellSize.y / 2f);
+        }
+        return tileY + 0.5f;
     }
 
     /// <summary>
@@ -205,30 +246,26 @@ public class SignalLabelRenderer : MonoBehaviour
     #region Positioning
 
     /// <summary>
-    /// Positions all visible labels at their corresponding tilemap Y row screen positions.
+    /// Positions all visible labels at their corresponding world Y screen positions.
     /// </summary>
     private void PositionAllLabels()
     {
         PositionLabel(jLabel, curJY);
-        PositionLabel(kLabel, curKY);
+        if (curHasK) PositionLabel(kLabel, curKY);
         PositionLabel(clockLabel, curClockY);
         if (curHasPreset) PositionLabel(presetLabel, curPresetY);
         if (curHasClear) PositionLabel(clearLabel, curClearY);
     }
 
     /// <summary>
-    /// Positions a single label element at the screen position corresponding to a tilemap Y row.
+    /// Positions a single label element at the screen position corresponding to a world Y coordinate.
     /// </summary>
-    private void PositionLabel(VisualElement label, int tileY)
+    private void PositionLabel(VisualElement label, float worldY)
     {
-        if (label == null) return;
+        if (label == null || mainCamera == null || uiDocument == null) return;
 
-        // Compute world position at the center of the tile row.
-        Vector3 worldPos = inputTilemap.CellToWorld(new Vector3Int(0, tileY, 0));
-        worldPos.y += inputTilemap.cellSize.y / 2f;
+        Vector3 worldPos = new Vector3(0f, worldY, 0f);
 
-        // Convert world position directly to UI Toolkit panel coordinates.
-        // Handles camera projection, scaling, DPI, and Y-axis inversion automatically.
         Vector2 panelPos = RuntimePanelUtils.CameraTransformWorldToPanel(
             uiDocument.rootVisualElement.panel,
             worldPos,
