@@ -3394,8 +3394,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 16a7fee229d501345a68965976c7d07e, type: 2}
   - {fileID: 11400000, guid: 8bb7a11a2399bf8479a3f8493eac5ded, type: 2}
   - {fileID: 11400000, guid: e795c0020d090c045b3ada7310676744, type: 2}
-  floorTile: {fileID: 11400000, guid: e4d188e05d975c8b0a3760775a7beb30, type: 2}
-  ceilingTile: {fileID: 11400000, guid: 623b77e9e1d1a30a58d955afe4ce44b8, type: 2}
+  floorTile: {fileID: 11400000, guid: c0f2a39a1f519529a8395a13da2b2ac0, type: 2}
+  ceilingTile: {fileID: 11400000, guid: c0f2a39a1f519529a8395a13da2b2ac0, type: 2}
   flipCeilingY: 1
   wallTile: {fileID: 11400000, guid: 3352361ed783d638e98428dd037de778, type: 2}
   startX: 0
