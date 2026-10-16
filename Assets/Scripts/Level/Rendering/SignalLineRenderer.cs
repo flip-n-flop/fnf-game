@@ -160,9 +160,9 @@ public class SignalLineRenderer : MonoBehaviour
             SignalLineRenderer r = renderers[i];
             if (r == null) continue;
 
-            if (r.labelScale <= 0.01f || Mathf.Approximately(r.labelScale, 1f))
+            if (r.labelScale <= 0.01f)
             {
-                r.labelScale = 0.75f;
+                r.labelScale = 1.0f;
             }
 
             if (r.spacing5Signals < 1.75f)
