@@ -7478,6 +7478,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: d5a3e5a9fd6306243a820e20b3a224db, type: 3}
     - target: {fileID: 792765061534951494, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
+      propertyPath: m_DrawMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 792765061534951494, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
+      propertyPath: m_MaskInteraction
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 792765061534951494, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
       propertyPath: m_WasSpriteAssigned
       value: 1
       objectReference: {fileID: 0}
@@ -7820,6 +7828,8 @@ MonoBehaviour:
   spacing4Signals: 2.2
   spacing5Signals: 1.75
   labelOffset: {x: -14.5, y: 0.1}
+  anchorToLeftEdge: 1
+  leftEdgeMargin: 2.78
   labelScale: 0.92
   lineMaskOffset: 0
   jLabel: {fileID: 583303141}
