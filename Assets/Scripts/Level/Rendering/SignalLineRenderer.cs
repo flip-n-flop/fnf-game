@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Renders digital waveform signals (J, K, Preset, Clear, Clock) as orthogonal line strips using <see cref="LineRenderer"/>.
+/// Renders digital waveform signals (J, K, Preset, Clear, Clock) as orthogonal line strips using <see cref="LineRenderer"/>
+/// and manages their corresponding world-space badge hierarchies via <see cref="SignalLabelGroup"/>.
 /// Automatically calculates uniform vertical spacing between all active signal lines in a scenario based on the total signal count (2 to 5).
-/// Interacts with <see cref="LevelJsonLoader"/> for level data and <see cref="SignalLabelRenderer"/> for HUD badge alignment.
+/// Interacts with <see cref="LevelJsonLoader"/> for level data and <see cref="SignalColorManager"/> for color updates.
 /// </summary>
 public class SignalLineRenderer : MonoBehaviour
 {
@@ -42,6 +43,29 @@ public class SignalLineRenderer : MonoBehaviour
 
     #endregion
 
+    #region Serialized Fields - Scenario Labels
+
+    [Header("Scenario Labels")]
+    [Tooltip("Offset of the label groups relative to the camera X position and each line's vertical center.")]
+    [SerializeField] private Vector2 labelOffset = new Vector2(-15.2f, 0f);
+
+    [Tooltip("World-space hierarchy group for the J (or D/T) signal badge.")]
+    [SerializeField] private SignalLabelGroup jLabel;
+
+    [Tooltip("World-space hierarchy group for the K signal badge.")]
+    [SerializeField] private SignalLabelGroup kLabel;
+
+    [Tooltip("World-space hierarchy group for the Preset signal badge.")]
+    [SerializeField] private SignalLabelGroup presetLabel;
+
+    [Tooltip("World-space hierarchy group for the Clear signal badge.")]
+    [SerializeField] private SignalLabelGroup clearLabel;
+
+    [Tooltip("World-space hierarchy group for the Clock signal badge.")]
+    [SerializeField] private SignalLabelGroup clockLabel;
+
+    #endregion
+
     #region Serialized Fields - Drop Shadows
 
     [Header("Drop Shadows")]
@@ -72,6 +96,8 @@ public class SignalLineRenderer : MonoBehaviour
 
     private readonly Dictionary<string, LineRenderer> lines = new Dictionary<string, LineRenderer>();
     private static Material defaultSpriteMaterial;
+    private Transform labelsContainer;
+    private Camera mainCamera;
 
     private float computedJY;
     private float computedKY;
@@ -85,15 +111,162 @@ public class SignalLineRenderer : MonoBehaviour
 
     private void Awake()
     {
+        mainCamera = Camera.main;
         CacheExistingLineRenderers();
+        UpdateLabelsContainerPosition();
+    }
+
+    private void LateUpdate()
+    {
+        UpdateLabelsContainerPosition();
     }
 
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        UpdateLabelsContainerPosition();
+
         if (Application.isPlaying && lines != null && lines.Count > 0)
         {
             ApplyStyleSettingsToExistingLines();
+        }
+        else if (!Application.isPlaying)
+        {
+            PositionLabelsForPreview();
+        }
+    }
+
+    [UnityEditor.Callbacks.DidReloadScripts]
+    private static void ApplyLabelAdjustmentsInScene()
+    {
+        const string sdfFontPath = "Assets/TextMesh Pro/Fonts/FS Industrie Bold Italic SDF.asset";
+        TMPro.TMP_FontAsset uiFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(sdfFontPath);
+
+        if (uiFont == null)
+        {
+            Font sourceFont = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/TextMesh Pro/Fonts/FS Industrie Bold Italic.otf");
+            if (sourceFont != null)
+            {
+                uiFont = TMPro.TMP_FontAsset.CreateFontAsset(sourceFont);
+                if (uiFont != null)
+                {
+                    uiFont.name = "FS Industrie Bold Italic SDF";
+                    UnityEditor.AssetDatabase.CreateAsset(uiFont, sdfFontPath);
+
+                    if (uiFont.atlasTextures != null && uiFont.atlasTextures.Length > 0 && uiFont.atlasTextures[0] != null)
+                    {
+                        uiFont.atlasTextures[0].name = "FS Industrie Bold Italic Atlas";
+                        UnityEditor.AssetDatabase.AddObjectToAsset(uiFont.atlasTextures[0], uiFont);
+                    }
+
+                    if (uiFont.material != null)
+                    {
+                        uiFont.material.name = "FS Industrie Bold Italic Material";
+                        UnityEditor.AssetDatabase.AddObjectToAsset(uiFont.material, uiFont);
+                    }
+
+                    UnityEditor.EditorUtility.SetDirty(uiFont);
+                    UnityEditor.AssetDatabase.SaveAssets();
+                }
+            }
+        }
+
+        if (uiFont == null)
+        {
+            uiFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>("Assets/TextMesh Pro/Fonts/Exo2-VariableFont_wght SDF.asset");
+        }
+
+        Sprite whiteBarSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Arts/WhiteSqr.png");
+
+        SignalLabelGroup[] groups = FindObjectsByType<SignalLabelGroup>(FindObjectsSortMode.None);
+        for (int i = 0; i < groups.Length; i++)
+        {
+            SignalLabelGroup group = groups[i];
+            if (group == null) continue;
+
+            float bgWidth = 3.83f;
+            float bgHeight = 1.88f;
+            Transform bg = group.transform.Find("Background");
+            if (bg != null)
+            {
+                SpriteRenderer bgSr = bg.GetComponent<SpriteRenderer>();
+                if (bgSr != null && bgSr.sprite != null)
+                {
+                    bgWidth = bgSr.sprite.bounds.size.x * Mathf.Abs(bg.localScale.x);
+                    bgHeight = bgSr.sprite.bounds.size.y * Mathf.Abs(bg.localScale.y);
+                }
+
+                for (int c = 0; c < bg.childCount; c++)
+                {
+                    Transform child = bg.GetChild(c);
+                    if (child != null && child.name.StartsWith("BottomHalftone"))
+                    {
+                        child.name = "LabelHalftone";
+                        UnityEditor.EditorUtility.SetDirty(child.gameObject);
+                    }
+                }
+            }
+
+            const float targetFontSize = 10f;
+
+            TMPro.TMP_Text tmp = group.GetComponentInChildren<TMPro.TMP_Text>(true);
+            Vector3 textPos = Vector3.zero;
+            float textTopY = 0.34f;
+            float textWidth = 1.15f;
+            float textCenterX = 0f;
+
+            if (tmp != null)
+            {
+                textPos = tmp.transform.localPosition;
+                if (uiFont != null)
+                {
+                    tmp.font = uiFont;
+                }
+
+                tmp.fontSize = targetFontSize;
+                tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+
+                RectTransform rect = tmp.GetComponent<RectTransform>();
+                if (rect != null)
+                {
+                    rect.sizeDelta = new Vector2(bgWidth, bgHeight);
+                }
+
+                tmp.ForceMeshUpdate(true);
+                Bounds tb = tmp.textBounds;
+                if (tb.size.y > 0.05f)
+                {
+                    textTopY = tb.max.y;
+                    textWidth = tb.size.x * 0.95f;
+                    textCenterX = tb.center.x;
+                }
+
+                UnityEditor.EditorUtility.SetDirty(tmp);
+            }
+
+            Transform overline = group.transform.Find("Overline");
+            if (overline != null)
+            {
+                SpriteRenderer sr = overline.GetComponent<SpriteRenderer>();
+                if (sr == null) sr = overline.gameObject.AddComponent<SpriteRenderer>();
+
+                if (whiteBarSprite != null)
+                {
+                    sr.sprite = whiteBarSprite;
+                }
+
+                sr.color = Color.white;
+                sr.sortingOrder = 7;
+
+                const float barThickness = 0.055f;
+                float barY = textPos.y + textTopY + 0.07f;
+                overline.localPosition = new Vector3(textPos.x + textCenterX + 0.04f, barY, 0f);
+                overline.localScale = new Vector3(textWidth, barThickness, 1f);
+
+                bool isAsyncLabel = group.name.Contains("Preset") || group.name.Contains("Clear");
+                overline.gameObject.SetActive(isAsyncLabel);
+                UnityEditor.EditorUtility.SetDirty(overline.gameObject);
+            }
         }
     }
 #endif
@@ -103,7 +276,8 @@ public class SignalLineRenderer : MonoBehaviour
     #region Public Rendering API
 
     /// <summary>
-    /// Computes uniform vertical spacing and renders all active digital waveforms and their drop shadows.
+    /// Computes uniform vertical spacing, renders all active digital waveforms and their drop shadows,
+    /// and configures the corresponding world-space <see cref="SignalLabelGroup"/> badges.
     /// Called by <see cref="LevelJsonLoader"/> during level construction.
     /// </summary>
     public void RenderSignals(
@@ -117,8 +291,12 @@ public class SignalLineRenderer : MonoBehaviour
         Color presetColor,
         Color clearColor,
         Color clockColor,
-        float baseXOffset = 0f)
+        float baseXOffset = 0f,
+        bool isAsyncActiveHigh = true,
+        bool isClockRisingEdge = true)
     {
+        UpdateLabelsContainerPosition();
+
         bool hasClock = clockPattern != null && clockPattern.Length > 0;
         bool hasClear = clearSignal != null && clearSignal.Length > 0;
         bool hasPreset = presetSignal != null && presetSignal.Length > 0;
@@ -132,7 +310,6 @@ public class SignalLineRenderer : MonoBehaviour
                           (hasJ ? 1 : 0);
 
         float spacing = ResolveSpacingForCount(signalCount);
-
         int slotIndex = 0;
 
         if (hasClock)
@@ -169,31 +346,58 @@ public class SignalLineRenderer : MonoBehaviour
         {
             bool[] clockBool = ConvertPatternToBoolArray(clockPattern);
             RenderChannel("Clock_Line", clockBool, computedClockY, CLOCK_X_OFFSET, baseXOffset, clockColor);
+            clockLabel?.Configure("CLK", clockColor, !isClockRisingEdge, GetChannelCenterY(computedClockY));
         }
         else
         {
             HideChannel("Clock_Line");
+            clockLabel?.Hide();
         }
 
         if (hasClear)
+        {
             RenderChannel("Clear_Line", clearSignal, computedClearY, INPUT_X_OFFSET, baseXOffset, clearColor);
+            clearLabel?.Configure("CLR", clearColor, !isAsyncActiveHigh, GetChannelCenterY(computedClearY));
+        }
         else
+        {
             HideChannel("Clear_Line");
+            clearLabel?.Hide();
+        }
 
         if (hasPreset)
+        {
             RenderChannel("Preset_Line", presetSignal, computedPresetY, INPUT_X_OFFSET, baseXOffset, presetColor);
+            presetLabel?.Configure("PRE", presetColor, !isAsyncActiveHigh, GetChannelCenterY(computedPresetY));
+        }
         else
+        {
             HideChannel("Preset_Line");
+            presetLabel?.Hide();
+        }
 
         if (hasK)
+        {
             RenderChannel("K_Line", kSignal, computedKY, INPUT_X_OFFSET, baseXOffset, kColor);
+            kLabel?.Configure("K", kColor, false, GetChannelCenterY(computedKY));
+        }
         else
+        {
             HideChannel("K_Line");
+            kLabel?.Hide();
+        }
 
         if (hasJ)
+        {
             RenderChannel("J_Line", jSignal, computedJY, INPUT_X_OFFSET, baseXOffset, jColor);
+            string mainText = hasK ? "J" : "D";
+            jLabel?.Configure(mainText, jColor, false, GetChannelCenterY(computedJY));
+        }
         else
+        {
             HideChannel("J_Line");
+            jLabel?.Hide();
+        }
     }
 
     /// <summary>
@@ -212,7 +416,7 @@ public class SignalLineRenderer : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates line colors in real time when modified by settings.
+    /// Updates line and badge colors in real time when modified by settings.
     /// Called by <see cref="LevelJsonLoader"/> responding to <see cref="SignalColorManager.OnColorsChanged"/>.
     /// </summary>
     public void UpdateColors(Color jColor, Color kColor, Color clockColor, Color presetColor, Color clearColor)
@@ -222,44 +426,28 @@ public class SignalLineRenderer : MonoBehaviour
         SetLineColor("Clock_Line", clockColor);
         SetLineColor("Preset_Line", presetColor);
         SetLineColor("Clear_Line", clearColor);
+
+        jLabel?.ApplyColor(jColor);
+        kLabel?.ApplyColor(kColor);
+        clockLabel?.ApplyColor(clockColor);
+        presetLabel?.ApplyColor(presetColor);
+        clearLabel?.ApplyColor(clearColor);
     }
 
     #endregion
 
     #region Channel Position Queries for HUD
 
-    /// <summary>
-    /// Computes world Y center for J (or single-input D/T) signal line.
-    /// </summary>
     public float GetJWorldY() => computedJY + (signalHeight / 2f);
-
-    /// <summary>
-    /// Computes world Y center for K signal line.
-    /// </summary>
     public float GetKWorldY() => computedKY + (signalHeight / 2f);
-
-    /// <summary>
-    /// Computes world Y center for Preset signal line.
-    /// </summary>
     public float GetPresetWorldY() => computedPresetY + (signalHeight / 2f);
-
-    /// <summary>
-    /// Computes world Y center for Clear signal line.
-    /// </summary>
     public float GetClearWorldY() => computedClearY + (signalHeight / 2f);
-
-    /// <summary>
-    /// Computes world Y center for Clock signal line.
-    /// </summary>
     public float GetClockWorldY() => computedClockY + (signalHeight / 2f);
 
     #endregion
 
     #region Internal Rendering Logic
 
-    /// <summary>
-    /// Returns the configured uniform spacing corresponding to the active signal count in the level.
-    /// </summary>
     private float ResolveSpacingForCount(int signalCount)
     {
         switch (signalCount)
@@ -272,9 +460,6 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Generates orthogonal vertices and updates the target LineRenderer and its shadow.
-    /// </summary>
     private void RenderChannel(string lineName, bool[] signal, float baseY, float xOffset, float effectiveStartX, Color color)
     {
         if (signal == null || signal.Length == 0)
@@ -309,9 +494,6 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Builds an array of orthogonal 2D coordinates representing a digital waveform.
-    /// </summary>
     private Vector3[] BuildSignalPoints(bool[] signal, float baseY, float height, float xOffset, float effectiveStartX)
     {
         var points = new List<Vector3>(signal.Length * 3);
@@ -321,7 +503,7 @@ public class SignalLineRenderer : MonoBehaviour
 
         if (LEAD_IN_LENGTH > 0f)
         {
-            points.Add(new Vector3(originX - LEAD_IN_LENGTH, initialY, 0f));
+            points.Add(new Vector3(effectiveStartX - LEAD_IN_LENGTH, initialY, 0f));
         }
 
         points.Add(new Vector3(originX, initialY, 0f));
@@ -354,9 +536,6 @@ public class SignalLineRenderer : MonoBehaviour
         return points.ToArray();
     }
 
-    /// <summary>
-    /// Creates offset points for shadow lines placed slightly behind in Z.
-    /// </summary>
     private Vector3[] BuildShadowPoints(Vector3[] originalPoints)
     {
         var shadowPoints = new Vector3[originalPoints.Length];
@@ -371,9 +550,6 @@ public class SignalLineRenderer : MonoBehaviour
         return shadowPoints;
     }
 
-    /// <summary>
-    /// Converts an integer pattern array (0/1) to a boolean array.
-    /// </summary>
     private bool[] ConvertPatternToBoolArray(int[] pattern)
     {
         var bools = new bool[pattern.Length];
@@ -384,9 +560,6 @@ public class SignalLineRenderer : MonoBehaviour
         return bools;
     }
 
-    /// <summary>
-    /// Sets line color on a cached LineRenderer if active.
-    /// </summary>
     private void SetLineColor(string lineName, Color color)
     {
         if (lines.TryGetValue(lineName, out LineRenderer line) && line != null)
@@ -396,9 +569,6 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Deactivates a channel line and its corresponding shadow line.
-    /// </summary>
     private void HideChannel(string lineName)
     {
         if (lines.TryGetValue(lineName, out LineRenderer line) && line != null)
@@ -415,9 +585,6 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Retrieves or dynamically instantiates a child LineRenderer component.
-    /// </summary>
     private LineRenderer GetOrCreateLine(string lineName, Color color, int order)
     {
         if (lines.TryGetValue(lineName, out LineRenderer existingLine) && existingLine != null)
@@ -459,9 +626,6 @@ public class SignalLineRenderer : MonoBehaviour
         return lr;
     }
 
-    /// <summary>
-    /// Caches all existing LineRenderer children on Awake.
-    /// </summary>
     private void CacheExistingLineRenderers()
     {
         foreach (Transform child in transform)
@@ -474,9 +638,6 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Updates width, materials, and sorting order on cached lines during Inspector edits.
-    /// </summary>
     private void ApplyStyleSettingsToExistingLines()
     {
         Material mat = lineMaterial != null ? lineMaterial : GetDefaultMaterial();
@@ -493,9 +654,6 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Lazily resolves a default unlit material using the Sprites/Default shader.
-    /// </summary>
     private Material GetDefaultMaterial()
     {
         if (defaultSpriteMaterial == null)
@@ -507,6 +665,38 @@ public class SignalLineRenderer : MonoBehaviour
             }
         }
         return defaultSpriteMaterial;
+    }
+
+    private void UpdateLabelsContainerPosition()
+    {
+        if (labelsContainer == null)
+        {
+            labelsContainer = transform.Find("Labels");
+            if (labelsContainer == null) return;
+        }
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        float camX = mainCamera != null ? mainCamera.transform.position.x : 17f;
+        labelsContainer.position = new Vector3(camX + labelOffset.x, labelOffset.y, 0f);
+    }
+
+    private float GetChannelCenterY(float channelBaseY)
+    {
+        return channelBaseY + (signalHeight * 0.5f);
+    }
+
+    private void PositionLabelsForPreview()
+    {
+        UpdateLabelsContainerPosition();
+        clockLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (0 * spacing5Signals)));
+        clearLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (1 * spacing5Signals)));
+        presetLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (2 * spacing5Signals)));
+        kLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (3 * spacing5Signals)));
+        jLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (4 * spacing5Signals)));
     }
 
     #endregion

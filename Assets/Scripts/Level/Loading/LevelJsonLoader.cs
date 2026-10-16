@@ -339,6 +339,7 @@ public class LevelJsonLoader : MonoBehaviour
         _cachedClock_Y = clockY;
 
         bool risingEdge = string.Equals(data.ActiveClockEdge, "rising", StringComparison.OrdinalIgnoreCase);
+        bool asyncIsHigh = data.AsyncActive == 1;
         var clockPattern = BuildClockPattern(levelLength, clockStep, risingEdge);
 
         if (signalLineRenderer != null)
@@ -348,7 +349,7 @@ public class LevelJsonLoader : MonoBehaviour
                 ParsedJSignal, ParsedKSignal, ParsedPresetSignal, ParsedClearSignal,
                 clockPattern,
                 jColor, kColor, presetColor, clearColor, clockColor,
-                startX);
+                startX, asyncIsHigh, risingEdge);
         }
         else
         {
@@ -367,26 +368,9 @@ public class LevelJsonLoader : MonoBehaviour
 
         if (signalLabelRenderer != null)
         {
-            bool asyncIsHigh = data.AsyncActive == 1;
-
             if (signalLineRenderer != null)
             {
-                bool hasK = ParsedKSignal != null && ParsedKSignal.Length > 0;
-                string mainLabel = hasK ? "J" : "D";
-
-                signalLabelRenderer.GenerateLabels(
-                    signalLineRenderer.GetJWorldY(),
-                    signalLineRenderer.GetKWorldY(),
-                    signalLineRenderer.GetPresetWorldY(),
-                    signalLineRenderer.GetClearWorldY(),
-                    signalLineRenderer.GetClockWorldY(),
-                    ParsedPresetSignal != null,
-                    ParsedClearSignal != null,
-                    asyncIsHigh,
-                    risingEdge,
-                    hasK,
-                    mainLabel
-                );
+                signalLabelRenderer.HideSignalLabels();
             }
             else
             {

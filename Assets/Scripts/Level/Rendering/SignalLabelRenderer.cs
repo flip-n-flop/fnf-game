@@ -241,6 +241,17 @@ public class SignalLabelRenderer : MonoBehaviour
             hudRoot.style.display = DisplayStyle.Flex;
     }
 
+    /// <summary>
+    /// Hides only the 5 UI Toolkit signal label elements while keeping the rest of the HUD (timer and title) active.
+    /// Called by <see cref="LevelJsonLoader"/> when world-space scenario labels are managed by <see cref="SignalLineRenderer"/>.
+    /// </summary>
+    public void HideSignalLabels()
+    {
+        if (hudRoot == null) CacheUIElements();
+        labelsConfigured = false;
+        HideAllLabels();
+    }
+
     #endregion
 
     #region Positioning

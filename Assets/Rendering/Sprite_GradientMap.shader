@@ -6,6 +6,13 @@ Shader "Custom/Sprite_GradientMap"
         _Color ("Tint", Color) = (1,1,1,1)
         _GradientMap ("Gradient Map Ramp", 2D) = "white" {}
         _Intensity ("Intensity", Range(0.1, 2.0)) = 1.0
+
+        [HideInInspector] _Stencil ("Stencil ID", Float) = 0
+        [HideInInspector] _StencilComp ("Stencil Comparison", Float) = 8
+        [HideInInspector] _StencilOp ("Stencil Operation", Float) = 0
+        [HideInInspector] _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        [HideInInspector] _StencilReadMask ("Stencil Read Mask", Float) = 255
+        [HideInInspector] _ColorMask ("Color Mask", Float) = 15
     }
 
     SubShader
@@ -19,10 +26,20 @@ Shader "Custom/Sprite_GradientMap"
             "CanUseSpriteAtlas"="True"
         }
 
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+
         Cull Off
         Lighting Off
         ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
+        ColorMask [_ColorMask]
 
         Pass
         {
