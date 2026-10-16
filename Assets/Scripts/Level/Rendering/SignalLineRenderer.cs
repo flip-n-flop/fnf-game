@@ -636,6 +636,15 @@ public class SignalLineRenderer : MonoBehaviour
         presetLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (2 * spacing5Signals)), labelScale);
         kLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (3 * spacing5Signals)), labelScale);
         jLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (4 * spacing5Signals)), labelScale);
+
+        if (SignalColorManager.Instance != null)
+        {
+            clockLabel?.ApplyColor(SignalColorManager.Instance.ColorCLK);
+            clearLabel?.ApplyColor(SignalColorManager.Instance.ColorClear);
+            presetLabel?.ApplyColor(SignalColorManager.Instance.ColorPreset);
+            kLabel?.ApplyColor(SignalColorManager.Instance.ColorK);
+            jLabel?.ApplyColor(SignalColorManager.Instance.ColorJ);
+        }
     }
 
     #endregion

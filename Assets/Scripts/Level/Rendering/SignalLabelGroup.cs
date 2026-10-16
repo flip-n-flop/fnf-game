@@ -64,17 +64,33 @@ public class SignalLabelGroup : MonoBehaviour
     }
 
     /// <summary>
-    /// Applies the channel signal color to all bound <see cref="colorTintedRenderers"/>.
+    /// Applies the channel signal color to all bound <see cref="colorTintedRenderers"/>,
+    /// preserving each renderer's configured alpha transparency.
     /// </summary>
     public void ApplyColor(Color signalColor)
     {
+        if (colorTintedRenderers == null || colorTintedRenderers.Length == 0)
+        {
+            Transform bright = transform.Find("White_Box/LabelBright");
+            if (bright != null)
+            {
+                var sr = bright.GetComponent<SpriteRenderer>();
+                if (sr != null)
+                {
+                    colorTintedRenderers = new[] { sr };
+                }
+            }
+        }
+
         if (colorTintedRenderers == null) return;
 
         for (int i = 0; i < colorTintedRenderers.Length; i++)
         {
             if (colorTintedRenderers[i] != null)
             {
-                colorTintedRenderers[i].color = signalColor;
+                Color current = colorTintedRenderers[i].color;
+                float alpha = current.a > 0.001f ? current.a : signalColor.a;
+                colorTintedRenderers[i].color = new Color(signalColor.r, signalColor.g, signalColor.b, alpha);
             }
         }
     }
