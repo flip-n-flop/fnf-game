@@ -33,9 +33,14 @@ public class LevelJsonLoader : MonoBehaviour
     [SerializeField] private TileBase wallTile;
 
     [Header("Placement Settings")]
-    [SerializeField] private int startX = 0;
+    [SerializeField] private int startX = 4;
     [SerializeField] private int floorYRow = 0;
     [SerializeField] private int ceilingYRow = 12;
+
+    /// <summary>
+    /// Gets the starting X tile coordinate offset where the level diagram and terrain begin.
+    /// </summary>
+    public int StartX => startX;
 
     [Header("Obstacles")]
     [Tooltip("If true, obstacle startTileY is relative to floorYRow; otherwise absolute tile Y.")]
@@ -254,7 +259,7 @@ public class LevelJsonLoader : MonoBehaviour
         {
             signalLineRenderer = GetComponent<SignalLineRenderer>() ??
                                  GetComponentInChildren<SignalLineRenderer>() ??
-                                 FindFirstObjectByType<SignalLineRenderer>();
+                                 FindAnyObjectByType<SignalLineRenderer>();
 
             if (signalLineRenderer == null)
             {
@@ -330,7 +335,7 @@ public class LevelJsonLoader : MonoBehaviour
 
         GetClockSamplingParameters(out int clockStep, out _);
         int levelLength = LevelManager.Instance != null
-            ? Mathf.RoundToInt(LevelManager.Instance.levelEndX)
+            ? Mathf.RoundToInt(LevelManager.Instance.diagramEndX)
             : 6 * data.ClockCycles;
 
         _cachedLevelLength = levelLength + clockStep;
@@ -467,7 +472,7 @@ public class LevelJsonLoader : MonoBehaviour
         var pathEvents = new List<PathVerifier.SignalEvent>();
         if (events != null)
             foreach (var evt in events)
-                pathEvents.Add(new PathVerifier.SignalEvent(evt.x, evt.value));
+                pathEvents.Add(new PathVerifier.SignalEvent(startX + evt.x, evt.value));
 
         return pathEvents;
     }
@@ -517,8 +522,8 @@ public class LevelJsonLoader : MonoBehaviour
         const int step = 6;
         LevelManager.Instance.clockStepX = step;
         LevelManager.Instance.diagramEndX = data.ClockCycles * step;
-        LevelManager.Instance.phaseEndX = LevelManager.Instance.diagramEndX + LevelManager.Instance.phaseSlackTiles;
-        LevelManager.Instance.levelEndX = LevelManager.Instance.diagramEndX;
+        LevelManager.Instance.levelEndX = startX + LevelManager.Instance.diagramEndX;
+        LevelManager.Instance.phaseEndX = LevelManager.Instance.levelEndX + LevelManager.Instance.phaseSlackTiles;
     }
 
     /// <summary>

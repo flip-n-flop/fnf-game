@@ -29,13 +29,13 @@ public class SignalLabelGroup : MonoBehaviour
     #region Public API
 
     /// <summary>
-    /// Activates, positions vertically on its channel, and updates the text, overline, and color of the badge.
+    /// Activates, scales, positions vertically on its channel, and updates the text, overline, and color of the badge.
     /// Called by <see cref="SignalLineRenderer"/> during level rendering.
     /// </summary>
-    public void Configure(string text, Color signalColor, bool showOverline, float channelCenterY)
+    public void Configure(string text, Color signalColor, bool showOverline, float channelCenterY, float scale = 1f)
     {
         gameObject.SetActive(true);
-        SetChannelY(channelCenterY);
+        SetChannelY(channelCenterY, scale);
 
         if (labelText != null && !string.IsNullOrEmpty(text))
         {
@@ -51,10 +51,11 @@ public class SignalLabelGroup : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the local Y position of the badge inside the camera-following <c>Labels</c> container.
+    /// Updates the local Y position and uniform scale of the badge inside the camera-following <c>Labels</c> container.
     /// </summary>
-    public void SetChannelY(float channelCenterY)
+    public void SetChannelY(float channelCenterY, float scale = 1f)
     {
+        transform.localScale = new Vector3(scale, scale, 1f);
         transform.localPosition = new Vector3(
             individualOffset.x,
             channelCenterY + individualOffset.y,

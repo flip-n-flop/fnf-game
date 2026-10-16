@@ -182,15 +182,16 @@ public class ClockLineHint : MonoBehaviour
     /// <param name="levelEndX">Right limit boundary of the current level.</param>
     private void GenerateClockLines(float cameraX, float levelEndX)
     {
+        float startXOffset = levelJsonLoader != null ? levelJsonLoader.StartX : 0f;
         float halfSpan = bufferLines * clockStep;
         float leftEdge = cameraX - halfSpan;
         float rightEdge = Mathf.Min(cameraX + halfSpan, levelEndX);
-        int startMultiple = Mathf.Max(1, Mathf.FloorToInt(leftEdge / clockStep));
-        int endMultiple = Mathf.FloorToInt(rightEdge / clockStep);
+        int startMultiple = Mathf.Max(1, Mathf.FloorToInt((leftEdge - startXOffset) / clockStep));
+        int endMultiple = Mathf.FloorToInt((rightEdge - startXOffset) / clockStep);
 
         for (int i = startMultiple; i <= endMultiple; i++)
         {
-            float xPos = i * clockStep;
+            float xPos = startXOffset + (i * clockStep);
             if (xPos > levelEndX) break;
             CreateDashedLine(xPos, clockLineColor, $"ClockLine_{i}");
         }
@@ -210,6 +211,7 @@ public class ClockLineHint : MonoBehaviour
         var clearSignal = levelJsonLoader.ParsedClearSignal;
         if (presetSignal == null && clearSignal == null) return;
 
+        float startXOffset = levelJsonLoader.StartX;
         float halfSpan = bufferLines * clockStep;
         float leftEdge = cameraX - halfSpan;
         float rightEdge = Mathf.Min(cameraX + halfSpan, levelEndX);
@@ -226,7 +228,7 @@ public class ClockLineHint : MonoBehaviour
 
             if (!presetTransition && !clearTransition) continue;
 
-            float xPos = i + 0.5f;
+            float xPos = startXOffset + i + 0.5f;
             if (xPos >= leftEdge && xPos <= rightEdge && xPos <= levelEndX)
             {
                 string label = presetTransition && clearTransition ? "Preset+Clear"
@@ -355,12 +357,13 @@ public class ClockLineHint : MonoBehaviour
         LevelManager lm = Application.isPlaying ? LevelManager.Instance : FindAnyObjectByType<LevelManager>();
         if (lm == null || clockStep <= 0f) return;
 
-        int count = Mathf.FloorToInt(lm.levelEndX / clockStep);
+        float startXOffset = levelJsonLoader != null ? levelJsonLoader.StartX : 0f;
+        int count = Mathf.FloorToInt((lm.levelEndX - startXOffset) / clockStep);
         Gizmos.color = clockLineColor;
 
         for (int i = 1; i <= count; i++)
         {
-            float xPos = i * clockStep;
+            float xPos = startXOffset + (i * clockStep);
             Vector3 p0 = new Vector3(xPos, -lineLength / 2f, 0f);
             Vector3 p1 = new Vector3(xPos, lineLength / 2f, 0f);
             Gizmos.DrawLine(p0, p1);
@@ -386,6 +389,7 @@ public class ClockLineHint : MonoBehaviour
         var clearSignal = levelJsonLoader.ParsedClearSignal;
         if (presetSignal == null && clearSignal == null) return;
 
+        float startXOffset = levelJsonLoader.StartX;
         int maxLength = Mathf.Max(
             presetSignal != null ? presetSignal.Length : 0,
             clearSignal != null ? clearSignal.Length : 0);
@@ -401,7 +405,7 @@ public class ClockLineHint : MonoBehaviour
 
             if (!presetTransition && !clearTransition) continue;
 
-            float xPos = i + 0.5f;
+            float xPos = startXOffset + i + 0.5f;
             Vector3 p0 = new Vector3(xPos, -lineLength / 2f, 0f);
             Vector3 p1 = new Vector3(xPos, lineLength / 2f, 0f);
             Gizmos.DrawLine(p0, p1);

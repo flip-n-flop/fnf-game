@@ -103,11 +103,12 @@ public class OperationHint : MonoBehaviour
         }
 
         float clockStep = LevelManager.Instance != null ? LevelManager.Instance.clockStepX : 6f;
-        float playerX = player.position.x;
-        int currentClock = Mathf.FloorToInt(playerX / clockStep);
+        float startXOffset = levelJsonLoader.StartX;
+        float relativePlayerX = Mathf.Max(0f, player.position.x - startXOffset);
+        int currentClock = Mathf.FloorToInt(relativePlayerX / clockStep);
         int nextClock = currentClock + 1;
         int signalIndex = nextClock * (int)clockStep - 1;
-        float xPos = (currentClock + 1) * clockStep + xOffset;
+        float xPos = startXOffset + (currentClock + 1) * clockStep + xOffset;
 
         bool j = GetSignalAt(levelJsonLoader.ParsedJSignal, signalIndex);
         bool k = GetSignalAt(levelJsonLoader.ParsedKSignal, signalIndex);

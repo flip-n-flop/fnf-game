@@ -125,7 +125,8 @@ public class TilemapRenderer
     }
 
     /// <summary>
-    /// Places static scenery elements including the left boundary wall and edge floor/ceiling tiles.
+    /// Places static scenery elements including the left boundary wall and complete floor/ceiling tiles
+    /// filling the gap to the left of <see cref="startX"/> without being affected by JSON arrays.
     /// </summary>
     /// <param name="floorYRow">Y tile row index for floor.</param>
     /// <param name="ceilingYRow">Y tile row index for ceiling.</param>
@@ -133,31 +134,30 @@ public class TilemapRenderer
     {
         if (terrainTilemap == null) return;
 
+        int leftFillStartX = Mathf.Min(-2, startX - 2);
+        int xWall = leftFillStartX - 1;
+
         if (wallTile != null)
         {
             int yMin = Mathf.Min(floorYRow, ceilingYRow);
             int yMax = Mathf.Max(floorYRow, ceilingYRow);
-            if (yMin <= yMax)
+            for (int y = yMin; y <= yMax; y++)
             {
-                int xWall = startX - 2;
-                for (int y = yMin; y <= yMax; y++)
-                {
-                    SetTileWithFlip(terrainTilemap, new Vector3Int(xWall, y, 0), wallTile, false);
-                }
+                SetTileWithFlip(terrainTilemap, new Vector3Int(xWall, y, 0), wallTile, false);
             }
         }
 
-        if (floorTile != null)
+        for (int x = leftFillStartX; x < startX; x++)
         {
-            int xFloor = startX - 1;
-            SetTileWithFlip(terrainTilemap, new Vector3Int(xFloor, floorYRow, 0), floorTile, false);
-        }
+            if (floorTile != null)
+            {
+                SetTileWithFlip(terrainTilemap, new Vector3Int(x, floorYRow, 0), floorTile, false);
+            }
 
-        if (ceilingTile != null)
-        {
-            int xCeil = startX - 1;
-            var pos = new Vector3Int(xCeil, ceilingYRow, 0);
-            SetTileWithFlip(terrainTilemap, pos, ceilingTile, flipCeilingY);
+            if (ceilingTile != null)
+            {
+                SetTileWithFlip(terrainTilemap, new Vector3Int(x, ceilingYRow, 0), ceilingTile, flipCeilingY);
+            }
         }
     }
 
