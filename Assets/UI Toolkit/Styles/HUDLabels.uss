@@ -14,12 +14,19 @@
     pointer-events: none;
 }
 
-/* ── In-Game Timer (Top-Left) ── */
+/* ── In-Game Timer (Bottom-Center) ── */
+
+.hud-timer-wrapper {
+    position: absolute;
+    bottom: 28px;
+    left: 0;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
 
 .hud-timer-container {
-    position: absolute;
-    top: 8px;
-    left: 12px;
     height: 64px;
     min-width: 120px;
     padding-left: 20px;

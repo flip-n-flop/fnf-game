@@ -3,8 +3,10 @@
     <Style
         src="project://database/Assets/UI%20Toolkit/Styles/HUDLabels.uss?fileID=7433441132597879392&amp;guid=c6ecc659333acba40a615535c06fc108&amp;type=3#HUDLabels" />
     <ui:VisualElement name="HudRoot" class="hud-root">
-        <ui:VisualElement name="TimerContainer" class="hud-timer-container" style="left: 64px;">
-            <ui:Label text="00:00" name="TimerText" class="hud-timer-text" />
+        <ui:VisualElement class="hud-timer-wrapper">
+            <ui:VisualElement name="TimerContainer" class="hud-timer-container">
+                <ui:Label text="00:00" name="TimerText" class="hud-timer-text" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="hud-title-wrapper">
             <ui:VisualElement name="TitleContainer" class="hud-title-container">
