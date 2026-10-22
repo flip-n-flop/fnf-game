@@ -111,7 +111,7 @@ public class ClockLineHint : MonoBehaviour
 
         lastCameraX = cameraTransform != null ? cameraTransform.position.x : 0f;
 
-        hintMode = HasAsyncSignals() ? HintMode.ClockAndAsync : HintMode.ClockOnly;
+        hintMode = HintMode.Off;
 
         lastHintMode = hintMode;
         GenerateVisibleLines();
