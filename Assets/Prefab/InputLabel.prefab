@@ -56,6 +56,10 @@ MonoBehaviour:
   colorTintedRenderers:
   - {fileID: 8996410697574241555}
   individualOffset: {x: 0, y: 0}
+  brightRect: {fileID: 4091479074205448384}
+  brightHighY: 0
+  brightLowY: -0.98
+  transitionSpeed: 15
 --- !u!210 &6184920194827104928
 SortingGroup:
   m_ObjectHideFlags: 0

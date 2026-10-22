@@ -24,6 +24,42 @@ public class SignalLabelGroup : MonoBehaviour
     [Tooltip("Optional local positional offset specific to this badge.")]
     [SerializeField] private Vector2 individualOffset = Vector2.zero;
 
+    [Header("Bright Dynamic Positioning")]
+    [Tooltip("RectTransform of the LabelBright highlight sprite.")]
+    [SerializeField] private RectTransform brightRect;
+
+    [Tooltip("Local Y anchored position for LabelBright when the signal is High (1).")]
+    [SerializeField] private float brightHighY = 0.0f;
+
+    [Tooltip("Local Y anchored position for LabelBright when the signal is Low (0).")]
+    [SerializeField] private float brightLowY = -0.98f;
+
+    [Tooltip("Speed of vertical transition when signal logic state flips.")]
+    [SerializeField] private float transitionSpeed = 15f;
+
+    #endregion
+
+    private float targetBrightY = 0.0f;
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        EnsureBrightReference();
+    }
+
+    private void Update()
+    {
+        if (brightRect == null) return;
+
+        Vector2 pos = brightRect.anchoredPosition;
+        if (!Mathf.Approximately(pos.y, targetBrightY))
+        {
+            pos.y = Mathf.MoveTowards(pos.y, targetBrightY, transitionSpeed * Time.deltaTime);
+            brightRect.anchoredPosition = pos;
+        }
+    }
+
     #endregion
 
     #region Public API
@@ -96,11 +132,48 @@ public class SignalLabelGroup : MonoBehaviour
     }
 
     /// <summary>
+    /// Sets whether the input signal entering/exiting the badge is currently in High (1) or Low (0) logic state,
+    /// shifting LabelBright vertically to follow the line.
+    /// </summary>
+    /// <param name="isHigh">True if signal is High (1), false if Low (0).</param>
+    /// <param name="instant">If true, immediately snaps without smooth transition.</param>
+    public void SetSignalState(bool isHigh, bool instant = false)
+    {
+        EnsureBrightReference();
+        targetBrightY = isHigh ? brightHighY : brightLowY;
+
+        if (brightRect == null) return;
+
+        if (instant || !Application.isPlaying)
+        {
+            Vector2 pos = brightRect.anchoredPosition;
+            pos.y = targetBrightY;
+            brightRect.anchoredPosition = pos;
+        }
+    }
+
+    /// <summary>
     /// Deactivates this badge when its corresponding signal channel is not present in the level.
     /// </summary>
     public void Hide()
     {
         gameObject.SetActive(false);
+    }
+
+    #endregion
+
+    #region Private Helpers
+
+    private void EnsureBrightReference()
+    {
+        if (brightRect == null)
+        {
+            Transform bright = transform.Find("White_Box/LabelBright");
+            if (bright != null)
+            {
+                brightRect = bright.GetComponent<RectTransform>();
+            }
+        }
     }
 
     #endregion

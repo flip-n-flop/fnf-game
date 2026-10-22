@@ -645,6 +645,12 @@ public class SignalLineRenderer : MonoBehaviour
             kLabel?.ApplyColor(SignalColorManager.Instance.ColorK);
             jLabel?.ApplyColor(SignalColorManager.Instance.ColorJ);
         }
+
+        if (labelsContainer != null)
+        {
+            float previewCutoffX = labelsContainer.position.x + lineMaskOffset;
+            UpdateLabelBrightPositions(previewCutoffX, instant: true);
+        }
     }
 
     #endregion
@@ -678,6 +684,62 @@ public class SignalLineRenderer : MonoBehaviour
 
             TrimAndApplyPoints(lr, fullPoints, effectiveCutoff);
         }
+
+        UpdateLabelBrightPositions(cutoffX, instant: force);
+    }
+
+    private float GetBaseYForLine(string lineName)
+    {
+        switch (lineName)
+        {
+            case "Clock_Line": return computedClockY;
+            case "Clear_Line": return computedClearY;
+            case "Preset_Line": return computedPresetY;
+            case "K_Line": return computedKY;
+            case "J_Line": return computedJY;
+            default: return 0f;
+        }
+    }
+
+    /// <summary>
+    /// Evaluates the logic level (true = High, false = Low) of a signal line at the specified world X coordinate.
+    /// </summary>
+    public bool GetSignalStateAtX(string lineName, float worldX)
+    {
+        if (!rawLinePoints.TryGetValue(lineName, out Vector3[] points) || points == null || points.Length == 0)
+        {
+            return false;
+        }
+
+        float baseY = GetBaseYForLine(lineName);
+        float centerY = GetChannelCenterY(baseY);
+
+        if (worldX <= points[0].x)
+        {
+            return points[0].y > centerY;
+        }
+
+        if (worldX >= points[points.Length - 1].x)
+        {
+            return points[points.Length - 1].y > centerY;
+        }
+
+        int firstIndex = 1;
+        while (firstIndex < points.Length && points[firstIndex].x < worldX)
+        {
+            firstIndex++;
+        }
+
+        return points[firstIndex].y > centerY;
+    }
+
+    private void UpdateLabelBrightPositions(float cutoffX, bool instant = false)
+    {
+        if (clockLabel != null) clockLabel.SetSignalState(GetSignalStateAtX("Clock_Line", cutoffX), instant);
+        if (clearLabel != null) clearLabel.SetSignalState(GetSignalStateAtX("Clear_Line", cutoffX), instant);
+        if (presetLabel != null) presetLabel.SetSignalState(GetSignalStateAtX("Preset_Line", cutoffX), instant);
+        if (kLabel != null) kLabel.SetSignalState(GetSignalStateAtX("K_Line", cutoffX), instant);
+        if (jLabel != null) jLabel.SetSignalState(GetSignalStateAtX("J_Line", cutoffX), instant);
     }
 
     /// <summary>
