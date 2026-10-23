@@ -494,6 +494,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.g
+      value: 0.56
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.r
+      value: 0.11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7979212234208186124, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_text
       value: K
@@ -1443,6 +1459,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1499087524097675647, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.b
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.g
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7979212234208186124, guid: f979cc500199be641884ba8c070cee3a, type: 3}
@@ -3004,21 +3036,41 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.b
+      value: 0.72156864
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.g
+      value: 0.7152941
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.r
+      value: 0.72784317
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7979212234208186124, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_text
       value: CLK
       objectReference: {fileID: 0}
     - target: {fileID: 8996410697574241555, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_Color.b
-      value: 0.75333333
+      value: 0.72156864
       objectReference: {fileID: 0}
     - target: {fileID: 8996410697574241555, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_Color.g
-      value: 0.7501961
+      value: 0.7152941
       objectReference: {fileID: 0}
     - target: {fileID: 8996410697574241555, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_Color.r
-      value: 0.7490196
+      value: 0.72784317
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3648,6 +3700,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.b
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.r
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7419177469809104613, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -3734,6 +3802,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1499087524097675647, guid: f979cc500199be641884ba8c070cee3a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.g
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Color.r
+      value: 0.73
+      objectReference: {fileID: 0}
+    - target: {fileID: 4192837465019283748, guid: f979cc500199be641884ba8c070cee3a, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7419177469809104613, guid: f979cc500199be641884ba8c070cee3a, type: 3}
@@ -4901,7 +4985,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SignalLineRenderer
   signalHeight: 0.9
   lineWidth: 0.32
-  lineMaterial: {fileID: 0}
+  lineMaterial: {fileID: 2100000, guid: 7b6c4d93e5f94a78b032f4c5d6e7f809, type: 2}
   clockBaseY: 5.7
   spacing2Signals: 3.5
   spacing3Signals: 2.6

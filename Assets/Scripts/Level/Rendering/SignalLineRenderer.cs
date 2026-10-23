@@ -106,8 +106,10 @@ public class SignalLineRenderer : MonoBehaviour
     private Vector3[] scratchBuffer = new Vector3[1024];
     private float lastCutoffX = float.MinValue;
     private static Material defaultSpriteMaterial;
+    private static Material defaultHoloLineMaterial;
     private Transform labelsContainer;
     private Camera mainCamera;
+    private Transform playerTransform;
 
     private float computedJY;
     private float computedKY;
@@ -122,6 +124,7 @@ public class SignalLineRenderer : MonoBehaviour
     private void Awake()
     {
         mainCamera = Camera.main;
+        ResolvePlayerTransform();
         CacheExistingLineRenderers();
         UpdateLabelsContainerPosition();
     }
@@ -130,6 +133,7 @@ public class SignalLineRenderer : MonoBehaviour
     {
         UpdateLabelsContainerPosition();
         UpdateLineClipping();
+        UpdateLabelHoloStates();
     }
 
 #if UNITY_EDITOR
@@ -171,6 +175,12 @@ public class SignalLineRenderer : MonoBehaviour
                 r.clockBaseY = 5.7f;
             }
 
+            if (r.lineMaterial == null)
+            {
+                r.lineMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SignalLineHolo.mat");
+            }
+
+            r.ApplyStyleSettingsToExistingLines();
             r.PositionLabelsForPreview();
             UnityEditor.EditorUtility.SetDirty(r);
         }
@@ -520,8 +530,15 @@ public class SignalLineRenderer : MonoBehaviour
 
     private LineRenderer GetOrCreateLine(string lineName, Color color, int order)
     {
+        bool isShadow = lineName.EndsWith("_Shadow");
+        Material targetMat = isShadow ? GetDefaultMaterial() : GetMainLineMaterial();
+
         if (lines.TryGetValue(lineName, out LineRenderer existingLine) && existingLine != null)
         {
+            existingLine.sharedMaterial = targetMat;
+            existingLine.startWidth = lineWidth;
+            existingLine.endWidth = lineWidth;
+            existingLine.sortingOrder = order;
             return existingLine;
         }
 
@@ -541,8 +558,7 @@ public class SignalLineRenderer : MonoBehaviour
             lr = lineObj.AddComponent<LineRenderer>();
         }
 
-        Material mat = lineMaterial != null ? lineMaterial : GetDefaultMaterial();
-        lr.material = mat;
+        lr.sharedMaterial = targetMat;
         lr.startWidth = lineWidth;
         lr.endWidth = lineWidth;
         lr.startColor = color;
@@ -575,11 +591,13 @@ public class SignalLineRenderer : MonoBehaviour
                 }
             }
         }
+        ApplyStyleSettingsToExistingLines();
     }
 
     private void ApplyStyleSettingsToExistingLines()
     {
-        Material mat = lineMaterial != null ? lineMaterial : GetDefaultMaterial();
+        Material mainMat = GetMainLineMaterial();
+        Material shadowMat = GetDefaultMaterial();
         foreach (var kvp in lines)
         {
             if (kvp.Value == null) continue;
@@ -589,8 +607,36 @@ public class SignalLineRenderer : MonoBehaviour
             kvp.Value.endWidth = lineWidth;
             kvp.Value.sortingLayerName = SORTING_LAYER_NAME;
             kvp.Value.sortingOrder = isShadow ? SHADOW_SORTING_ORDER : MAIN_SORTING_ORDER;
-            kvp.Value.material = isShadow ? mat : (lineMaterial != null ? lineMaterial : mat);
+            kvp.Value.sharedMaterial = isShadow ? shadowMat : mainMat;
         }
+    }
+
+    private Material GetMainLineMaterial()
+    {
+        if (lineMaterial != null)
+        {
+            return lineMaterial;
+        }
+
+#if UNITY_EDITOR
+        lineMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SignalLineHolo.mat");
+        if (lineMaterial != null)
+        {
+            return lineMaterial;
+        }
+#endif
+
+        if (defaultHoloLineMaterial == null)
+        {
+            Shader holoShader = Shader.Find("Custom/Sprite_Holographic");
+            if (holoShader != null)
+            {
+                defaultHoloLineMaterial = new Material(holoShader);
+                defaultHoloLineMaterial.SetFloat("_UseWorldSpace", 1f);
+            }
+        }
+
+        return defaultHoloLineMaterial != null ? defaultHoloLineMaterial : GetDefaultMaterial();
     }
 
     private Material GetDefaultMaterial()
@@ -650,6 +696,7 @@ public class SignalLineRenderer : MonoBehaviour
         {
             float previewCutoffX = labelsContainer.position.x + lineMaskOffset;
             UpdateLabelBrightPositions(previewCutoffX, instant: true);
+            UpdateLabelHoloStates(instant: true);
         }
     }
 
@@ -686,6 +733,10 @@ public class SignalLineRenderer : MonoBehaviour
         }
 
         UpdateLabelBrightPositions(cutoffX, instant: force);
+        if (force)
+        {
+            UpdateLabelHoloStates(instant: true);
+        }
     }
 
     private float GetBaseYForLine(string lineName)
@@ -740,6 +791,40 @@ public class SignalLineRenderer : MonoBehaviour
         if (presetLabel != null) presetLabel.SetSignalState(GetSignalStateAtX("Preset_Line", cutoffX), instant);
         if (kLabel != null) kLabel.SetSignalState(GetSignalStateAtX("K_Line", cutoffX), instant);
         if (jLabel != null) jLabel.SetSignalState(GetSignalStateAtX("J_Line", cutoffX), instant);
+    }
+
+    private void ResolvePlayerTransform()
+    {
+        if (playerTransform != null) return;
+
+        if (mainCamera != null && mainCamera.TryGetComponent(out CameraController camCtrl) && camCtrl.target != null)
+        {
+            playerTransform = camCtrl.target;
+            return;
+        }
+
+        PlayerController pc = FindAnyObjectByType<PlayerController>();
+        if (pc != null)
+        {
+            playerTransform = pc.transform;
+        }
+    }
+
+    private void UpdateLabelHoloStates(bool instant = false)
+    {
+        if (rawLinePoints.Count == 0) return;
+
+        ResolvePlayerTransform();
+
+        float evalX = playerTransform != null
+            ? playerTransform.position.x
+            : (labelsContainer != null ? labelsContainer.position.x + lineMaskOffset : 0f);
+
+        if (clockLabel != null) clockLabel.SetHoloState(GetSignalStateAtX("Clock_Line", evalX), instant);
+        if (clearLabel != null) clearLabel.SetHoloState(GetSignalStateAtX("Clear_Line", evalX), instant);
+        if (presetLabel != null) presetLabel.SetHoloState(GetSignalStateAtX("Preset_Line", evalX), instant);
+        if (kLabel != null) kLabel.SetHoloState(GetSignalStateAtX("K_Line", evalX), instant);
+        if (jLabel != null) jLabel.SetHoloState(GetSignalStateAtX("J_Line", evalX), instant);
     }
 
     /// <summary>
