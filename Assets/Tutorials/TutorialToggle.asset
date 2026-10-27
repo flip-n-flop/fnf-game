@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b48e6048f8b74ae409798be86a528384, type: 3}
-  m_Name: TutorialSwitch
+  m_Name: TutorialToggle
   m_EditorClassIdentifier: Assembly-CSharp::TutorialData
   id: '"comuta"'
-  tipo: 0
-  acaoInput: {fileID: -2099379676528639254, guid: cbc2af35a9502f14eaf2db9b7d191ca4, type: 3}
+  tipo: 1
+  acaoInput: {fileID: 0}
   aguardarOciosidadeParaExibir: 0
   tempoOciosidadeCustomizado: -1
   atrasoAoAvancarCustomizado: -1

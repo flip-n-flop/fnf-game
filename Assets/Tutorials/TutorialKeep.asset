@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: TutorialKeep
   m_EditorClassIdentifier: Assembly-CSharp::TutorialData
   id: "\"mant\xE9m\""
-  tipo: 0
-  acaoInput: {fileID: -2099379676528639254, guid: cbc2af35a9502f14eaf2db9b7d191ca4, type: 3}
+  tipo: 1
+  acaoInput: {fileID: 0}
   aguardarOciosidadeParaExibir: 0
   tempoOciosidadeCustomizado: -1
   atrasoAoAvancarCustomizado: -1
