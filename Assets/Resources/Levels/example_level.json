@@ -14,7 +14,7 @@
     "ceiling": "111111 111111 111111 111111 111000 011111 111111",
     "obstacles": [
         {
-            "obstacleName": "Mace",
+            "name": "Mace",
             "startX": 10,
             "startY": 1,
             "speed": 2,
@@ -24,7 +24,7 @@
             "clockwise": true
         },
         {
-            "obstacleName": "Mace",
+            "name": "Mace",
             "startX": 25,
             "startY": 3,
             "speed": 3,
@@ -32,6 +32,43 @@
             "verticalDistance": 0,
             "starterCorner": "top-left",
             "clockwise": true
+        }
+    ],
+    "tutorials": [
+        {
+            "name": "Jump",
+            "startX": 5,
+            "startY": 1,
+            "widthTiles": 6,
+            "heightTiles": 2,
+            "waitForIdle": true,
+            "idleTime": 3.0
+        },
+        {
+            "name": "Set",
+            "startX": 15,
+            "startY": 1,
+            "widthTiles": 3,
+            "heightTiles": 4,
+            "showOnlyOnce": false,
+            "hideDelay": -1
+        },
+        {
+            "name": "Custom",
+            "type": "Observational",
+            "message": {
+                "pt-BR": "Este é um tutorial de observação. Observe o que acontece com o sinal J e K quando você pressiona o botão Set.",
+                "en-US": "This is an observational tutorial. Observe what happens to the J and K signals when you press the Set button.",
+                "es-ES": "Este es un tutorial de observación. Observe lo que sucede con las señales J y K cuando presiona el botón Set."
+            },
+            "startX": 15,
+            "startY": 1,
+            "widthTiles": 3,
+            "heightTiles": 4,
+            "waitForIdle": false,
+            "showOnlyOnce": false,
+            "idleTime": -1,
+            "hideDelay": -1
         }
     ]
 }
