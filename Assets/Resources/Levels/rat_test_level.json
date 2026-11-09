@@ -1,0 +1,25 @@
+{
+    "levelName": "rat_test_level",
+    "levelDescription": "Fase de teste para o inimigo Rato correndo para a esquerda",
+    "levelID": "9999999",
+    "levelOrder": 99,
+    "ffType": "JK",
+    "clockCicles": 6,
+    "activeClockEdge": "rising",
+    "jSignal": "000000 000111 111000 001111 111111 110000 001111",
+    "kSignal": "000111 111000 000011 111100 000000 000011 111111",
+    "ceiling": "111111 111111 111111 111111 111111 111111 111111",
+    "floor": "111111 111111 111111 111111 111111 111111 111111",
+    "obstacles": [
+        {
+            "obstacleName": "Rat",
+            "startX": 20,
+            "startY": 1,
+            "speed": 6,
+            "horizontalDistance": 16,
+            "verticalDistance": 0,
+            "starterCorner": "bottom-left",
+            "clockwise": true
+        }
+    ]
+}

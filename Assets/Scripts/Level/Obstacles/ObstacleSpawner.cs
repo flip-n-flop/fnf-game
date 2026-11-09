@@ -138,6 +138,25 @@ public class ObstacleSpawner
                 obstacleYRelativeToFloor,
                 terrainTilemap);
         }
+
+        var rat = instance.GetComponent<RatController>();
+        if (rat != null)
+        {
+            var cellSize = terrainTilemap != null && terrainTilemap.layoutGrid != null
+                ? terrainTilemap.layoutGrid.cellSize
+                : Vector3.one;
+
+            float speedUnits = data.speed * Mathf.Abs(cellSize.x);
+
+            rat.ApplyObstacleData(
+                data.startX,
+                data.startY,
+                speedUnits,
+                startX,
+                floorYRow,
+                obstacleYRelativeToFloor,
+                terrainTilemap);
+        }
     }
 
     #endregion

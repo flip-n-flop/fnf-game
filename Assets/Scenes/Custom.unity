@@ -3204,7 +3204,7 @@ MonoBehaviour:
   inputTilemap: {fileID: 1489212623}
   terrainTilemap: {fileID: 518293364}
   clockTilemap: {fileID: 460694105}
-  levelFile: {fileID: 4900000, guid: 38d6c9ef11761834d9a17cc897130a14, type: 3}
+  levelFile: {fileID: 4900000, guid: d1ae7d8ef203c3b458770b0295c3ddf2, type: 3}
   diagramTiles:
   - {fileID: 11400000, guid: f14421456d8d8574781262e667691d13, type: 2}
   - {fileID: 11400000, guid: 477b708c426c84449ac383aab54be103, type: 2}
@@ -3226,6 +3226,8 @@ MonoBehaviour:
   obstaclePrefabs:
   - obstacleName: Mace
     prefab: {fileID: 8158824412335418091, guid: 41ede49513207b54c9ff4fac5e27d732, type: 3}
+  - obstacleName: Rat
+    prefab: {fileID: 1369452032268343003, guid: 7b964200e8845694fab8d863caa17c8e, type: 3}
   signalLineRenderer: {fileID: 1603356140}
   signalLabelRenderer: {fileID: 0}
   debugLogOutputVector: 0

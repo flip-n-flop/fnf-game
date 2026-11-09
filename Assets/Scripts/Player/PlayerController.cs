@@ -535,6 +535,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Trigger detection handler. Triggers player death upon entering trigger colliders tagged "Enemy".
+    /// </summary>
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            PlayerDeath();
+        }
+    }
+
     #endregion
 
     #region Animation
