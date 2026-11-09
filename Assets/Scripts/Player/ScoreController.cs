@@ -22,7 +22,10 @@ public class ScoreController : MonoBehaviour
     [Tooltip("Maximum possible score (achieved with 100% accuracy in 0 seconds).")]
     [SerializeField] private int maxScore = 1000;
 
-    private Label timerLabel;
+    private Label timerSecTensLabel;
+    private Label timerSecOnesLabel;
+    private Label timerCentiTensLabel;
+    private Label timerCentiOnesLabel;
     private float elapsedTime;
     private bool isRunning;
 
@@ -63,13 +66,17 @@ public class ScoreController : MonoBehaviour
     #region UI Initialization
 
     /// <summary>
-    /// Queries the TimerText label from the UIDocument if assigned.
+    /// Queries the timer digit labels from the UIDocument if assigned.
     /// </summary>
     private void InitUI()
     {
         if (uiDocument != null)
         {
-            timerLabel = uiDocument.rootVisualElement.Q<Label>("TimerText");
+            VisualElement root = uiDocument.rootVisualElement;
+            timerSecTensLabel = root.Q<Label>("TimerSecTens");
+            timerSecOnesLabel = root.Q<Label>("TimerSecOnes");
+            timerCentiTensLabel = root.Q<Label>("TimerCentiTens");
+            timerCentiOnesLabel = root.Q<Label>("TimerCentiOnes");
         }
     }
 
@@ -84,6 +91,7 @@ public class ScoreController : MonoBehaviour
     {
         elapsedTime = 0f;
         isRunning = true;
+        UpdateTimerUI();
     }
 
     /// <summary>
@@ -132,14 +140,17 @@ public class ScoreController : MonoBehaviour
     #region Private Helpers
 
     /// <summary>
-    /// Updates the UI Toolkit Label with formatted MM:SS elapsed time.
+    /// Updates the UI Toolkit timer digit Labels with elapsed seconds and centiseconds.
     /// </summary>
     private void UpdateTimerUI()
     {
-        if (timerLabel == null) return;
-        int m = Mathf.FloorToInt(elapsedTime / 60f);
-        int s = Mathf.FloorToInt(elapsedTime % 60f);
-        timerLabel.text = $"{m:00}:{s:00}";
+        int seconds = Mathf.FloorToInt(elapsedTime);
+        int centiseconds = Mathf.FloorToInt((elapsedTime * 100f) % 100f);
+
+        if (timerSecTensLabel != null) timerSecTensLabel.text = (seconds / 10).ToString();
+        if (timerSecOnesLabel != null) timerSecOnesLabel.text = (seconds % 10).ToString();
+        if (timerCentiTensLabel != null) timerCentiTensLabel.text = (centiseconds / 10).ToString();
+        if (timerCentiOnesLabel != null) timerCentiOnesLabel.text = (centiseconds % 10).ToString();
     }
 
     /// <summary>

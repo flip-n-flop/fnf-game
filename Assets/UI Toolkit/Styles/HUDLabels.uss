@@ -14,38 +14,74 @@
     pointer-events: none;
 }
 
-/* ── In-Game Timer (Bottom-Center) ── */
+/* ── In-Game Timer (Left Playfield Badge) ── */
 
 .hud-timer-wrapper {
     position: absolute;
-    bottom: 28px;
-    left: 0;
-    width: 100%;
-    align-items: center;
+    bottom: 28%;
+    left: 64px;
+    align-items: flex-start;
     justify-content: center;
     pointer-events: none;
 }
 
 .hud-timer-container {
-    height: 64px;
-    min-width: 120px;
-    padding-left: 20px;
-    padding-right: 20px;
-    background-color: rgba(30, 30, 30, 0.95);
-    border-radius: 15px;
+    width: 116px;
+    height: 70px;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Arts/InGameUI/Timer/Background.png?fileID=-1955448553306655712&guid=ea9a54eddb5cb6649ba8379ee0894ea3&type=3#Background_0");
+    -unity-background-scale-mode: scale-to-fit;
+    border-radius: 0;
     border-width: 0;
     align-items: center;
     justify-content: center;
 }
 
+.hud-timer-clock {
+    position: absolute;
+    width: 33px;
+    height: 37px;
+    left: -12px;
+    top: 14px;
+    background-image: url("project://database/Assets/Arts/InGameUI/Timer/Clock.png?fileID=4214149858688995037&guid=b246c17d2d0c3e046a894cd50dd0dc82&type=3#Clock_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.hud-timer-text-group {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    rotate: -7deg;
+    margin-left: 28px;
+    margin-top: 2px;
+}
+
 .hud-timer-text {
-    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/Exo2-VariableFont_wght.ttf?fileID=12800000&guid=06cc052497f62034fb43e3edf087d21a&type=3#Exo2-VariableFont_wght");
+    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
-    font-size: 24px;
-    color: #F5F7FA;
+    color: #FFFFFF;
     -unity-text-align: middle-center;
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: #000000;
     padding: 0;
     margin: 0;
+}
+
+.hud-timer-digit-sec {
+    width: 27px;
+    font-size: 44px;
+}
+
+.hud-timer-dot {
+    width: 6px;
+    font-size: 38px;
+    margin-bottom: 2px;
+}
+
+.hud-timer-digit-centi {
+    width: 20px;
+    font-size: 32px;
+    margin-bottom: 2px;
 }
 
 /* ── Level Title (Bottom-Left) ── */

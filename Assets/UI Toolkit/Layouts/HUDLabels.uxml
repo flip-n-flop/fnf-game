@@ -5,7 +5,14 @@
     <ui:VisualElement name="HudRoot" class="hud-root">
         <ui:VisualElement class="hud-timer-wrapper">
             <ui:VisualElement name="TimerContainer" class="hud-timer-container">
-                <ui:Label text="00:00" name="TimerText" class="hud-timer-text" />
+                <ui:VisualElement name="TimerClockIcon" class="hud-timer-clock" />
+                <ui:VisualElement name="TimerTextGroup" class="hud-timer-text-group">
+                    <ui:Label text="0" name="TimerSecTens" class="hud-timer-text hud-timer-digit-sec" />
+                    <ui:Label text="0" name="TimerSecOnes" class="hud-timer-text hud-timer-digit-sec" />
+                    <ui:Label text="." name="TimerDot" class="hud-timer-text hud-timer-dot" />
+                    <ui:Label text="0" name="TimerCentiTens" class="hud-timer-text hud-timer-digit-centi" />
+                    <ui:Label text="0" name="TimerCentiOnes" class="hud-timer-text hud-timer-digit-centi" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="hud-title-wrapper">
