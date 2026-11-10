@@ -248,12 +248,18 @@
     color: #F5F7FA;
 }
 
-/* ── HUD Hexagonal Menu Button (Bottom-Right) ── */
+/* ── HUD Buttons Container (Menu e Controles) ── */
+
+.hud-buttons-container {
+    position: absolute;
+    bottom: 5%;
+    right: 5%;
+}
 
 .hud-menu-button {
     position: absolute;
-    bottom: 24px;
-    right: 52px;
+    bottom: 0;
+    right: 0;
     width: 76px;
     height: 76px;
     scale: 0.9 0.9;
@@ -316,8 +322,8 @@
 }
 
 .hud-controls-button {
-    right: 120px;
-    bottom: 36px;
+    right: 68px;
+    bottom: 12px;
 }
 
 /* Ícone de Configurações: Centralizado na face do hexágono (gira junto com a box) */

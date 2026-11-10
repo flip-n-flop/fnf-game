@@ -88,8 +88,8 @@
 
 .hud-title-wrapper {
     position: absolute;
-    bottom: 28px;
-    left: 68px;
+    bottom: 5%;
+    left: 5%;
     align-items: flex-start;
     justify-content: flex-end;
     pointer-events: none;
@@ -112,8 +112,8 @@
     margin: 0;
     -unity-text-outline-width: 2px;
     -unity-text-outline-color: #000000;
-    text-shadow: 4px 4px 0px #000000;
-    letter-spacing: -2px;
+    text-shadow: 7px 7px 0px #000000;
+    letter-spacing: -5px;
 }
 
 .hud-subtitle-text {
@@ -126,6 +126,7 @@
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
+    letter-spacing: 1px;
 }
 
 /* ── Signal HUD Labels ── */

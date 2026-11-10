@@ -17,10 +17,11 @@
         </ui:VisualElement>
         <ui:VisualElement class="hud-title-wrapper">
             <ui:VisualElement name="TitleContainer" class="hud-title-container">
-                <ui:Label text="&lt;cspace=-0.06em&gt;FLIP FLOP JK&lt;/cspace&gt;" name="TitleText"
-                    class="hud-title-text" />
-                <ui:Label text="&lt;cspace=-0.04em&gt;COM ENTRADAS ASSÍNCRONAS&lt;/cspace&gt;" name="SubtitleText"
-                    class="hud-subtitle-text" />
+                <ui:Label text="&lt;cspace=-0.06em&gt;POR ÁGUA ABAIXO&lt;/cspace&gt;"
+                    name="TitleText" class="hud-title-text" />
+                <ui:Label
+                    text="&lt;cspace=-0.04em&gt;DUTOS SUBTERRÂNEOS - FLIP FLOP JK&lt;/cspace&gt;"
+                    name="SubtitleText" class="hud-subtitle-text" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="J_Label" class="signal-label">
@@ -59,7 +60,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="TutorialContainer" class="tutorial-container">
-            <ui:Label text="" name="TutorialText" class="tutorial-text"/>
+            <ui:Label text="" name="TutorialText" class="tutorial-text" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
