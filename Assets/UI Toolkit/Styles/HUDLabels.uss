@@ -19,7 +19,7 @@
 .hud-timer-wrapper {
     position: absolute;
     bottom: 28%;
-    left: 64px;
+    left: 5%;
     align-items: flex-start;
     justify-content: center;
     pointer-events: none;

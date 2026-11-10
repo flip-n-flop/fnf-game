@@ -252,7 +252,7 @@
 
 .hud-buttons-container {
     position: absolute;
-    bottom: 5%;
+    bottom: 4%;
     right: 5%;
 }
 
