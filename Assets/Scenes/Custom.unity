@@ -610,8 +610,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 017b8883d49e04c47ae5f9f236722905, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lowY: 0
-  highY: 3
+  lowY: -0.15
+  highY: 3.45
   correctCorners: []
   signalPath: {fileID: 810242248}
   cornerTolerance: 0.2
