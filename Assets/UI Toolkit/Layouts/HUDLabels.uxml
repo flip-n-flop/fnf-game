@@ -3,7 +3,7 @@
     <Style
         src="project://database/Assets/UI%20Toolkit/Styles/HUDLabels.uss?fileID=7433441132597879392&amp;guid=c6ecc659333acba40a615535c06fc108&amp;type=3#HUDLabels" />
     <ui:VisualElement name="HudRoot" class="hud-root">
-        <ui:VisualElement class="hud-timer-wrapper">
+        <ui:VisualElement name="TimerWrapper" class="hud-timer-wrapper">
             <ui:VisualElement name="TimerContainer" class="hud-timer-container">
                 <ui:VisualElement name="TimerClockIcon" class="hud-timer-clock" />
                 <ui:VisualElement name="TimerTextGroup" class="hud-timer-text-group">

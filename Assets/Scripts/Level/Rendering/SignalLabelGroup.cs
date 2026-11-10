@@ -77,6 +77,11 @@ public class SignalLabelGroup : MonoBehaviour
         EnsureReferences();
     }
 
+    private void OnValidate()
+    {
+        EnsureReferences();
+    }
+
     private void Update()
     {
         if (brightRect != null)
@@ -126,6 +131,7 @@ public class SignalLabelGroup : MonoBehaviour
     /// </summary>
     public void Configure(string text, Color signalColor, bool showOverline, float channelCenterY, float scale = 1f)
     {
+        EnsureReferences();
         gameObject.SetActive(true);
         SetChannelY(channelCenterY, scale);
 
@@ -258,6 +264,8 @@ public class SignalLabelGroup : MonoBehaviour
 
     private void EnsureReferences()
     {
+        SyncOverlineHierarchy();
+
         if (brightRect == null)
         {
             Transform bright = transform.Find("White_Box/LabelBright");
@@ -312,6 +320,165 @@ public class SignalLabelGroup : MonoBehaviour
             holoRenderer.sortingOrder = 7;
         }
     }
+
+    private void SyncOverlineHierarchy()
+    {
+        if (labelText == null)
+        {
+            labelText = GetComponentInChildren<TMP_Text>(true);
+        }
+
+        bool changed = false;
+
+        if (labelText != null)
+        {
+            if (labelText.TryGetComponent(out MeshRenderer textMr) && textMr.sortingOrder < 8)
+            {
+                textMr.sortingOrder = 8;
+                changed = true;
+            }
+
+            Transform textParent = labelText.transform.parent;
+            if (textParent != null && textParent != transform)
+            {
+                if (textParent.name != "TextGroup")
+                {
+                    textParent.name = "TextGroup";
+                    changed = true;
+                }
+
+                if (overlineObject == null)
+                {
+                    for (int i = 0; i < textParent.childCount; i++)
+                    {
+                        Transform sibling = textParent.GetChild(i);
+                        if (sibling != labelText.transform && sibling.childCount > 0)
+                        {
+                            overlineObject = sibling.gameObject;
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (overlineObject != null && overlineObject.TryGetComponent<SpriteRenderer>(out _))
+        {
+            Transform parent = overlineObject.transform.parent;
+            if (parent != null && parent != transform)
+            {
+                overlineObject = parent.gameObject;
+                changed = true;
+            }
+        }
+
+        if (overlineObject != null && overlineObject.transform.childCount > 0)
+        {
+            if (overlineObject.name != "OverlineGroup")
+            {
+                overlineObject.name = "OverlineGroup";
+                changed = true;
+            }
+
+            Transform groupTransform = overlineObject.transform;
+            for (int i = 0; i < groupTransform.childCount; i++)
+            {
+                Transform child = groupTransform.GetChild(i);
+                if (!child.gameObject.activeSelf)
+                {
+                    child.gameObject.SetActive(true);
+                    changed = true;
+                }
+
+                if (child.TryGetComponent(out SpriteRenderer sr))
+                {
+                    string targetName;
+                    int targetOrder;
+
+                    if (sr.color.r > 0.5f)
+                    {
+                        targetName = "OverlineFill";
+                        targetOrder = 10;
+                    }
+                    else if (child.localScale.y > 0.19f)
+                    {
+                        targetName = "OverlineOutline";
+                        targetOrder = 9;
+                    }
+                    else
+                    {
+                        targetName = "OverlineShadow";
+                        targetOrder = 8;
+                    }
+
+                    if (child.name != targetName)
+                    {
+                        child.name = targetName;
+                        changed = true;
+                    }
+
+                    if (sr.sortingOrder != targetOrder)
+                    {
+                        sr.sortingOrder = targetOrder;
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        if (changed && !Application.isPlaying)
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(gameObject);
+        }
+#endif
+    }
+
+#if UNITY_EDITOR
+    [UnityEditor.InitializeOnLoadMethod]
+    private static void EditorAutoSyncOverlineHierarchy()
+    {
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (Application.isPlaying) return;
+
+            var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+            if (prefabStage != null && prefabStage.prefabContentsRoot != null)
+            {
+                if (prefabStage.prefabContentsRoot.TryGetComponent(out SignalLabelGroup stageGroup))
+                {
+                    stageGroup.EnsureReferences();
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(prefabStage.scene);
+                }
+            }
+
+            SignalLabelGroup prefabAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<SignalLabelGroup>("Assets/Prefab/InputLabel.prefab");
+            if (prefabAsset != null)
+            {
+                prefabAsset.EnsureReferences();
+            }
+
+            SignalLabelGroup[] sceneGroups = FindObjectsByType<SignalLabelGroup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (SignalLabelGroup group in sceneGroups)
+            {
+                if (group == null) continue;
+                group.EnsureReferences();
+                if (group.overlineObject != null && group.labelText != null)
+                {
+                    string txt = group.labelText.text != null ? group.labelText.text.Trim().ToUpperInvariant() : "";
+                    bool shouldShow = txt == "PRE" || txt == "CLR";
+                    if (group.overlineObject.activeSelf != shouldShow)
+                    {
+                        group.overlineObject.SetActive(shouldShow);
+                        UnityEditor.EditorUtility.SetDirty(group.overlineObject);
+                    }
+                }
+            }
+        };
+    }
+#endif
 
     #endregion
 }

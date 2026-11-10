@@ -27,8 +27,15 @@ public class SignalLineRenderer : MonoBehaviour
     #region Serialized Fields - Layout & Spacing
 
     [Header("Layout & Spacing")]
-    [Tooltip("Base Y coordinate (logic level 0) for the Clock line at the bottom.")]
-    [SerializeField] private float clockBaseY = 5.7f;
+    [Tooltip("Distância percentual (0.05 = 5%) entre a borda superior da tela e o topo dos labels na região de sinais.")]
+    [Range(0f, 0.25f)]
+    [SerializeField] private float topScreenMarginPercent = 0.05f;
+
+    [Tooltip("Quando ativo, calcula automaticamente o regionCenterY para que o topo da região fique exatamente a topScreenMarginPercent (5%) da borda superior da tela.")]
+    [SerializeField] private bool autoCalculateRegionFromTopMargin = true;
+
+    [Tooltip("Coordenada Y central da região onde as linhas de sinal ficam posicionadas. Os espaçamentos são distribuídos simetricamente a partir deste centro.")]
+    [SerializeField] private float regionCenterY = 9.64f;
 
     [Tooltip("Uniform spacing between consecutive lines when level has 2 signals (Clock + D/T).")]
     [SerializeField] private float spacing2Signals = 3.5f;
@@ -47,8 +54,12 @@ public class SignalLineRenderer : MonoBehaviour
     #region Serialized Fields - Scenario Labels
 
     [Header("Scenario Labels")]
-    [Tooltip("Offset of the label groups relative to the camera X position and each line's vertical center.")]
-    [SerializeField] private Vector2 labelOffset = new Vector2(-15.0f, 0f);
+    [Tooltip("Distância percentual (0.05 = 5%) entre a borda esquerda da tela e a borda esquerda dos labels.")]
+    [Range(0f, 0.25f)]
+    [SerializeField] private float leftScreenMarginPercent = 0.05f;
+
+    [Tooltip("Ajuste fino adicional (opcional) aplicado à posição dos labels além da margem de 5%.")]
+    [SerializeField] private Vector2 labelOffset = Vector2.zero;
 
     [Tooltip("Uniform scale applied to each signal label badge hierarchy.")]
     [SerializeField] private float labelScale = 0.75f;
@@ -93,6 +104,8 @@ public class SignalLineRenderer : MonoBehaviour
     private const float CLOCK_X_OFFSET = 0.0f;
     private const float LEAD_IN_LENGTH = 2.0f;
     private const float EXTEND_RIGHT_LENGTH = 4.0f;
+    private const float BADGE_BASE_WIDTH = 3.83f * 0.92f;
+    private const float BADGE_BASE_HEIGHT = 1.88f * 0.92f;
     private const string SORTING_LAYER_NAME = "Default";
     private const int MAIN_SORTING_ORDER = 2;
     private const int SHADOW_SORTING_ORDER = 1;
@@ -172,8 +185,14 @@ public class SignalLineRenderer : MonoBehaviour
             if (r.spacing5Signals < 1.75f)
             {
                 r.spacing5Signals = 1.75f;
-                r.clockBaseY = 5.7f;
             }
+
+            if (r.labelOffset.x < -5f)
+            {
+                r.labelOffset = Vector2.zero;
+            }
+
+            r.ResolveEffectiveRegionCenterY();
 
             if (r.lineMaterial == null)
             {
@@ -242,35 +261,36 @@ public class SignalLineRenderer : MonoBehaviour
                           (hasJ ? 1 : 0);
 
         float spacing = ResolveSpacingForCount(signalCount);
+        float centerY = ResolveEffectiveRegionCenterY();
         int slotIndex = 0;
 
         if (hasClock)
         {
-            computedClockY = clockBaseY + (slotIndex * spacing);
+            computedClockY = ComputeSlotBaseY(slotIndex, signalCount, spacing, centerY);
             slotIndex++;
         }
 
         if (hasClear)
         {
-            computedClearY = clockBaseY + (slotIndex * spacing);
+            computedClearY = ComputeSlotBaseY(slotIndex, signalCount, spacing, centerY);
             slotIndex++;
         }
 
         if (hasPreset)
         {
-            computedPresetY = clockBaseY + (slotIndex * spacing);
+            computedPresetY = ComputeSlotBaseY(slotIndex, signalCount, spacing, centerY);
             slotIndex++;
         }
 
         if (hasK)
         {
-            computedKY = clockBaseY + (slotIndex * spacing);
+            computedKY = ComputeSlotBaseY(slotIndex, signalCount, spacing, centerY);
             slotIndex++;
         }
 
         if (hasJ)
         {
-            computedJY = clockBaseY + (slotIndex * spacing);
+            computedJY = ComputeSlotBaseY(slotIndex, signalCount, spacing, centerY);
             slotIndex++;
         }
 
@@ -652,6 +672,43 @@ public class SignalLineRenderer : MonoBehaviour
         return defaultSpriteMaterial;
     }
 
+    private float ResolveEffectiveRegionCenterY()
+    {
+        if (!autoCalculateRegionFromTopMargin)
+        {
+            return regionCenterY;
+        }
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                mainCamera = FindFirstObjectByType<Camera>();
+            }
+        }
+
+        float camY = mainCamera != null ? mainCamera.transform.position.y : 5f;
+        float orthoSize = (mainCamera != null && mainCamera.orthographic) ? mainCamera.orthographicSize : 10f;
+        float screenHeight = 2f * orthoSize;
+        float screenTopY = camY + orthoSize;
+
+        float topMarginWorld = screenHeight * topScreenMarginPercent;
+        float badgeHalfHeight = (BADGE_BASE_HEIGHT * 0.5f) * labelScale;
+        float topSlotCenterY = screenTopY - topMarginWorld - badgeHalfHeight;
+
+        // O topo da região comporta até 5 sinais (2 espaçamentos acima do centro e 2 abaixo)
+        regionCenterY = topSlotCenterY - (2f * spacing5Signals);
+        return regionCenterY;
+    }
+
+    private float ComputeSlotBaseY(int slotIndex, int totalSignals, float spacing, float centerY)
+    {
+        float centerOffsetIndex = slotIndex - ((totalSignals - 1) * 0.5f);
+        float channelCenterY = centerY + (centerOffsetIndex * spacing);
+        return channelCenterY - (signalHeight * 0.5f);
+    }
+
     private void UpdateLabelsContainerPosition()
     {
         if (labelsContainer == null)
@@ -663,10 +720,23 @@ public class SignalLineRenderer : MonoBehaviour
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                mainCamera = FindFirstObjectByType<Camera>();
+            }
         }
 
         float camX = mainCamera != null ? mainCamera.transform.position.x : 17f;
-        labelsContainer.position = new Vector3(camX + labelOffset.x, labelOffset.y, 0f);
+        float orthoSize = (mainCamera != null && mainCamera.orthographic) ? mainCamera.orthographicSize : 10f;
+        float aspect = (mainCamera != null && mainCamera.aspect > 0.01f) ? mainCamera.aspect : (16f / 9f);
+        float screenWidth = 2f * orthoSize * aspect;
+        float screenLeftX = camX - (screenWidth * 0.5f);
+
+        float leftMarginWorld = screenWidth * leftScreenMarginPercent;
+        float badgeHalfWidth = (BADGE_BASE_WIDTH * 0.5f) * labelScale;
+        float targetX = screenLeftX + leftMarginWorld + badgeHalfWidth + labelOffset.x;
+
+        labelsContainer.position = new Vector3(targetX, labelOffset.y, 0f);
     }
 
     private float GetChannelCenterY(float channelBaseY)
@@ -677,11 +747,12 @@ public class SignalLineRenderer : MonoBehaviour
     private void PositionLabelsForPreview()
     {
         UpdateLabelsContainerPosition();
-        clockLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (0 * spacing5Signals)), labelScale);
-        clearLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (1 * spacing5Signals)), labelScale);
-        presetLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (2 * spacing5Signals)), labelScale);
-        kLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (3 * spacing5Signals)), labelScale);
-        jLabel?.SetChannelY(GetChannelCenterY(clockBaseY + (4 * spacing5Signals)), labelScale);
+        float centerY = ResolveEffectiveRegionCenterY();
+        clockLabel?.SetChannelY(GetChannelCenterY(ComputeSlotBaseY(0, 5, spacing5Signals, centerY)), labelScale);
+        clearLabel?.SetChannelY(GetChannelCenterY(ComputeSlotBaseY(1, 5, spacing5Signals, centerY)), labelScale);
+        presetLabel?.SetChannelY(GetChannelCenterY(ComputeSlotBaseY(2, 5, spacing5Signals, centerY)), labelScale);
+        kLabel?.SetChannelY(GetChannelCenterY(ComputeSlotBaseY(3, 5, spacing5Signals, centerY)), labelScale);
+        jLabel?.SetChannelY(GetChannelCenterY(ComputeSlotBaseY(4, 5, spacing5Signals, centerY)), labelScale);
 
         if (SignalColorManager.Instance != null)
         {
