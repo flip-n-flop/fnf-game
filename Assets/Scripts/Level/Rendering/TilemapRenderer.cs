@@ -134,7 +134,7 @@ public class TilemapRenderer
     {
         if (terrainTilemap == null) return;
 
-        int leftFillStartX = Mathf.Min(-2, startX - 2);
+        int leftFillStartX = Mathf.Min(-6, startX - 10);
         int xWall = leftFillStartX - 1;
 
         if (wallTile != null)

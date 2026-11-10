@@ -2787,6 +2787,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pointSpacing: 0.1
+  minDrawX: 4
   groundY: -0.5
   ceilingY: 3.25
 --- !u!4 &810242255 stripped

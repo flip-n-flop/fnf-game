@@ -67,6 +67,36 @@ public class PlayerController : MonoBehaviour
     [Tooltip("World Y threshold (positive and negative) below/above which player dies.")]
     [SerializeField] private float fallKillThreshold = -25f;
 
+    [Tooltip("Target X position where the player finishes the intro walk and gains control.")]
+    [SerializeField] private float spawnTargetX = 6f;
+
+    [Tooltip("Whether the character walks automatically from off-screen to spawnTargetX at the start of the level.")]
+    [SerializeField] private bool playIntroWalk = true;
+
+    [Tooltip("Distance outside the left edge of the camera screen where the intro walk begins.")]
+    [SerializeField] private float introOffscreenOffset = 1.5f;
+
+    [Header("Guide Bar Settings")]
+    [Tooltip("SpriteRenderer of the vertical tolerance guide bar (child named 'Guide').")]
+    [SerializeField] private SpriteRenderer guideRenderer;
+
+    [Tooltip("Duration in seconds for the guide bar to expand once the player gains control.")]
+    [SerializeField] private float guideExpandDuration = 0.75f;
+
+    [Tooltip("Ease-in exponent for the guide expansion (> 1 starts slowly and accelerates).")]
+    [SerializeField] private float guideEaseInPower = 2.5f;
+
+    [Tooltip("Maximum vertical half-height in world units reached by the guide bar.")]
+    [SerializeField] private float guideMaxWorldRadius = 12f;
+
+    [Tooltip("Normalized softness (0..0.9) of the top/bottom fade-out blur on the guide bar.")]
+    [Range(0.05f, 0.9f)]
+    [SerializeField] private float guideEdgeSoftness = 0.55f;
+
+    [Tooltip("Strength of the blur at the top and bottom tips of the guide bar.")]
+    [Range(0f, 3f)]
+    [SerializeField] private float guideTipBlur = 1.5f;
+
     [Header("Dash Settings")]
     [Tooltip("Horizontal dash speed applied during a dash.")]
     [SerializeField] private float dashSpeed = 18f;
@@ -138,6 +168,10 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private bool isGravityInvertedState;
+    private bool isIntroWalking;
+    private bool isGuideExpanding;
+    private float guideExpandTimer;
+    private Material guideMaterialInstance;
     private float horizontalInput;
     private bool isGrounded;
     private bool jumpInput;
@@ -169,6 +203,8 @@ public class PlayerController : MonoBehaviour
         pathVerifier = GetOrFind(pathVerifier, "PathVerifier not found!");
         cameraController = GetOrFind(cameraController, "CameraController not found!");
         hintController = GetOrFind(hintController, "HintController not found!");
+
+        InitGuideBar();
     }
 
     /// <summary>
@@ -178,6 +214,53 @@ public class PlayerController : MonoBehaviour
     {
         rb.gravityScale = Mathf.Abs(rb.gravityScale);
         isGravityInvertedState = rb.gravityScale < 0f;
+
+        if (playIntroWalk)
+        {
+            SetGuideProgress(0f);
+            StartIntroWalk();
+        }
+        else
+        {
+            scoreController?.StartTimer();
+            StartGuideExpansion();
+        }
+    }
+
+    /// <summary>
+    /// Positions the player off-screen to the left and initiates the automatic walk to <see cref="spawnTargetX"/>.
+    /// </summary>
+    private void StartIntroWalk()
+    {
+        isIntroWalking = true;
+        jumpInput = false;
+        gravityFlipInput = false;
+
+        scoreController?.ResetAndStopTimer();
+
+        float startWalkX = -2.5f;
+        Camera cam = cameraController != null ? cameraController.GetComponent<Camera>() : Camera.main;
+        if (cam != null)
+        {
+            float camCenterX = cameraController != null ? Mathf.Max(cam.transform.position.x, cameraController.minX) : cam.transform.position.x;
+            float halfWidth = cam.orthographicSize * cam.aspect;
+            startWalkX = (camCenterX - halfWidth) - introOffscreenOffset;
+        }
+
+        Vector3 startPos = transform.position;
+        startPos.x = startWalkX;
+
+        Physics2D.SyncTransforms();
+        RaycastHit2D hit = Physics2D.Raycast(new Vector2(startWalkX, startPos.y + 1f), Vector2.down, 5f, groundLayer);
+        if (hit.collider != null && TryGetComponent(out Collider2D col))
+        {
+            startPos.y = hit.point.y + col.bounds.extents.y + 0.02f;
+        }
+
+        transform.position = startPos;
+        rb.position = new Vector2(startWalkX, startPos.y);
+        rb.linearVelocity = new Vector2(moveSpeed, 0f);
+        spriteRenderer.flipX = false ^ IsGravityInverted;
     }
 
     /// <summary>
@@ -185,6 +268,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        UpdateGuideExpansion();
         UpdateAnimator();
         CheckWinAndLoseConditions();
         CheckFlipTimeout();
@@ -281,17 +365,29 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Handles jump input callback.
     /// </summary>
-    private void OnJumpPerformed(InputAction.CallbackContext ctx) => jumpInput = true;
+    private void OnJumpPerformed(InputAction.CallbackContext ctx)
+    {
+        if (isIntroWalking) return;
+        jumpInput = true;
+    }
 
     /// <summary>
     /// Handles gravity flip input callback.
     /// </summary>
-    private void OnFlipGravityPerformed(InputAction.CallbackContext ctx) => gravityFlipInput = true;
+    private void OnFlipGravityPerformed(InputAction.CallbackContext ctx)
+    {
+        if (isIntroWalking) return;
+        gravityFlipInput = true;
+    }
 
     /// <summary>
     /// Handles dash input callback.
     /// </summary>
-    private void OnDashPerformed(InputAction.CallbackContext ctx) => TryStartDash();
+    private void OnDashPerformed(InputAction.CallbackContext ctx)
+    {
+        if (isIntroWalking) return;
+        TryStartDash();
+    }
 
     #endregion
 
@@ -309,6 +405,89 @@ public class PlayerController : MonoBehaviour
             Debug.LogError(errorMessage);
 
         return reference;
+    }
+
+    /// <summary>
+    /// Resolves the child Guide SpriteRenderer and assigns a material instance using the <c>Custom/Sprite_PlayerGuide</c> shader.
+    /// </summary>
+    private void InitGuideBar()
+    {
+        if (guideRenderer == null)
+        {
+            Transform guideTr = transform.Find("Guide");
+            if (guideTr != null)
+            {
+                guideRenderer = guideTr.GetComponent<SpriteRenderer>();
+            }
+        }
+
+        if (guideRenderer == null) return;
+
+        Shader guideShader = Shader.Find("Custom/Sprite_PlayerGuide");
+        if (guideShader != null)
+        {
+            guideMaterialInstance = new Material(guideShader);
+            guideMaterialInstance.SetFloat("_MaxRadius", guideMaxWorldRadius);
+            guideMaterialInstance.SetFloat("_EdgeSoftness", guideEdgeSoftness);
+            guideMaterialInstance.SetFloat("_TipBlur", guideTipBlur);
+            guideRenderer.material = guideMaterialInstance;
+        }
+    }
+
+    /// <summary>
+    /// Starts the ease-in expansion animation of the vertical guide bar from the player's position.
+    /// </summary>
+    private void StartGuideExpansion()
+    {
+        guideExpandTimer = 0f;
+        isGuideExpanding = true;
+        SetGuideProgress(0f);
+    }
+
+    /// <summary>
+    /// Advances the guide bar expansion animation per frame using an ease-in curve.
+    /// </summary>
+    private void UpdateGuideExpansion()
+    {
+        if (!isGuideExpanding) return;
+
+        guideExpandTimer += Time.deltaTime;
+        float duration = Mathf.Max(0.05f, guideExpandDuration);
+        float t = Mathf.Clamp01(guideExpandTimer / duration);
+        float easedProgress = Mathf.Pow(t, Mathf.Max(1f, guideEaseInPower));
+
+        SetGuideProgress(easedProgress);
+
+        if (t >= 1f)
+        {
+            isGuideExpanding = false;
+        }
+    }
+
+    /// <summary>
+    /// Updates the guide bar shader progress and renderer visibility.
+    /// </summary>
+    private void SetGuideProgress(float progress)
+    {
+        if (guideRenderer == null) return;
+
+        if (guideMaterialInstance != null)
+        {
+            float halfHeight = 51.9f;
+            if (guideRenderer.sprite != null)
+            {
+                halfHeight = guideRenderer.sprite.bounds.extents.y * Mathf.Abs(guideRenderer.transform.lossyScale.y);
+            }
+
+            guideMaterialInstance.SetColor("_Color", Color.white);
+            guideMaterialInstance.SetFloat("_HalfSpriteWorldHeight", halfHeight);
+            guideMaterialInstance.SetFloat("_ExpandProgress", progress);
+            guideMaterialInstance.SetFloat("_MaxRadius", guideMaxWorldRadius);
+            guideMaterialInstance.SetFloat("_EdgeSoftness", guideEdgeSoftness);
+            guideMaterialInstance.SetFloat("_TipBlur", guideTipBlur);
+        }
+
+        guideRenderer.enabled = progress > 0.0005f;
     }
 
     /// <summary>
@@ -372,6 +551,31 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleMovement()
     {
+        if (isIntroWalking)
+        {
+            if (rb.position.x >= spawnTargetX)
+            {
+                isIntroWalking = false;
+                jumpInput = false;
+                gravityFlipInput = false;
+                scoreController?.StartTimer();
+                StartGuideExpansion();
+
+                if (Mathf.Abs(horizontalInput) <= 0.01f)
+                {
+                    rb.position = new Vector2(spawnTargetX, rb.position.y);
+                    rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+                    return;
+                }
+            }
+            else
+            {
+                rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
+                spriteRenderer.flipX = false ^ IsGravityInverted;
+                return;
+            }
+        }
+
         if (isDashing)
         {
             rb.linearVelocity = new Vector2(dashDir * dashSpeed, 0f);
@@ -563,8 +767,9 @@ public class PlayerController : MonoBehaviour
         bool isFalling = !isGrounded && (rb.linearVelocity.y * gravitySign) < 0f;
         animator.SetBool("fall", isFalling);
 
+        float effectiveInput = isIntroWalking ? 1f : horizontalInput;
         float speedX = useInputForRunSpeed
-            ? Mathf.Abs(horizontalInput) * moveSpeed
+            ? Mathf.Abs(effectiveInput) * moveSpeed
             : Mathf.Abs(rb.linearVelocity.x);
         float normalized = moveSpeed > 0f ? speedX / moveSpeed : 0f;
         float target = normalized * Mathf.Max(0f, runAnimSpeedMultiplier);
@@ -589,6 +794,14 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Debug & Gizmos
+
+    private void OnDestroy()
+    {
+        if (guideMaterialInstance != null)
+        {
+            Destroy(guideMaterialInstance);
+        }
+    }
 
     /// <summary>
     /// Draws ground detection gizmo in Scene view when object is selected.

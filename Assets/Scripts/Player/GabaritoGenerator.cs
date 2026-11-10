@@ -58,8 +58,11 @@ public class GabaritoGenerator
             return;
         }
 
+        var signalPath = Object.FindAnyObjectByType<SignalPath>();
+        float startX = signalPath != null ? signalPath.MinDrawX : 2.5f;
+
         var events = loader.ComputeOutputEventsFromParsedSignals();
-        BuildFromEvents(events, initialX: 0f, initialState: false);
+        BuildFromEvents(events, initialX: startX, initialState: false);
     }
 
     /// <summary>

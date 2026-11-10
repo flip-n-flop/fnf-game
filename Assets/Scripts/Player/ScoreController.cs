@@ -48,7 +48,7 @@ public class ScoreController : MonoBehaviour
     private void Start()
     {
         InitUI();
-        StartTimer();
+        UpdateTimerUI();
     }
 
     /// <summary>
@@ -91,6 +91,16 @@ public class ScoreController : MonoBehaviour
     {
         elapsedTime = 0f;
         isRunning = true;
+        UpdateTimerUI();
+    }
+
+    /// <summary>
+    /// Resets elapsed time to zero, stops the timer, and updates the UI to 00.00.
+    /// </summary>
+    public void ResetAndStopTimer()
+    {
+        elapsedTime = 0f;
+        isRunning = false;
         UpdateTimerUI();
     }
 

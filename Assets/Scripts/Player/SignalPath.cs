@@ -14,6 +14,9 @@ public class SignalPath : MonoBehaviour
     [Tooltip("Minimum distance the player must move before a new path point is added.")]
     [SerializeField] private float pointSpacing = 0.1f;
 
+    [Tooltip("Minimum world X coordinate where the output signal line can start being drawn.")]
+    [SerializeField] private float minDrawX = 4f;
+
     [Header("World Constraints")]
     [Tooltip("World Y coordinate representing the floor/ground level.")]
     [SerializeField] private float groundY = -2.5f;
@@ -36,6 +39,11 @@ public class SignalPath : MonoBehaviour
     /// Read-only access to the list of recorded path points.
     /// </summary>
     public List<Vector3> PathPoints => pathPoints;
+
+    /// <summary>
+    /// Minimum world X coordinate where the output signal line begins.
+    /// </summary>
+    public float MinDrawX => minDrawX;
 
     #endregion
 
@@ -69,13 +77,19 @@ public class SignalPath : MonoBehaviour
 
         float currentX = transform.position.x;
 
-        if (currentX <= 0)
+        if (currentX < minDrawX)
         {
             ResetPath();
             return;
         }
 
         float targetY = playerController.IsGravityInverted ? ceilingY : groundY;
+
+        if (pathPoints.Count == 0)
+        {
+            lastGravityInverted = playerController.IsGravityInverted;
+            AddPointToPath(new Vector3(minDrawX, targetY, 0f));
+        }
 
         bool gravityChanged = playerController.IsGravityInverted != lastGravityInverted;
         if (gravityChanged)
@@ -108,15 +122,25 @@ public class SignalPath : MonoBehaviour
     #region Path Generation & Recording
 
     /// <summary>
-    /// Sets initial path state starting at player position.
+    /// Sets initial path state starting at <see cref="minDrawX"/>.
     /// Interacts with <see cref="PlayerController.IsGravityInverted"/>.
     /// </summary>
     private void InitializePath()
     {
         pathPoints.Clear();
-        float startX = Mathf.Max(transform.position.x, 0f);
-        float startY = playerController.IsGravityInverted ? ceilingY : groundY;
-        lastPointPosition = new Vector3(startX, startY, 0);
+        lineRenderer.positionCount = 0;
+        lastGravityInverted = playerController.IsGravityInverted;
+        float startY = lastGravityInverted ? ceilingY : groundY;
+        lastPointPosition = new Vector3(minDrawX, startY, 0f);
+
+        if (transform.position.x >= minDrawX)
+        {
+            AddPointToPath(new Vector3(minDrawX, startY, 0f));
+            if (transform.position.x > minDrawX + pointSpacing)
+            {
+                AddPointToPath(new Vector3(transform.position.x, startY, 0f));
+            }
+        }
     }
 
     /// <summary>
@@ -189,7 +213,7 @@ public class SignalPath : MonoBehaviour
         lineRenderer.positionCount = 0;
         lastGravityInverted = playerController.IsGravityInverted;
         float startY = lastGravityInverted ? ceilingY : groundY;
-        lastPointPosition = new Vector3(0f, startY, 0);
+        lastPointPosition = new Vector3(minDrawX, startY, 0);
     }
 
     /// <summary>

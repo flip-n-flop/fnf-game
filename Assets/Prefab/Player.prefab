@@ -58,7 +58,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: 9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -379,6 +379,9 @@ MonoBehaviour:
   deceleration: 35
   airControlMultiplier: 0.7
   fallKillThreshold: -25
+  spawnTargetX: 6
+  playIntroWalk: 1
+  introOffscreenOffset: 1.5
   dashSpeed: 18
   dashDuration: 0.15
   dashCooldown: 0.5
