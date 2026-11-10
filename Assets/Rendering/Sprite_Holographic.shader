@@ -19,7 +19,7 @@ Shader "Custom/Sprite_Holographic"
         _FaceBend ("Face Metallic Gradient (Degrade na Face)", Range(0.0, 1.0)) = 0.45
         _EdgeStrength ("Edge Line Strength (Forca das Arestas)", Range(0.0, 1.0)) = 0.12
         _Sharpening ("Sharpening (Triangular to Square)", Range(0.0, 1.0)) = 0.2
-        _Blur ("Blur / Face Softness", Range(0.0, 1.0)) = 0.08
+        _Blur ("Blur / Face Softness", Range(0.0, 3.0)) = 0.08
 
         [Header(Motion and Scale)]
         _Speed ("Scroll Speed", Range(-5.0, 5.0)) = 0.15
@@ -152,6 +152,8 @@ Shader "Custom/Sprite_Holographic"
                 float softWidth = max(0.005, blur * 0.45);
                 float diagBlend = smoothstep(-softWidth, softWidth, f.x - f.y);
                 float useTriangles = 1.0 - sharpenSquare * 0.85;
+                float cellSmooth = smoothstep(0.15, 1.35, blur);
+                float deepBlur = saturate((blur - 0.8) / 2.2);
 
                 float2 v00 = cellId;
                 float2 v10 = cellId + float2(1.0, 0.0);
@@ -168,34 +170,89 @@ Shader "Custom/Sprite_Holographic"
                 float2 gradQuad = float2((h10 - h00 + h11 - h01) * 0.5, (h01 - h00 + h11 - h10) * 0.5);
 
                 float2 triGrad = lerp(gradUpper, gradLower, diagBlend);
-                float2 finalGrad = lerp(gradQuad, triGrad, useTriangles);
-
-                float3 faceNormal = normalize(float3(finalGrad * 2.4, 1.0));
-                float3 lightDir = normalize(float3(0.55, 0.45, 0.7));
-                float flatShade = saturate(dot(faceNormal, lightDir) * 0.85 + 0.15);
+                float2 facetGrad = lerp(gradQuad, triGrad, useTriangles);
 
                 float3 baryLower = float3(1.0 - f.x, f.x - f.y, f.y);
                 float3 baryUpper = float3(1.0 - f.y, f.y - f.x, f.x);
                 float3 bary = lerp(baryUpper, baryLower, diagBlend);
-                float interpolatedHeight = lerp(
+                float facetHeight = lerp(
                     lerp(h00, h10, f.x) * (1.0 - f.y) + lerp(h01, h11, f.x) * f.y,
                     bary.x * h00 + bary.y * lerp(h01, h10, diagBlend) + bary.z * h11,
                     useTriangles
                 );
 
-                float internalSweep = sin((interpolatedHeight * 1.8 + dot(f, finalGrad)) * 3.14159265) * 0.5 + 0.5;
-                faceLight = lerp(flatShade, saturate(flatShade * 0.65 + internalSweep * 0.55), faceBend);
-
                 float hueLower = Hash21(cellId + float2(13.1, 7.7));
                 float hueUpper = Hash21(cellId + float2(29.3, 51.9));
-                faceHueId = lerp(hueLower, lerp(hueUpper, hueLower, diagBlend), useTriangles);
+                float facetHue = lerp(hueLower, lerp(hueUpper, hueLower, diagBlend), useTriangles);
+
+                // Suavização contínua (B-Spline quadrática 3x3) para eliminar costuras entre células em blurs altos
+                float2 vm1m1 = cellId + float2(-1.0, -1.0);
+                float2 v0m1  = cellId + float2( 0.0, -1.0);
+                float2 v1m1  = cellId + float2( 1.0, -1.0);
+                float2 vm10  = cellId + float2(-1.0,  0.0);
+                float2 vm11  = cellId + float2(-1.0,  1.0);
+
+                float hm1m1 = VertexHeight(vm1m1, t);
+                float h0m1  = VertexHeight(v0m1, t);
+                float h1m1  = VertexHeight(v1m1, t);
+                float hm10  = VertexHeight(vm10, t);
+                float hm11  = VertexHeight(vm11, t);
+
+                float wx0 = 0.5 * (1.0 - f.x) * (1.0 - f.x);
+                float wx1 = 0.5 + f.x * (1.0 - f.x);
+                float wx2 = 0.5 * f.x * f.x;
+                float wy0 = 0.5 * (1.0 - f.y) * (1.0 - f.y);
+                float wy1 = 0.5 + f.y * (1.0 - f.y);
+                float wy2 = 0.5 * f.y * f.y;
+
+                float dwx0 = -(1.0 - f.x);
+                float dwx1 = 1.0 - 2.0 * f.x;
+                float dwx2 = f.x;
+                float dwy0 = -(1.0 - f.y);
+                float dwy1 = 1.0 - 2.0 * f.y;
+                float dwy2 = f.y;
+
+                float row_m1 = wx0 * hm1m1 + wx1 * h0m1 + wx2 * h1m1;
+                float row_0  = wx0 * hm10  + wx1 * h00  + wx2 * h10;
+                float row_1  = wx0 * hm11  + wx1 * h01  + wx2 * h11;
+
+                float drow_m1 = dwx0 * hm1m1 + dwx1 * h0m1 + dwx2 * h1m1;
+                float drow_0  = dwx0 * hm10  + dwx1 * h00  + dwx2 * h10;
+                float drow_1  = dwx0 * hm11  + dwx1 * h01  + dwx2 * h11;
+
+                float splineHeight = wy0 * row_m1 + wy1 * row_0 + wy2 * row_1;
+                float2 splineGrad = float2(
+                    wy0 * drow_m1 + wy1 * drow_0 + wy2 * drow_1,
+                    dwy0 * row_m1 + dwy1 * row_0 + dwy2 * row_1
+                );
+
+                float2 hueOffset = float2(13.1, 7.7);
+                float hRow_m1 = wx0 * Hash21(vm1m1 + hueOffset) + wx1 * Hash21(v0m1 + hueOffset) + wx2 * Hash21(v1m1 + hueOffset);
+                float hRow_0  = wx0 * Hash21(vm10  + hueOffset) + wx1 * hueLower               + wx2 * Hash21(v10  + hueOffset);
+                float hRow_1  = wx0 * Hash21(vm11  + hueOffset) + wx1 * Hash21(v01  + hueOffset) + wx2 * Hash21(v11  + hueOffset);
+                float splineHue = wy0 * hRow_m1 + wy1 * hRow_0 + wy2 * hRow_1;
+
+                float2 finalGrad = lerp(facetGrad, splineGrad, cellSmooth);
+                float interpolatedHeight = lerp(facetHeight, splineHeight, cellSmooth);
+                faceHueId = lerp(facetHue, splineHue, cellSmooth);
+
+                float normalSlope = lerp(2.4, 0.85, deepBlur);
+                float3 faceNormal = normalize(float3(finalGrad * normalSlope, 1.0));
+                float3 lightDir = normalize(float3(0.55, 0.45, 0.7));
+                float flatShade = saturate(dot(faceNormal, lightDir) * 0.85 + 0.15);
+
+                float cellTilt = dot(f - 0.5, finalGrad) * (1.0 - cellSmooth);
+                float sweepFreq = lerp(1.8, 1.0, deepBlur);
+                float internalSweep = sin((interpolatedHeight * sweepFreq + cellTilt) * 3.14159265) * 0.5 + 0.5;
+                faceLight = lerp(flatShade, saturate(flatShade * 0.65 + internalSweep * 0.55), faceBend);
 
                 float borderQuad = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
                 float borderDiag = abs(f.x - f.y) * 0.7071;
                 float edgeDist = lerp(borderQuad, min(borderQuad, borderDiag), useTriangles);
 
-                float edgeThickness = lerp(0.025, 0.18, blur);
-                creaseEdge = 1.0 - smoothstep(0.0, edgeThickness, edgeDist);
+                float edgeThickness = lerp(0.025, 0.42, saturate(blur / 2.5));
+                float edgeFade = 1.0 - smoothstep(0.6, 2.2, blur);
+                creaseEdge = (1.0 - smoothstep(0.0, edgeThickness, edgeDist)) * edgeFade;
             }
 
             float3 ShiftHue(float3 col, float shiftRadians)
@@ -246,20 +303,23 @@ Shader "Custom/Sprite_Holographic"
                 float2 secondaryUV = mul(float2x2(0.8, -0.6, 0.6, 0.8), crinkledUV) + float2(1.37, 2.91);
                 EvaluateFoilFaces(secondaryUV, _VertexCount * 1.35, _Sharpening, _Blur, _FaceBend, -t * 1.8, faceLight2, faceHue2, edge2);
 
+                float faceSoftness = saturate((_Blur - 0.5) / 2.5);
                 float combinedFace = saturate(faceLight1 * 0.72 + faceLight2 * 0.28);
-                float contrastedFace = lerp(0.5, smoothstep(0.15, 0.85, combinedFace), _FaceStrength);
+                float contrastLow = lerp(0.15, 0.0, faceSoftness);
+                float contrastHigh = lerp(0.85, 1.0, faceSoftness);
+                float contrastedFace = lerp(0.5, smoothstep(contrastLow, contrastHigh, combinedFace), _FaceStrength * lerp(1.0, 0.75, faceSoftness));
 
                 float combinedEdge = max(edge1, edge2 * 0.6) * _EdgeStrength;
                 float foilPattern = saturate(contrastedFace + combinedEdge * 0.5);
 
-                float gapWidth = lerp(0.08, 0.45, _Blur);
+                float gapWidth = lerp(0.08, 0.75, saturate(_Blur / 2.5));
                 float gapMask = smoothstep(_BreakupCutoff, _BreakupCutoff + gapWidth, foilPattern + (1.0 - _BreakupCutoff) * 0.25);
                 float holoMask = foilPattern * gapMask;
 
                 float3 signalRgb = IN.color.rgb;
                 float3 pinkHoloRgb = _HoloColor.rgb;
 
-                float shadowMask = saturate(1.0 - contrastedFace * 1.5);
+                float shadowMask = saturate(1.0 - contrastedFace * lerp(1.5, 1.15, faceSoftness));
                 float3 darkFaceRgb = signalRgb * (1.0 - _ShadowDepth * 0.85);
                 float3 baseMetallicRgb = lerp(signalRgb, darkFaceRgb, shadowMask * _ShadowDepth);
 
@@ -268,10 +328,12 @@ Shader "Custom/Sprite_Holographic"
                 float3 shiftedPink = ShiftHue(pinkHoloRgb, hueShift);
                 float3 tintedHolo = lerp(signalRgb, saturate(signalRgb * 0.5 + shiftedPink * 0.8), _HoloColorMix);
 
-                float litFaceMask = smoothstep(0.35, 0.85, contrastedFace);
+                float litLow = lerp(0.35, 0.12, faceSoftness);
+                float litHigh = lerp(0.85, 0.98, faceSoftness);
+                float litFaceMask = smoothstep(litLow, litHigh, contrastedFace);
                 float3 finalRgb = lerp(baseMetallicRgb, tintedHolo, litFaceMask);
 
-                float faceSpecular = pow(saturate(contrastedFace), 3.0) * (_Highlight * 0.65);
+                float faceSpecular = pow(saturate(contrastedFace), lerp(3.0, 1.5, faceSoftness)) * (_Highlight * 0.65);
                 float edgeSpecular = combinedEdge * _Highlight;
                 float3 crestColor = lerp(float3(1.0, 1.0, 1.0), saturate(pinkHoloRgb * 1.15 + 0.2), _HoloColorMix * 0.85);
                 finalRgb = saturate(finalRgb + (faceSpecular + edgeSpecular) * crestColor);

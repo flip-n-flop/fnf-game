@@ -714,7 +714,11 @@ public class SignalLineRenderer : MonoBehaviour
 
         float cutoffX = labelsContainer.position.x + lineMaskOffset;
 
-        if (!force && Mathf.Approximately(cutoffX, lastCutoffX)) return;
+        if (!force && Mathf.Approximately(cutoffX, lastCutoffX))
+        {
+            UpdateLabelBrightPositions(cutoffX, instant: false);
+            return;
+        }
         lastCutoffX = cutoffX;
 
         foreach (var kvp in rawLinePoints)
@@ -786,11 +790,11 @@ public class SignalLineRenderer : MonoBehaviour
 
     private void UpdateLabelBrightPositions(float cutoffX, bool instant = false)
     {
-        if (clockLabel != null) clockLabel.SetSignalState(GetSignalStateAtX("Clock_Line", cutoffX), instant);
-        if (clearLabel != null) clearLabel.SetSignalState(GetSignalStateAtX("Clear_Line", cutoffX), instant);
-        if (presetLabel != null) presetLabel.SetSignalState(GetSignalStateAtX("Preset_Line", cutoffX), instant);
-        if (kLabel != null) kLabel.SetSignalState(GetSignalStateAtX("K_Line", cutoffX), instant);
-        if (jLabel != null) jLabel.SetSignalState(GetSignalStateAtX("J_Line", cutoffX), instant);
+        if (clockLabel != null) clockLabel.SetSignalState(GetSignalStateAtX("Clock_Line", cutoffX + clockLabel.BrightLineXOffset), instant);
+        if (clearLabel != null) clearLabel.SetSignalState(GetSignalStateAtX("Clear_Line", cutoffX + clearLabel.BrightLineXOffset), instant);
+        if (presetLabel != null) presetLabel.SetSignalState(GetSignalStateAtX("Preset_Line", cutoffX + presetLabel.BrightLineXOffset), instant);
+        if (kLabel != null) kLabel.SetSignalState(GetSignalStateAtX("K_Line", cutoffX + kLabel.BrightLineXOffset), instant);
+        if (jLabel != null) jLabel.SetSignalState(GetSignalStateAtX("J_Line", cutoffX + jLabel.BrightLineXOffset), instant);
     }
 
     private void ResolvePlayerTransform()

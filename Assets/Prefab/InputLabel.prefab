@@ -60,8 +60,11 @@ MonoBehaviour:
   brightRect: {fileID: 4091479074205448384}
   brightHighY: 0
   brightLowY: -0.98
+  brightLineXOffset: 1.25
+  brightSmoothTime: 0.3
   holoRenderer: {fileID: 4192837465019283748}
   holoHighAlpha: 0.8
+  holoSmoothTime: 0.25
   transitionSpeed: 15
 --- !u!210 &6184920194827104928
 SortingGroup:
@@ -720,12 +723,14 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7313489050941003535}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.13052619, w: 0.9914449}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.91999996, y: 0.91999996, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1499087524097675647}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 15}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
@@ -852,6 +857,7 @@ MonoBehaviour:
   m_enableKerning: 0
   m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
+  m_enableExtraPadding: 1
   checkPaddingRequired: 0
   m_isRichText: 1
   m_EmojiFallbackSupport: 1

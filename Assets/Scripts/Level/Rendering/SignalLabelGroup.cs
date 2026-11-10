@@ -34,11 +34,20 @@ public class SignalLabelGroup : MonoBehaviour
     [Tooltip("Local Y anchored position for LabelBright when the signal is Low (0).")]
     [SerializeField] private float brightLowY = -0.98f;
 
+    [Tooltip("Horizontal X offset (in world units) relative to the line cutoff where LabelBright checks if the signal line is High (1) or Low (0).")]
+    [SerializeField] private float brightLineXOffset = 1.25f;
+
+    [Tooltip("Smoothing time (in seconds) for LabelBright to smoothly slide between High and Low positions.")]
+    [SerializeField] private float brightSmoothTime = 0.3f;
+
     [Tooltip("SpriteRenderer of the LabelHolo holographic layer inside Gray_Box.")]
     [SerializeField] private SpriteRenderer holoRenderer;
 
     [Tooltip("Alpha of LabelHolo when the signal at the spider's position is active.")]
     [SerializeField] private float holoHighAlpha = 0.8f;
+
+    [Tooltip("Smoothing time (in seconds) for LabelHolo to fade in and fade out.")]
+    [SerializeField] private float holoSmoothTime = 0.12f;
 
     [Tooltip("Speed of vertical and alpha transition when signal logic state flips.")]
     [SerializeField] private float transitionSpeed = 15f;
@@ -46,13 +55,20 @@ public class SignalLabelGroup : MonoBehaviour
     #endregion
 
     private float targetBrightY = 0.0f;
+    private float brightVelocityY = 0.0f;
     private float targetHoloAlpha = 0.0f;
+    private float holoAlphaVelocity = 0.0f;
     private static Material sharedFallbackHoloMat;
 
     /// <summary>
     /// Returns true when the active-low negation bar (Overline) above the label text is active.
     /// </summary>
     public bool IsInverted => overlineObject != null && overlineObject.activeSelf;
+
+    /// <summary>
+    /// Horizontal X offset (in world units) relative to the badge line cutoff where <c>LabelBright</c> evaluates the signal line state.
+    /// </summary>
+    public float BrightLineXOffset => brightLineXOffset;
 
     #region Unity Lifecycle
 
@@ -66,9 +82,16 @@ public class SignalLabelGroup : MonoBehaviour
         if (brightRect != null)
         {
             Vector2 pos = brightRect.anchoredPosition;
-            if (!Mathf.Approximately(pos.y, targetBrightY))
+            if (Mathf.Abs(pos.y - targetBrightY) > 0.0005f)
             {
-                pos.y = Mathf.MoveTowards(pos.y, targetBrightY, transitionSpeed * Time.deltaTime);
+                float smoothTime = Mathf.Max(0.01f, brightSmoothTime);
+                pos.y = Mathf.SmoothDamp(pos.y, targetBrightY, ref brightVelocityY, smoothTime, Mathf.Infinity, Time.deltaTime);
+                brightRect.anchoredPosition = pos;
+            }
+            else if (pos.y != targetBrightY)
+            {
+                pos.y = targetBrightY;
+                brightVelocityY = 0f;
                 brightRect.anchoredPosition = pos;
             }
         }
@@ -76,9 +99,17 @@ public class SignalLabelGroup : MonoBehaviour
         if (holoRenderer != null)
         {
             Color c = holoRenderer.color;
-            if (!Mathf.Approximately(c.a, targetHoloAlpha))
+            if (Mathf.Abs(c.a - targetHoloAlpha) > 0.001f)
             {
-                c.a = Mathf.MoveTowards(c.a, targetHoloAlpha, transitionSpeed * Time.deltaTime);
+                float smoothTime = Mathf.Max(0.01f, holoSmoothTime);
+                c.a = Mathf.SmoothDamp(c.a, targetHoloAlpha, ref holoAlphaVelocity, smoothTime, Mathf.Infinity, Time.deltaTime);
+                holoRenderer.color = c;
+                holoRenderer.enabled = c.a > 0.001f;
+            }
+            else if (c.a != targetHoloAlpha)
+            {
+                c.a = targetHoloAlpha;
+                holoAlphaVelocity = 0f;
                 holoRenderer.color = c;
                 holoRenderer.enabled = c.a > 0.001f;
             }
@@ -176,6 +207,7 @@ public class SignalLabelGroup : MonoBehaviour
 
         if (instant || !Application.isPlaying)
         {
+            brightVelocityY = 0f;
             Vector2 pos = brightRect.anchoredPosition;
             pos.y = targetBrightY;
             brightRect.anchoredPosition = pos;
@@ -200,6 +232,7 @@ public class SignalLabelGroup : MonoBehaviour
 
         if (instant || !Application.isPlaying)
         {
+            holoAlphaVelocity = 0f;
             Color c = holoRenderer.color;
             c.a = targetHoloAlpha;
             holoRenderer.color = c;

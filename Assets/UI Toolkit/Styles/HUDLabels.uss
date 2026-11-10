@@ -166,13 +166,17 @@
 }
 
 .signal-text {
-    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/Exo2-VariableFont_wght.ttf?fileID=12800000&guid=06cc052497f62034fb43e3edf087d21a&type=3#Exo2-VariableFont_wght");
+    -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
     font-size: 24px;
-    color: white;
+    color: #FFFFFF;
     -unity-text-align: middle-center;
     padding: 0;
     margin: 0;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: #000000;
+    text-shadow: 7px 7px 0px #000000;
+    rotate: -15deg;
 }
 
 /* ── Tutorial Panel (Bottom-Center) ── */

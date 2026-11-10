@@ -12,7 +12,8 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _USEWORLDSPACE_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -31,20 +32,20 @@ Material:
     m_Floats:
     - _Angle: -35
     - _BaseTintStrength: 1
-    - _Blur: 0.2
+    - _Blur: 0.8
     - _BreakupCutoff: 0
     - _EdgeStrength: 0.12
     - _FaceBend: 0.45
     - _FaceStrength: 0.6
-    - _Highlight: 0.65
-    - _HoloColorMix: 0.469
+    - _Highlight: 0
+    - _HoloColorMix: 0.15
     - _Intensity: 2.5
     - _Iridescence: 1
-    - _Scale: 0.9
-    - _ShadowDepth: 0.35
-    - _Sharpening: 0.6
-    - _Speed: 0.1
-    - _UseWorldSpace: 0
+    - _Scale: 3.92
+    - _ShadowDepth: 1
+    - _Sharpening: 1
+    - _Speed: 0.05
+    - _UseWorldSpace: 1
     - _VertexCount: 3
     - _WarpStrength: 0.45
     - _WorldScale: 0.35
@@ -54,4 +55,3 @@ Material:
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
-
