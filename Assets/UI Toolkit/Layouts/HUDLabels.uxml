@@ -7,6 +7,7 @@
             <ui:VisualElement name="TimerContainer" class="hud-timer-container">
                 <ui:VisualElement name="TimerClockIcon" class="hud-timer-clock" />
                 <ui:VisualElement name="TimerTextGroup" class="hud-timer-text-group">
+                    <ui:Label text="0" name="TimerSecHundreds" class="hud-timer-text hud-timer-digit-sec" />
                     <ui:Label text="0" name="TimerSecTens" class="hud-timer-text hud-timer-digit-sec" />
                     <ui:Label text="0" name="TimerSecOnes" class="hud-timer-text hud-timer-digit-sec" />
                     <ui:Label text="." name="TimerDot" class="hud-timer-text hud-timer-dot" />

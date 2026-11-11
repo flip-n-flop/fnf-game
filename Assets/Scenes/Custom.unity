@@ -4413,6 +4413,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   uiDocument: {fileID: 199984141}
   maxScore: 1000
+  maxTime: 999
 --- !u!1 &1459536332
 GameObject:
   m_ObjectHideFlags: 0

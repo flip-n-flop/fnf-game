@@ -56,7 +56,7 @@
     align-items: flex-end;
     justify-content: center;
     rotate: -7deg;
-    margin-left: 28px;
+    margin-left: 24px;
     margin-top: 2px;
 }
 
@@ -72,19 +72,19 @@
 }
 
 .hud-timer-digit-sec {
-    width: 27px;
-    font-size: 44px;
+    width: 21px;
+    font-size: 38px;
 }
 
 .hud-timer-dot {
-    width: 6px;
-    font-size: 38px;
+    width: 5px;
+    font-size: 32px;
     margin-bottom: 2px;
 }
 
 .hud-timer-digit-centi {
-    width: 20px;
-    font-size: 32px;
+    width: 16px;
+    font-size: 28px;
     margin-bottom: 2px;
 }
 

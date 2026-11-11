@@ -761,7 +761,7 @@ public class PlayerController : MonoBehaviour
     /// Triggers death sequence by stopping timers, enabling manual camera control, and finalizing path verification.
     /// Interacts with <see cref="ScoreController"/>, <see cref="CameraController"/>, and <see cref="PathVerifier"/>.
     /// </summary>
-    private void PlayerDeath()
+    public void PlayerDeath()
     {
         scoreController.StopTimer();
 

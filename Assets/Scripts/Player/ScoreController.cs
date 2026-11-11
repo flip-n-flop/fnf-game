@@ -22,6 +22,11 @@ public class ScoreController : MonoBehaviour
     [Tooltip("Maximum possible score (achieved with 100% accuracy in 0 seconds).")]
     [SerializeField] private int maxScore = 1000;
 
+    [Header("Game Over Settings")]
+    [Tooltip("Maximum allowed time in seconds before triggering game over (default: 999s).")]
+    [SerializeField] private float maxTime = 999f;
+
+    private Label timerSecHundredsLabel;
     private Label timerSecTensLabel;
     private Label timerSecOnesLabel;
     private Label timerCentiTensLabel;
@@ -53,11 +58,19 @@ public class ScoreController : MonoBehaviour
 
     /// <summary>
     /// Advances timer each frame while active and updates timer UI.
+    /// Triggers game over if elapsed time reaches or exceeds maxTime (999s).
     /// </summary>
     private void Update()
     {
         if (!isRunning) return;
         elapsedTime += Time.deltaTime;
+        if (elapsedTime >= maxTime)
+        {
+            elapsedTime = maxTime;
+            UpdateTimerUI();
+            TriggerGameOver();
+            return;
+        }
         UpdateTimerUI();
     }
 
@@ -73,6 +86,7 @@ public class ScoreController : MonoBehaviour
         if (uiDocument != null)
         {
             VisualElement root = uiDocument.rootVisualElement;
+            timerSecHundredsLabel = root.Q<Label>("TimerSecHundreds");
             timerSecTensLabel = root.Q<Label>("TimerSecTens");
             timerSecOnesLabel = root.Q<Label>("TimerSecOnes");
             timerCentiTensLabel = root.Q<Label>("TimerCentiTens");
@@ -95,7 +109,7 @@ public class ScoreController : MonoBehaviour
     }
 
     /// <summary>
-    /// Resets elapsed time to zero, stops the timer, and updates the UI to 00.00.
+    /// Resets elapsed time to zero, stops the timer, and updates the UI to 000.00.
     /// </summary>
     public void ResetAndStopTimer()
     {
@@ -150,17 +164,46 @@ public class ScoreController : MonoBehaviour
     #region Private Helpers
 
     /// <summary>
-    /// Updates the UI Toolkit timer digit Labels with elapsed seconds and centiseconds.
+    /// Updates the UI Toolkit timer digit Labels with elapsed seconds (3 digits: 000) and centiseconds (2 digits: 00).
     /// </summary>
     private void UpdateTimerUI()
     {
-        int seconds = Mathf.FloorToInt(elapsedTime);
+        int totalSeconds = Mathf.FloorToInt(elapsedTime);
+        int hundreds = Mathf.Clamp((totalSeconds / 100) % 10, 0, 9);
+        int tens = Mathf.Clamp((totalSeconds / 10) % 10, 0, 9);
+        int ones = Mathf.Clamp(totalSeconds % 10, 0, 9);
         int centiseconds = Mathf.FloorToInt((elapsedTime * 100f) % 100f);
 
-        if (timerSecTensLabel != null) timerSecTensLabel.text = (seconds / 10).ToString();
-        if (timerSecOnesLabel != null) timerSecOnesLabel.text = (seconds % 10).ToString();
+        if (totalSeconds >= (int)maxTime)
+        {
+            hundreds = 9;
+            tens = 9;
+            ones = 9;
+            centiseconds = 0;
+        }
+
+        if (timerSecHundredsLabel != null) timerSecHundredsLabel.text = hundreds.ToString();
+        if (timerSecTensLabel != null) timerSecTensLabel.text = tens.ToString();
+        if (timerSecOnesLabel != null) timerSecOnesLabel.text = ones.ToString();
         if (timerCentiTensLabel != null) timerCentiTensLabel.text = (centiseconds / 10).ToString();
         if (timerCentiOnesLabel != null) timerCentiOnesLabel.text = (centiseconds % 10).ToString();
+    }
+
+    /// <summary>
+    /// Triggers game over sequence when the timer reaches maximum allowed time (999s).
+    /// </summary>
+    private void TriggerGameOver()
+    {
+        StopTimer();
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null && player.gameObject.activeInHierarchy)
+        {
+            player.PlayerDeath();
+        }
+        else
+        {
+            ResultScreenController.Instance?.Show(false);
+        }
     }
 
     /// <summary>
