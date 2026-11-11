@@ -1,3 +1,21 @@
+## [0.15.1](https://github.com/flip-n-flop/fnf-game/compare/v0.15.0...v0.15.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* Add rat arts to project folder ([c462587](https://github.com/flip-n-flop/fnf-game/commit/c462587111e57355eb4af7493d118a46cdbebe1b))
+* add rat enemy ([5646af7](https://github.com/flip-n-flop/fnf-game/commit/5646af7a4bc6c44b04e473c65824b85601f223a6))
+* Add timer art ([88cfe41](https://github.com/flip-n-flop/fnf-game/commit/88cfe41e4171a454f6f74f57384711078b96c9fb))
+* adjust labels halftones ([b51f4d6](https://github.com/flip-n-flop/fnf-game/commit/b51f4d6eef14fdd0942ae2cda7653bfb6ef5f195))
+* Adjust player spawn point and spawn details ([6a49cf9](https://github.com/flip-n-flop/fnf-game/commit/6a49cf9afe40f342b091e23a18b8abbce787a1b2))
+* adjusts ([a1b2cf4](https://github.com/flip-n-flop/fnf-game/commit/a1b2cf4b747b4308b948cb4dfa4b308e14f48030))
+* allign text fonts ([1a95548](https://github.com/flip-n-flop/fnf-game/commit/1a95548fce060ca0a595db66f519d40cd48af17a))
+* Fix feedback lines ([8087704](https://github.com/flip-n-flop/fnf-game/commit/808770443b22ff966f09ba305de012a0ca065099))
+* several tiny visual adjusts ([f1cb22c](https://github.com/flip-n-flop/fnf-game/commit/f1cb22c99ef13b41a4edd2d76e72fb02fe069c1d))
+* update UI ([e49b5eb](https://github.com/flip-n-flop/fnf-game/commit/e49b5eb4095a4e6dd113f523114f1db55b857fc7))
+
+
+
 # [0.15.0](https://github.com/flip-n-flop/fnf-game/compare/v0.14.0...v0.15.0) (2026-10-27)
 
 
@@ -59,15 +77,6 @@
 ### Bug Fixes
 
 * rename tutorial to howtoPlay ([e5a1665](https://github.com/flip-n-flop/fnf-game/commit/e5a166570b58a69b567dd64e10e9767205821d43))
-
-
-
-## [0.12.8](https://github.com/flip-n-flop/fnf-game/compare/v0.12.7...v0.12.8) (2026-08-25)
-
-
-### Bug Fixes
-
-* best settings support ([95d97d8](https://github.com/flip-n-flop/fnf-game/commit/95d97d876671031e646a16105eae1f61c7a4b764))
 
 
 
