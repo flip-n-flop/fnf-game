@@ -1,66 +1,62 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements"
-    noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style
-        src="project://database/Assets/UI%20Toolkit/Styles/HUDLabels.uss?fileID=7433441132597879392&amp;guid=c6ecc659333acba40a615535c06fc108&amp;type=3#HUDLabels" />
-    <ui:VisualElement name="HudRoot" class="hud-root">
-        <ui:VisualElement name="TimerWrapper" class="hud-timer-wrapper">
-            <ui:VisualElement name="TimerContainer" class="hud-timer-container">
-                <ui:VisualElement name="TimerClockIcon" class="hud-timer-clock" />
-                <ui:VisualElement name="TimerTextGroup" class="hud-timer-text-group">
-                    <ui:Label text="0" name="TimerSecHundreds" class="hud-timer-text hud-timer-digit-sec" />
-                    <ui:Label text="0" name="TimerSecTens" class="hud-timer-text hud-timer-digit-sec" />
-                    <ui:Label text="0" name="TimerSecOnes" class="hud-timer-text hud-timer-digit-sec" />
-                    <ui:Label text="." name="TimerDot" class="hud-timer-text hud-timer-dot" />
-                    <ui:Label text="0" name="TimerCentiTens" class="hud-timer-text hud-timer-digit-centi" />
-                    <ui:Label text="0" name="TimerCentiOnes" class="hud-timer-text hud-timer-digit-centi" />
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/Styles/HUDLabels.uss?fileID=7433441132597879392&amp;guid=c6ecc659333acba40a615535c06fc108&amp;type=3#HUDLabels"/>
+    <ui:VisualElement name="HudRoot" picking-mode="Ignore" class="hud-root" style="top: 0; left: 2px;">
+        <ui:VisualElement name="TimerWrapper" class="hud-timer-wrapper" style="left: 5%; bottom: 29%;">
+            <ui:VisualElement name="TimerContainer" class="hud-timer-container" style="width: 131px;">
+                <ui:VisualElement name="TimerClockIcon" picking-mode="Ignore" data-source-path="" class="hud-timer-clock" style="background-image: url(&quot;project://database/Assets/Arts/InGameUI/Timer/Clock.png?fileID=2800000&amp;guid=b246c17d2d0c3e046a894cd50dd0dc82&amp;type=3#Clock&quot;); top: 14px; left: -10px;"/>
+                <ui:VisualElement name="TimerTextGroup" class="hud-timer-text-group" style="left: 1px;">
+                    <ui:Label text="0" name="TimerSecHundreds" class="hud-timer-text hud-timer-digit-sec"/>
+                    <ui:Label text="0" name="TimerSecTens" class="hud-timer-text hud-timer-digit-sec"/>
+                    <ui:Label text="0" name="TimerSecOnes" class="hud-timer-text hud-timer-digit-sec"/>
+                    <ui:Label text="." name="TimerDot" class="hud-timer-text hud-timer-dot"/>
+                    <ui:Label text="0" name="TimerCentiTens" class="hud-timer-text hud-timer-digit-centi"/>
+                    <ui:Label text="0" name="TimerCentiOnes" class="hud-timer-text hud-timer-digit-centi"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="hud-title-wrapper">
             <ui:VisualElement name="TitleContainer" class="hud-title-container">
-                <ui:Label text="&lt;cspace=-0.06em&gt;POR ÁGUA ABAIXO&lt;/cspace&gt;" name="TitleText"
-                    class="hud-title-text" />
-                <ui:Label text="&lt;cspace=-0.04em&gt;DUTOS SUBTERRÂNEOS - FLIP FLOP JK&lt;/cspace&gt;"
-                    name="SubtitleText" class="hud-subtitle-text" />
+                <ui:Label text="&lt;cspace=-0.06em&gt;POR ÁGUA ABAIXO&lt;/cspace&gt;" name="TitleText" class="hud-title-text"/>
+                <ui:Label text="&lt;cspace=-0.04em&gt;DUTOS SUBTERRÂNEOS - FLIP FLOP JK&lt;/cspace&gt;" name="SubtitleText" class="hud-subtitle-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="J_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon" />
+            <ui:VisualElement class="signal-icon"/>
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline" />
-                <ui:Label text="J" class="signal-text" />
+                <ui:VisualElement class="signal-overline"/>
+                <ui:Label text="J" class="signal-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="K_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon" />
+            <ui:VisualElement class="signal-icon"/>
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline" />
-                <ui:Label text="K" class="signal-text" />
+                <ui:VisualElement class="signal-overline"/>
+                <ui:Label text="K" class="signal-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Preset_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon" />
+            <ui:VisualElement class="signal-icon"/>
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline" />
-                <ui:Label text="PRE" class="signal-text" />
+                <ui:VisualElement class="signal-overline"/>
+                <ui:Label text="PRE" class="signal-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Clear_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon" />
+            <ui:VisualElement class="signal-icon"/>
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline" />
-                <ui:Label text="CLR" class="signal-text" />
+                <ui:VisualElement class="signal-overline"/>
+                <ui:Label text="CLR" class="signal-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Clock_Label" class="signal-label">
-            <ui:VisualElement class="signal-icon" />
+            <ui:VisualElement class="signal-icon"/>
             <ui:VisualElement class="signal-text-wrapper">
-                <ui:VisualElement class="signal-overline" />
-                <ui:Label text="CLK" class="signal-text" />
+                <ui:VisualElement class="signal-overline"/>
+                <ui:Label text="CLK" class="signal-text"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="TutorialContainer" class="tutorial-container">
-            <ui:Label text="" name="TutorialText" class="tutorial-text" />
+            <ui:Label text="" name="TutorialText" class="tutorial-text"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
