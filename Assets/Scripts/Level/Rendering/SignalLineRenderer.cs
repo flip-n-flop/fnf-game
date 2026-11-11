@@ -96,6 +96,31 @@ public class SignalLineRenderer : MonoBehaviour
     [Tooltip("Color tint applied to shadow LineRenderers.")]
     [SerializeField] private Color shadowColor = Color.white;
 
+    [Tooltip("Material applied to drop shadow lines. If null, SignalLineShadow.mat is used.")]
+    [SerializeField] private Material shadowMaterial;
+
+    #endregion
+
+    #region Serialized Fields - Right Camera Edge Fade
+
+    [Header("Right Camera Edge Fade")]
+    [Tooltip("Whether to enable a background-color gradient fade directly on the signal lines approaching the camera's right edge.")]
+    [SerializeField] private bool enableRightFade = true;
+
+    [Tooltip("Normalized screen X (0.0 to 1.0) where the fade begins (e.g. 0.85 = 85% across the screen).")]
+    [Range(0.5f, 1.0f)]
+    [SerializeField] private float rightFadeStart = 0.85f;
+
+    [Tooltip("Normalized screen X (0.0 to 1.0) where the fade reaches full target color (e.g. 0.98 = near right border).")]
+    [Range(0.5f, 1.1f)]
+    [SerializeField] private float rightFadeEnd = 0.98f;
+
+    [Tooltip("Target color to blend into at the right edge (defaults to background color).")]
+    [SerializeField] private Color fadeColor = new Color(0.14730628f, 0.13803846f, 0.20754719f, 1f);
+
+    [Tooltip("If true, automatically queries GradientMapController for the current dynamic background color.")]
+    [SerializeField] private bool autoSyncBackgroundColor = true;
+
     #endregion
 
     #region Configuration Constants
@@ -126,6 +151,7 @@ public class SignalLineRenderer : MonoBehaviour
     private float lastCutoffX = float.MinValue;
     private static Material defaultSpriteMaterial;
     private static Material defaultHoloLineMaterial;
+    private static Material defaultShadowMaterial;
     private Transform labelsContainer;
     private Camera mainCamera;
     private Transform playerTransform;
@@ -143,6 +169,8 @@ public class SignalLineRenderer : MonoBehaviour
     private void Awake()
     {
         mainCamera = Camera.main;
+        CleanupLegacyOverlay();
+        UpdateFadeProperties();
         ResolvePlayerTransform();
         CacheExistingLineRenderers();
         UpdateLabelsContainerPosition();
@@ -150,6 +178,7 @@ public class SignalLineRenderer : MonoBehaviour
 
     private void LateUpdate()
     {
+        UpdateFadeProperties();
         UpdateLabelsContainerPosition();
         UpdateLineClipping();
         UpdateLabelHoloStates();
@@ -158,6 +187,8 @@ public class SignalLineRenderer : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        CleanupLegacyOverlay();
+        UpdateFadeProperties();
         UpdateLabelsContainerPosition();
 
         if (Application.isPlaying && lines != null && lines.Count > 0)
@@ -176,9 +207,6 @@ public class SignalLineRenderer : MonoBehaviour
     private static void SyncSceneDefaults()
     {
         if (Application.isPlaying) return;
-
-        UnityEditor.AssetDatabase.ImportAsset("Assets/TextMesh Pro/Fonts/FS Industrie Bold Italic.otf", UnityEditor.ImportAssetOptions.ForceUpdate);
-        UnityEditor.AssetDatabase.ImportAsset("Assets/TextMesh Pro/Fonts/FS Industrie Italic.otf", UnityEditor.ImportAssetOptions.ForceUpdate);
 
         SignalLineRenderer[] renderers = FindObjectsByType<SignalLineRenderer>();
         for (int i = 0; i < renderers.Length; i++)
@@ -208,6 +236,13 @@ public class SignalLineRenderer : MonoBehaviour
                 r.lineMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SignalLineHolo.mat");
             }
 
+            if (r.shadowMaterial == null)
+            {
+                r.shadowMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SignalLineShadow.mat");
+            }
+
+            r.CleanupLegacyOverlay();
+            r.UpdateFadeProperties();
             r.ApplyStyleSettingsToExistingLines();
             r.PositionLabelsForPreview();
             UnityEditor.EditorUtility.SetDirty(r);
@@ -560,7 +595,7 @@ public class SignalLineRenderer : MonoBehaviour
     private LineRenderer GetOrCreateLine(string lineName, Color color, int order, Transform parentGroup)
     {
         bool isShadow = lineName.EndsWith("_Shadow");
-        Material targetMat = isShadow ? GetDefaultMaterial() : GetMainLineMaterial();
+        Material targetMat = isShadow ? GetShadowMaterial() : GetMainLineMaterial();
         Transform targetParent = parentGroup != null ? parentGroup : transform;
 
         if (lines.TryGetValue(lineName, out LineRenderer existingLine) && existingLine != null)
@@ -580,7 +615,11 @@ public class SignalLineRenderer : MonoBehaviour
         if (child != null)
         {
             lineObj = child.gameObject;
-            lr = lineObj.GetComponent<LineRenderer>() ?? lineObj.AddComponent<LineRenderer>();
+            lr = lineObj.GetComponent<LineRenderer>();
+            if (lr == null)
+            {
+                lr = lineObj.AddComponent<LineRenderer>();
+            }
         }
         else
         {
@@ -626,8 +665,9 @@ public class SignalLineRenderer : MonoBehaviour
 
     private void ApplyStyleSettingsToExistingLines()
     {
+        UpdateFadeProperties();
         Material mainMat = GetMainLineMaterial();
-        Material shadowMat = GetDefaultMaterial();
+        Material shadowMat = GetShadowMaterial();
         foreach (var kvp in lines)
         {
             if (kvp.Value == null) continue;
@@ -638,6 +678,76 @@ public class SignalLineRenderer : MonoBehaviour
             kvp.Value.sortingLayerName = sortingLayerName;
             kvp.Value.sortingOrder = isShadow ? shadowSortingOrder : mainSortingOrder;
             kvp.Value.sharedMaterial = isShadow ? shadowMat : mainMat;
+        }
+    }
+
+    private void UpdateFadeProperties()
+    {
+        if (autoSyncBackgroundColor)
+        {
+            if (GradientMapController.Instance != null)
+            {
+                fadeColor = GradientMapController.Instance.CurrentBackgroundColor;
+            }
+            else
+            {
+                GradientMapController gmc = FindFirstObjectByType<GradientMapController>();
+                if (gmc != null)
+                {
+                    fadeColor = gmc.CurrentBackgroundColor;
+                }
+            }
+        }
+
+        float enableFloat = enableRightFade ? 1f : 0f;
+
+        Material mainMat = GetMainLineMaterial();
+        if (mainMat != null)
+        {
+            if (mainMat.HasProperty("_EnableRightFade")) mainMat.SetFloat("_EnableRightFade", enableFloat);
+            if (mainMat.HasProperty("_RightFadeStart")) mainMat.SetFloat("_RightFadeStart", rightFadeStart);
+            if (mainMat.HasProperty("_RightFadeEnd")) mainMat.SetFloat("_RightFadeEnd", rightFadeEnd);
+            if (mainMat.HasProperty("_BackgroundColor")) mainMat.SetColor("_BackgroundColor", fadeColor);
+        }
+
+        Material shadowMat = GetShadowMaterial();
+        if (shadowMat != null)
+        {
+            if (shadowMat.HasProperty("_EnableRightFade")) shadowMat.SetFloat("_EnableRightFade", enableFloat);
+            if (shadowMat.HasProperty("_RightFadeStart")) shadowMat.SetFloat("_RightFadeStart", rightFadeStart);
+            if (shadowMat.HasProperty("_RightFadeEnd")) shadowMat.SetFloat("_RightFadeEnd", rightFadeEnd);
+            if (shadowMat.HasProperty("_BackgroundColor")) shadowMat.SetColor("_BackgroundColor", fadeColor);
+        }
+    }
+
+    public void SetFadeColor(Color color)
+    {
+        fadeColor = color;
+        autoSyncBackgroundColor = false;
+        UpdateFadeProperties();
+    }
+
+    public void RefreshFadeColorFromGradient()
+    {
+        if (autoSyncBackgroundColor)
+        {
+            UpdateFadeProperties();
+        }
+    }
+
+    private void CleanupLegacyOverlay()
+    {
+        Transform existing = transform.Find("RightFadeOverlay");
+        if (existing != null)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(existing.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(existing.gameObject);
+            }
         }
     }
 
@@ -667,6 +777,36 @@ public class SignalLineRenderer : MonoBehaviour
         }
 
         return defaultHoloLineMaterial != null ? defaultHoloLineMaterial : GetDefaultMaterial();
+    }
+
+    private Material GetShadowMaterial()
+    {
+        if (shadowMaterial != null)
+        {
+            return shadowMaterial;
+        }
+
+#if UNITY_EDITOR
+        shadowMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SignalLineShadow.mat");
+        if (shadowMaterial != null)
+        {
+            return shadowMaterial;
+        }
+#endif
+
+        if (defaultShadowMaterial == null)
+        {
+            Shader shader = Shader.Find("Custom/Sprite_SolidColor");
+            if (shader != null)
+            {
+                defaultShadowMaterial = new Material(shader);
+            }
+            else
+            {
+                defaultShadowMaterial = GetDefaultMaterial();
+            }
+        }
+        return defaultShadowMaterial;
     }
 
     private Material GetDefaultMaterial()

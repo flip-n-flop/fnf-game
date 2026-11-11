@@ -1610,10 +1610,10 @@ MonoBehaviour:
   targetMaterial: {fileID: 2100000, guid: 640f718c7850ca248a16cdf98e5cd9ad, type: 2}
   stageGradient:
     serializedVersion: 2
-    key0: {r: 0.14730628, g: 0.13803846, b: 0.20754719, a: 1}
-    key1: {r: 0.3319335, g: 0.3003738, b: 0.4716981, a: 1}
-    key2: {r: 0.24705882, g: 0.21960784, b: 0.36078432, a: 0}
-    key3: {r: 0.627451, g: 0.59607846, b: 0.75686276, a: 0}
+    key0: {r: 0.17122643, g: 0.13490567, b: 0.20754719, a: 1}
+    key1: {r: 0.38915095, g: 0.30660376, b: 0.4716981, a: 1}
+    key2: {r: 0.29764706, g: 0.23450981, b: 0.36078432, a: 0}
+    key3: {r: 0.62441176, g: 0.4919608, b: 0.75686276, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
@@ -1639,6 +1639,17 @@ MonoBehaviour:
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
   intensity: 1
+  saturation: 0.35
+  usePerPointSaturation: 0
+  point1Saturation: 0.35
+  point2Saturation: 0.35
+  point3Saturation: 0.35
+  point4Saturation: 0.35
+  point1Hue: 0.75
+  point2Hue: 0.75
+  point3Hue: 0.75
+  point4Hue: 0.75
+  backgroundColorKeyIndex: 1
 --- !u!1 &518293361
 GameObject:
   m_ObjectHideFlags: 0
@@ -5108,9 +5119,15 @@ MonoBehaviour:
   enableShadow: 1
   shadowOffset: {x: 0.08, y: -0.1}
   shadowColor: {r: 1, g: 1, b: 1, a: 1}
+  shadowMaterial: {fileID: 2100000, guid: 6c2b9d0f1e3a4b89c023f4e5a6b7c8d9, type: 2}
+  enableRightFade: 1
+  rightFadeStart: 0.575
+  rightFadeEnd: 1.05
+  fadeColor: {r: 0.38915095, g: 0.30660376, b: 0.4716981, a: 1}
+  autoSyncBackgroundColor: 1
   sortingLayerName: Default
-  mainSortingOrder: 10
-  shadowSortingOrder: 5
+  mainSortingOrder: 0
+  shadowSortingOrder: -1
 --- !u!1 &1611325945
 GameObject:
   m_ObjectHideFlags: 0
@@ -5146,6 +5163,55 @@ Transform:
   - {fileID: 139762562}
   - {fileID: 512505020}
   m_Father: {fileID: 1603356139}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1616895809
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1616895811}
+  - component: {fileID: 1616895810}
+  m_Layer: 0
+  m_Name: Bloom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1616895810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1616895809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 338e3457c8347f34fac388c91d6c214a, type: 2}
+--- !u!4 &1616895811
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1616895809}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 17, y: 5, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1650963492
 GameObject:
@@ -5607,6 +5673,7 @@ PrefabInstance:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1616895811}
   - {fileID: 938301395}
   - {fileID: 8474901099412338956}
   - {fileID: 1285681115}
