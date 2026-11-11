@@ -97,6 +97,7 @@
     align-items: flex-start;
     justify-content: flex-end;
     pointer-events: none;
+    overflow: visible;
 }
 
 .hud-title-container {
@@ -104,6 +105,7 @@
     border-width: 0;
     align-items: flex-start;
     justify-content: flex-end;
+    overflow: visible;
 }
 
 .hud-title-text {
@@ -113,11 +115,14 @@
     color: #FFFFFF;
     -unity-text-align: middle-left;
     padding: 0;
+    padding-bottom: 12px;
+    padding-right: 14px;
     margin: 0;
     -unity-text-outline-width: 2px;
     -unity-text-outline-color: #000000;
     text-shadow: 7px 7px 0px #000000;
     letter-spacing: -5px;
+    overflow: visible;
 }
 
 .hud-subtitle-text {
@@ -126,7 +131,7 @@
     color: #FFFFFF;
     -unity-text-align: middle-left;
     padding: 0;
-    margin-top: 2px;
+    margin-top: -10px;
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;

@@ -98,11 +98,11 @@ public class SignalColorManager
 
     /// <summary>
     /// Array of predefined preset colors available for signal swatch selection.
-    /// Index order: 0 White, 1 Yellow, 2 Cyan, 3 Orange, 4 Green, 5 Magenta, 6 Blue, 7 Red, 8 Pink, 9 Purple.
+    /// Index order: 0 White (#bdc0ce), 1 Yellow, 2 Cyan, 3 Orange, 4 Green, 5 Magenta, 6 Blue, 7 Red, 8 Pink, 9 Purple.
     /// </summary>
     public static readonly Color[] PresetColors = new Color[]
     {
-        Color.white,                            // 0 White
+        new Color(0xBD / 255f, 0xC0 / 255f, 0xCE / 255f), // 0 White (#bdc0ce)
         new Color(1.00f, 0.93f, 0.00f),         // 1 Yellow
         new Color(0.00f, 1.00f, 1.00f),         // 2 Cyan
         new Color(1.00f, 0.55f, 0.00f),         // 3 Orange
@@ -389,15 +389,16 @@ public class SignalColorManager
     {
         if (index == CUSTOM_INDEX)
         {
+            Color def = PresetColors[0];
             switch (signal)
             {
-                case "J": return new Color(PlayerPrefs.GetFloat(KEY_J_R, 1f), PlayerPrefs.GetFloat(KEY_J_G, 1f), PlayerPrefs.GetFloat(KEY_J_B, 1f));
-                case "K": return new Color(PlayerPrefs.GetFloat(KEY_K_R, 1f), PlayerPrefs.GetFloat(KEY_K_G, 1f), PlayerPrefs.GetFloat(KEY_K_B, 1f));
-                case "CLK": return new Color(PlayerPrefs.GetFloat(KEY_CLK_R, 1f), PlayerPrefs.GetFloat(KEY_CLK_G, 1f), PlayerPrefs.GetFloat(KEY_CLK_B, 1f));
-                case "Preset": return new Color(PlayerPrefs.GetFloat(KEY_PRESET_R, 1f), PlayerPrefs.GetFloat(KEY_PRESET_G, 1f), PlayerPrefs.GetFloat(KEY_PRESET_B, 1f));
-                case "Clear": return new Color(PlayerPrefs.GetFloat(KEY_CLEAR_R, 1f), PlayerPrefs.GetFloat(KEY_CLEAR_G, 1f), PlayerPrefs.GetFloat(KEY_CLEAR_B, 1f));
-                case "FeedbackSuccess": return new Color(PlayerPrefs.GetFloat(KEY_FSUC_R, 1f), PlayerPrefs.GetFloat(KEY_FSUC_G, 1f), PlayerPrefs.GetFloat(KEY_FSUC_B, 1f));
-                case "FeedbackFailure": return new Color(PlayerPrefs.GetFloat(KEY_FFAIL_R, 1f), PlayerPrefs.GetFloat(KEY_FFAIL_G, 1f), PlayerPrefs.GetFloat(KEY_FFAIL_B, 1f));
+                case "J": return new Color(PlayerPrefs.GetFloat(KEY_J_R, def.r), PlayerPrefs.GetFloat(KEY_J_G, def.g), PlayerPrefs.GetFloat(KEY_J_B, def.b));
+                case "K": return new Color(PlayerPrefs.GetFloat(KEY_K_R, def.r), PlayerPrefs.GetFloat(KEY_K_G, def.g), PlayerPrefs.GetFloat(KEY_K_B, def.b));
+                case "CLK": return new Color(PlayerPrefs.GetFloat(KEY_CLK_R, def.r), PlayerPrefs.GetFloat(KEY_CLK_G, def.g), PlayerPrefs.GetFloat(KEY_CLK_B, def.b));
+                case "Preset": return new Color(PlayerPrefs.GetFloat(KEY_PRESET_R, def.r), PlayerPrefs.GetFloat(KEY_PRESET_G, def.g), PlayerPrefs.GetFloat(KEY_PRESET_B, def.b));
+                case "Clear": return new Color(PlayerPrefs.GetFloat(KEY_CLEAR_R, def.r), PlayerPrefs.GetFloat(KEY_CLEAR_G, def.g), PlayerPrefs.GetFloat(KEY_CLEAR_B, def.b));
+                case "FeedbackSuccess": return new Color(PlayerPrefs.GetFloat(KEY_FSUC_R, def.r), PlayerPrefs.GetFloat(KEY_FSUC_G, def.g), PlayerPrefs.GetFloat(KEY_FSUC_B, def.b));
+                case "FeedbackFailure": return new Color(PlayerPrefs.GetFloat(KEY_FFAIL_R, def.r), PlayerPrefs.GetFloat(KEY_FFAIL_G, def.g), PlayerPrefs.GetFloat(KEY_FFAIL_B, def.b));
             }
         }
 

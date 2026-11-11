@@ -405,8 +405,8 @@ public class LevelJsonLoader : MonoBehaviour
         Color jColor = SignalColorManager.Instance.ColorJ;
         Color kColor = SignalColorManager.Instance.ColorK;
         Color clkColor = SignalColorManager.Instance.ColorCLK;
-        Color presetColor = _hasPreset ? SignalColorManager.Instance.ColorPreset : Color.white;
-        Color clearColor = _hasClear ? SignalColorManager.Instance.ColorClear : Color.white;
+        Color presetColor = _hasPreset ? SignalColorManager.Instance.ColorPreset : SignalColorManager.PresetColors[0];
+        Color clearColor = _hasClear ? SignalColorManager.Instance.ColorClear : SignalColorManager.PresetColors[0];
 
         if (signalLineRenderer != null)
         {

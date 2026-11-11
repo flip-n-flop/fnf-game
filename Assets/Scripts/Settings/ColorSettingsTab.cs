@@ -558,7 +558,7 @@ public class ColorSettingsTab : ISettingsTab
             SignalType.Clear => SignalColorManager.Instance.ColorClear,
             SignalType.FeedbackSuccess => SignalColorManager.Instance.ColorFeedbackSuccess,
             SignalType.FeedbackFailure => SignalColorManager.Instance.ColorFeedbackFailure,
-            _ => Color.white
+            _ => SignalColorManager.PresetColors[0]
         };
 
         sliderR?.SetValueWithoutNotify(Mathf.RoundToInt(currentColor.r * 255f));

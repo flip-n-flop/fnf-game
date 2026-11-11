@@ -158,35 +158,35 @@ public class LevelData
     /// </summary>
     [JsonProperty("jSignalColor")]
     [JsonConverter(typeof(UnityColorConverter))]
-    public Color JSignalColor { get; set; } = Color.white;
+    public Color JSignalColor { get; set; } = new Color(0xBD / 255f, 0xC0 / 255f, 0xCE / 255f);
 
     /// <summary>
     /// Custom rendering color for the K signal line.
     /// </summary>
     [JsonProperty("kSignalColor")]
     [JsonConverter(typeof(UnityColorConverter))]
-    public Color KSignalColor { get; set; } = Color.white;
+    public Color KSignalColor { get; set; } = new Color(0xBD / 255f, 0xC0 / 255f, 0xCE / 255f);
 
     /// <summary>
     /// Custom rendering color for the Preset signal line.
     /// </summary>
     [JsonProperty("presetSignalColor")]
     [JsonConverter(typeof(UnityColorConverter))]
-    public Color PresetSignalColor { get; set; } = Color.white;
+    public Color PresetSignalColor { get; set; } = new Color(0xBD / 255f, 0xC0 / 255f, 0xCE / 255f);
 
     /// <summary>
     /// Custom rendering color for the Clear signal line.
     /// </summary>
     [JsonProperty("clearSignalColor")]
     [JsonConverter(typeof(UnityColorConverter))]
-    public Color ClearSignalColor { get; set; } = Color.white;
+    public Color ClearSignalColor { get; set; } = new Color(0xBD / 255f, 0xC0 / 255f, 0xCE / 255f);
 
     /// <summary>
     /// Custom rendering color for the Clock signal line.
     /// </summary>
     [JsonProperty("clockSignalColor")]
     [JsonConverter(typeof(UnityColorConverter))]
-    public Color ClockSignalColor { get; set; } = Color.white;
+    public Color ClockSignalColor { get; set; } = new Color(0xBD / 255f, 0xC0 / 255f, 0xCE / 255f);
 
     /// <summary>
     /// Boolean band layout array for the floor terrain.

@@ -106,9 +106,15 @@ public class SignalLineRenderer : MonoBehaviour
     private const float EXTEND_RIGHT_LENGTH = 4.0f;
     private const float BADGE_BASE_WIDTH = 3.83f * 0.92f;
     private const float BADGE_BASE_HEIGHT = 1.88f * 0.92f;
-    private const string SORTING_LAYER_NAME = "Default";
-    private const int MAIN_SORTING_ORDER = 2;
-    private const int SHADOW_SORTING_ORDER = 1;
+    [Header("Sorting Layers & Orders")]
+    [Tooltip("Target sorting layer for the signal lines and their shadows.")]
+    [SerializeField] private string sortingLayerName = "Default";
+
+    [Tooltip("Sorting order for the main signal lines. Default 0 places them between the label shadow (-2) and label box (1).")]
+    [SerializeField] private int mainSortingOrder = 0;
+
+    [Tooltip("Sorting order for the signal drop shadow lines. Default -1 places them behind the main line and in front of the label shadow (-2).")]
+    [SerializeField] private int shadowSortingOrder = -1;
 
     #endregion
 
@@ -170,6 +176,9 @@ public class SignalLineRenderer : MonoBehaviour
     private static void SyncSceneDefaults()
     {
         if (Application.isPlaying) return;
+
+        UnityEditor.AssetDatabase.ImportAsset("Assets/TextMesh Pro/Fonts/FS Industrie Bold Italic.otf", UnityEditor.ImportAssetOptions.ForceUpdate);
+        UnityEditor.AssetDatabase.ImportAsset("Assets/TextMesh Pro/Fonts/FS Industrie Italic.otf", UnityEditor.ImportAssetOptions.ForceUpdate);
 
         SignalLineRenderer[] renderers = FindObjectsByType<SignalLineRenderer>();
         for (int i = 0; i < renderers.Length; i++)
@@ -297,7 +306,7 @@ public class SignalLineRenderer : MonoBehaviour
         if (hasClock)
         {
             bool[] clockBool = ConvertPatternToBoolArray(clockPattern);
-            RenderChannel("Clock_Line", clockBool, computedClockY, CLOCK_X_OFFSET, baseXOffset, clockColor);
+            RenderChannel("Clock_Line", clockBool, computedClockY, CLOCK_X_OFFSET, baseXOffset, clockColor, clockLabel != null ? clockLabel.transform : transform);
             clockLabel?.Configure("CLK", clockColor, !isClockRisingEdge, GetChannelCenterY(computedClockY), labelScale);
         }
         else
@@ -308,7 +317,7 @@ public class SignalLineRenderer : MonoBehaviour
 
         if (hasClear)
         {
-            RenderChannel("Clear_Line", clearSignal, computedClearY, INPUT_X_OFFSET, baseXOffset, clearColor);
+            RenderChannel("Clear_Line", clearSignal, computedClearY, INPUT_X_OFFSET, baseXOffset, clearColor, clearLabel != null ? clearLabel.transform : transform);
             clearLabel?.Configure("CLR", clearColor, !isAsyncActiveHigh, GetChannelCenterY(computedClearY), labelScale);
         }
         else
@@ -319,7 +328,7 @@ public class SignalLineRenderer : MonoBehaviour
 
         if (hasPreset)
         {
-            RenderChannel("Preset_Line", presetSignal, computedPresetY, INPUT_X_OFFSET, baseXOffset, presetColor);
+            RenderChannel("Preset_Line", presetSignal, computedPresetY, INPUT_X_OFFSET, baseXOffset, presetColor, presetLabel != null ? presetLabel.transform : transform);
             presetLabel?.Configure("PRE", presetColor, !isAsyncActiveHigh, GetChannelCenterY(computedPresetY), labelScale);
         }
         else
@@ -330,7 +339,7 @@ public class SignalLineRenderer : MonoBehaviour
 
         if (hasK)
         {
-            RenderChannel("K_Line", kSignal, computedKY, INPUT_X_OFFSET, baseXOffset, kColor);
+            RenderChannel("K_Line", kSignal, computedKY, INPUT_X_OFFSET, baseXOffset, kColor, kLabel != null ? kLabel.transform : transform);
             kLabel?.Configure("K", kColor, false, GetChannelCenterY(computedKY), labelScale);
         }
         else
@@ -341,7 +350,7 @@ public class SignalLineRenderer : MonoBehaviour
 
         if (hasJ)
         {
-            RenderChannel("J_Line", jSignal, computedJY, INPUT_X_OFFSET, baseXOffset, jColor);
+            RenderChannel("J_Line", jSignal, computedJY, INPUT_X_OFFSET, baseXOffset, jColor, jLabel != null ? jLabel.transform : transform);
             string mainText = hasK ? "J" : "D";
             jLabel?.Configure(mainText, jColor, false, GetChannelCenterY(computedJY), labelScale);
         }
@@ -416,7 +425,7 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    private void RenderChannel(string lineName, bool[] signal, float baseY, float xOffset, float effectiveStartX, Color color)
+    private void RenderChannel(string lineName, bool[] signal, float baseY, float xOffset, float effectiveStartX, Color color, Transform targetParent)
     {
         if (signal == null || signal.Length == 0)
         {
@@ -427,7 +436,7 @@ public class SignalLineRenderer : MonoBehaviour
         Vector3[] points = BuildSignalPoints(signal, baseY, signalHeight, xOffset, effectiveStartX);
         rawLinePoints[lineName] = points;
 
-        LineRenderer mainLine = GetOrCreateLine(lineName, color, MAIN_SORTING_ORDER);
+        LineRenderer mainLine = GetOrCreateLine(lineName, color, mainSortingOrder, targetParent);
         mainLine.gameObject.SetActive(true);
         mainLine.startColor = color;
         mainLine.endColor = color;
@@ -438,7 +447,7 @@ public class SignalLineRenderer : MonoBehaviour
             Vector3[] shadowPoints = BuildShadowPoints(points);
             rawLinePoints[shadowName] = shadowPoints;
 
-            LineRenderer shadowLine = GetOrCreateLine(shadowName, shadowColor, SHADOW_SORTING_ORDER);
+            LineRenderer shadowLine = GetOrCreateLine(shadowName, shadowColor, shadowSortingOrder, targetParent);
             shadowLine.gameObject.SetActive(true);
             shadowLine.startColor = shadowColor;
             shadowLine.endColor = shadowColor;
@@ -548,13 +557,15 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    private LineRenderer GetOrCreateLine(string lineName, Color color, int order)
+    private LineRenderer GetOrCreateLine(string lineName, Color color, int order, Transform parentGroup)
     {
         bool isShadow = lineName.EndsWith("_Shadow");
         Material targetMat = isShadow ? GetDefaultMaterial() : GetMainLineMaterial();
+        Transform targetParent = parentGroup != null ? parentGroup : transform;
 
         if (lines.TryGetValue(lineName, out LineRenderer existingLine) && existingLine != null)
         {
+            existingLine.transform.SetParent(targetParent, false); // Garante que fique dentro do label correto
             existingLine.sharedMaterial = targetMat;
             existingLine.startWidth = lineWidth;
             existingLine.endWidth = lineWidth;
@@ -562,7 +573,7 @@ public class SignalLineRenderer : MonoBehaviour
             return existingLine;
         }
 
-        Transform child = transform.Find(lineName);
+        Transform child = targetParent.Find(lineName);
         GameObject lineObj;
         LineRenderer lr;
 
@@ -574,7 +585,7 @@ public class SignalLineRenderer : MonoBehaviour
         else
         {
             lineObj = new GameObject(lineName);
-            lineObj.transform.SetParent(transform, false);
+            lineObj.transform.SetParent(targetParent, false); // Define o pai como o label
             lr = lineObj.AddComponent<LineRenderer>();
         }
 
@@ -585,7 +596,7 @@ public class SignalLineRenderer : MonoBehaviour
         lr.endColor = color;
         lr.useWorldSpace = true;
         lr.alignment = LineAlignment.TransformZ;
-        lr.sortingLayerName = SORTING_LAYER_NAME;
+        lr.sortingLayerName = sortingLayerName;
         lr.sortingOrder = order;
         lr.numCornerVertices = 0;
         lr.numCapVertices = 0;
@@ -597,18 +608,17 @@ public class SignalLineRenderer : MonoBehaviour
 
     private void CacheExistingLineRenderers()
     {
-        foreach (Transform child in transform)
+        // Alterado para buscar recursivamente (true), já que agora as linhas podem estar dentro dos labels filhos
+        LineRenderer[] allLines = GetComponentsInChildren<LineRenderer>(true);
+
+        foreach (var lr in allLines)
         {
-            var lr = child.GetComponent<LineRenderer>();
-            if (lr != null)
+            lines[lr.gameObject.name] = lr;
+            if (lr.positionCount > 0 && !rawLinePoints.ContainsKey(lr.gameObject.name))
             {
-                lines[child.name] = lr;
-                if (lr.positionCount > 0 && !rawLinePoints.ContainsKey(child.name))
-                {
-                    Vector3[] pts = new Vector3[lr.positionCount];
-                    lr.GetPositions(pts);
-                    rawLinePoints[child.name] = pts;
-                }
+                Vector3[] pts = new Vector3[lr.positionCount];
+                lr.GetPositions(pts);
+                rawLinePoints[lr.gameObject.name] = pts;
             }
         }
         ApplyStyleSettingsToExistingLines();
@@ -625,8 +635,8 @@ public class SignalLineRenderer : MonoBehaviour
 
             kvp.Value.startWidth = lineWidth;
             kvp.Value.endWidth = lineWidth;
-            kvp.Value.sortingLayerName = SORTING_LAYER_NAME;
-            kvp.Value.sortingOrder = isShadow ? SHADOW_SORTING_ORDER : MAIN_SORTING_ORDER;
+            kvp.Value.sortingLayerName = sortingLayerName;
+            kvp.Value.sortingOrder = isShadow ? shadowSortingOrder : mainSortingOrder;
             kvp.Value.sharedMaterial = isShadow ? shadowMat : mainMat;
         }
     }

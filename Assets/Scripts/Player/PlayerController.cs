@@ -160,6 +160,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private bool isDashing => actionState == ActionState.Dashing;
 
+    /// <summary>
+    /// Indicates whether the player is currently allowed to control the character.
+    /// Control is locked during intro walking and while the guide bar expansion animation is playing.
+    /// </summary>
+    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding;
+
     #endregion
 
     #region Private Fields & State
@@ -222,7 +228,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            scoreController?.StartTimer();
+            scoreController?.ResetAndStopTimer();
             StartGuideExpansion();
         }
     }
@@ -284,6 +290,19 @@ public class PlayerController : MonoBehaviour
         HandleJump();
         HandleGravityFlip();
         HandleDash();
+    }
+
+    /// <summary>
+    /// LateUpdate callback ensuring the vertical guide line maintains world orientation (does not rotate or flip with character).
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (guideRenderer != null)
+        {
+            guideRenderer.transform.rotation = Quaternion.identity;
+            guideRenderer.flipX = false;
+            guideRenderer.flipY = false;
+        }
     }
 
     #endregion
@@ -367,7 +386,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void OnJumpPerformed(InputAction.CallbackContext ctx)
     {
-        if (isIntroWalking) return;
+        if (!CanPlayerControl) return;
         jumpInput = true;
     }
 
@@ -376,7 +395,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void OnFlipGravityPerformed(InputAction.CallbackContext ctx)
     {
-        if (isIntroWalking) return;
+        if (!CanPlayerControl) return;
         gravityFlipInput = true;
     }
 
@@ -385,7 +404,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void OnDashPerformed(InputAction.CallbackContext ctx)
     {
-        if (isIntroWalking) return;
+        if (!CanPlayerControl) return;
         TryStartDash();
     }
 
@@ -422,6 +441,10 @@ public class PlayerController : MonoBehaviour
         }
 
         if (guideRenderer == null) return;
+
+        guideRenderer.transform.rotation = Quaternion.identity;
+        guideRenderer.flipX = false;
+        guideRenderer.flipY = false;
 
         Shader guideShader = Shader.Find("Custom/Sprite_PlayerGuide");
         if (guideShader != null)
@@ -461,6 +484,7 @@ public class PlayerController : MonoBehaviour
         if (t >= 1f)
         {
             isGuideExpanding = false;
+            scoreController?.StartTimer();
         }
     }
 
@@ -558,15 +582,10 @@ public class PlayerController : MonoBehaviour
                 isIntroWalking = false;
                 jumpInput = false;
                 gravityFlipInput = false;
-                scoreController?.StartTimer();
+                rb.position = new Vector2(spawnTargetX, rb.position.y);
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
                 StartGuideExpansion();
-
-                if (Mathf.Abs(horizontalInput) <= 0.01f)
-                {
-                    rb.position = new Vector2(spawnTargetX, rb.position.y);
-                    rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-                    return;
-                }
+                return;
             }
             else
             {
@@ -574,6 +593,12 @@ public class PlayerController : MonoBehaviour
                 spriteRenderer.flipX = false ^ IsGravityInverted;
                 return;
             }
+        }
+
+        if (isGuideExpanding)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
         }
 
         if (isDashing)
@@ -619,6 +644,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleJump()
     {
+        if (!CanPlayerControl)
+        {
+            jumpInput = false;
+            return;
+        }
+
         if (jumpInput && isGrounded && actionState == ActionState.None)
         {
             float jumpDirection = IsGravityInverted ? -1f : 1f;
@@ -633,6 +664,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleGravityFlip()
     {
+        if (!CanPlayerControl)
+        {
+            gravityFlipInput = false;
+            return;
+        }
+
         if (gravityFlipInput && isGrounded && actionState == ActionState.None)
         {
             actionState = ActionState.Flipping;
@@ -656,6 +693,13 @@ public class PlayerController : MonoBehaviour
     {
         transform.Rotate(0f, 0f, 180f);
         spriteRenderer.flipX = !spriteRenderer.flipX;
+
+        if (guideRenderer != null)
+        {
+            guideRenderer.transform.rotation = Quaternion.identity;
+            guideRenderer.flipX = false;
+            guideRenderer.flipY = false;
+        }
 
         actionState = ActionState.None;
     }
@@ -767,7 +811,7 @@ public class PlayerController : MonoBehaviour
         bool isFalling = !isGrounded && (rb.linearVelocity.y * gravitySign) < 0f;
         animator.SetBool("fall", isFalling);
 
-        float effectiveInput = isIntroWalking ? 1f : horizontalInput;
+        float effectiveInput = CanPlayerControl ? horizontalInput : (isIntroWalking ? 1f : 0f);
         float speedX = useInputForRunSpeed
             ? Mathf.Abs(effectiveInput) * moveSpeed
             : Mathf.Abs(rb.linearVelocity.x);
