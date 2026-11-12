@@ -113,6 +113,11 @@
     overflow: visible;
 }
 
+.hud-title-text-wrapper {
+    position: relative;
+    overflow: visible;
+}
+
 .hud-title-text {
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
@@ -125,9 +130,17 @@
     margin: 0;
     -unity-text-outline-width: 2px;
     -unity-text-outline-color: #000000;
-    text-shadow: 7px 7px 0px #000000;
     letter-spacing: -5px;
     overflow: visible;
+}
+
+.hud-title-text-shadow {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    color: #000000;
+    -unity-text-outline-color: #000000;
+    -unity-text-outline-width: 2px;
 }
 
 .hud-subtitle-text {

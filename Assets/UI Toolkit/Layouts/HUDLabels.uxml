@@ -16,8 +16,11 @@
         </ui:VisualElement>
         <ui:VisualElement class="hud-title-wrapper">
             <ui:VisualElement name="TitleContainer" class="hud-title-container">
-                <ui:Label text="&lt;cspace=-0.06em&gt;POR ÁGUA ABAIXO&lt;/cspace&gt;" name="TitleText" class="hud-title-text"/>
-                <ui:Label text="&lt;cspace=-0.04em&gt;DUTOS SUBTERRÂNEOS - FLIP FLOP JK&lt;/cspace&gt;" name="SubtitleText" class="hud-subtitle-text"/>
+                <ui:VisualElement name="TitleTextWrapper" class="hud-title-text-wrapper">
+                    <ui:Label text="&lt;cspace=-0.06em&gt;POR ÁGUA ABAIXO&lt;/cspace&gt;" name="TitleTextShadow" class="hud-title-text hud-title-text-shadow" picking-mode="Ignore"/>
+                    <ui:Label text="&lt;cspace=-0.06em&gt;POR ÁGUA ABAIXO&lt;/cspace&gt;" name="TitleText" class="hud-title-text" picking-mode="Ignore"/>
+                </ui:VisualElement>
+                <ui:Label text="&lt;cspace=-0.04em&gt;DUTOS SUBTERRÂNEOS - FLIP FLOP JK&lt;/cspace&gt;" name="SubtitleText" class="hud-subtitle-text" picking-mode="Ignore"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="J_Label" class="signal-label">
