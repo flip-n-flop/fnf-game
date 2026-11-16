@@ -53,24 +53,19 @@
                         </ui:Label>
                         <ui:VisualElement name="PreviewJ" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesJ" class="config-swatches"/>
-                        <ui:Button name="BtnCustomJ" text="+" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomJ" text="+" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="config-color-row">
-                        <ui:Label text="K" class="config-signal-label">
-                        </ui:Label>
+                        <ui:Label text="K" class="config-signal-label"/>
                         <ui:VisualElement name="PreviewK" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesK" class="config-swatches"/>
-                        <ui:Button name="BtnCustomK" text="+" triple-click-selects-line="false" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomK" text="+" triple-click-selects-line="false" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="config-color-row">
-                        <ui:Label text="Preset" class="config-signal-label">
-                        </ui:Label>
+                        <ui:Label text="Preset" class="config-signal-label"/>
                         <ui:VisualElement name="PreviewPreset" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesPreset" class="config-swatches"/>
-                        <ui:Button name="BtnCustomPreset" text="+" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomPreset" text="+" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="config-color-row">
                         <ui:Label text="Clear" class="config-signal-label">
@@ -80,16 +75,13 @@
                         </ui:Label>
                         <ui:VisualElement name="PreviewClear" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesClear" class="config-swatches"/>
-                        <ui:Button name="BtnCustomClear" text="+" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomClear" text="+" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="config-color-row">
-                        <ui:Label text="CLK" class="config-signal-label">
-                        </ui:Label>
+                        <ui:Label text="CLK" class="config-signal-label"/>
                         <ui:VisualElement name="PreviewCLK" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesCLK" class="config-swatches"/>
-                        <ui:Button name="BtnCustomCLK" text="+" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomCLK" text="+" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                     <ui:Label text="Feedback do Desenho" class="config-subsection-title">
                         <Bindings>
@@ -104,8 +96,7 @@
                         </ui:Label>
                         <ui:VisualElement name="PreviewFeedbackSuccess" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesFeedbackSuccess" class="config-swatches"/>
-                        <ui:Button name="BtnCustomFeedbackSuccess" text="+" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomFeedbackSuccess" text="+" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="config-color-row">
                         <ui:Label text="Errado" class="config-signal-label">
@@ -115,8 +106,7 @@
                         </ui:Label>
                         <ui:VisualElement name="PreviewFeedbackFailure" class="config-color-preview"/>
                         <ui:VisualElement name="ContainerSwatchesFeedbackFailure" class="config-swatches"/>
-                        <ui:Button name="BtnCustomFeedbackFailure" text="+" class="menu-button config-plus-button">
-                        </ui:Button>
+                        <ui:Button name="BtnCustomFeedbackFailure" text="+" class="menu-button config-plus-button"/>
                     </ui:VisualElement>
                 </ui:ScrollView>
             </ui:VisualElement>
@@ -205,12 +195,12 @@
                 <ui:VisualElement class="config-actions-row">
                     <ui:Button text="Cancelar" name="BtnCancelRGB" class="menu-button config-action-button">
                         <Bindings>
-                            <UnityEngine.Localization.LocalizedString property="text" table="GUID:b078eccd26181e348bead05bd7da94cb" entry="Id(38475619255)"/>
+                            <UnityEngine.Localization.LocalizedString property="text" table="GUID:1335d71b210ede741858eb8a611103b6" entry="Id(38475619255)"/>
                         </Bindings>
                     </ui:Button>
                     <ui:Button text="Confirmar" name="BtnConfirmRGB" class="menu-button config-action-button">
                         <Bindings>
-                            <UnityEngine.Localization.LocalizedString property="text" table="GUID:b078eccd26181e348bead05bd7da94cb" entry="Id(91827364522)"/>
+                            <UnityEngine.Localization.LocalizedString property="text" table="GUID:1335d71b210ede741858eb8a611103b6" entry="Id(91827364522)"/>
                         </Bindings>
                     </ui:Button>
                 </ui:VisualElement>

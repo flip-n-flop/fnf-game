@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: PlayerSpiderwebLine
+  m_Shader: {fileID: 4800000, guid: 8f3c2a1d4b5e67890123456789abcdef, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _USEVERTEXCOLOR_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Alpha: 1
+    - _BranchChance: 1
+    - _BranchCurve: -0.16
+    - _BranchDensity: 3.56
+    - _BranchLength: 0.863
+    - _BranchOpacity: 0.947
+    - _BranchSlope: 1.05
+    - _BranchTaper: 0.6
+    - _BranchThickness: 0.0766
+    - _CordLumpAmount: 0.1
+    - _CordLumpFreq: 14
+    - _CordWanderAmp: 0.14
+    - _CordWanderFreq: 2.2
+    - _CoreOpacity: 0.994
+    - _CoreThickness: 0.386
+    - _CrossAngle: 1.4
+    - _CrossArc: 0.35
+    - _CrossDensity: 1.4
+    - _CrossIrregularity: 0.494
+    - _CrossOpacity: 0.356
+    - _CrossThickness: 0.095
+    - _DewDensity: 0
+    - _DewIntensity: 0.8
+    - _DewSize: 0.056
+    - _EdgeFade: 0.133
+    - _HoleAspect: 0.67
+    - _HoleChance: 0.669
+    - _HoleDensity: 17.2
+    - _HoleSize: 0.0431
+    - _HoleStrength: 1
+    - _LengthTiling: 2
+    - _NoiseScale: 8
+    - _NoiseStrength: 0.025
+    - _StrandCount: 6
+    - _StrandIrregularity: 1
+    - _StrandOpacity: 1.378
+    - _StrandSpread: 0.837
+    - _StrandThickness: 0.07
+    - _ThreadSoftness: 0.0252
+    - _UseVertexColor: 1
+    - _WaveAmplitude: 0.18
+    - _WaveFrequency: 7.1
+    - _WindAmount: 0
+    - _WindSpeed: 0
+    m_Colors:
+    - _Color: {r: 0.82, g: 0.84, b: 0.86, a: 1}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SecondaryColor: {r: 0.72, g: 0.75, b: 0.78, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
