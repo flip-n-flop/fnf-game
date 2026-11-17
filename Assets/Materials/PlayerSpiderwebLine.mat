@@ -31,26 +31,12 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alpha: 1
-    - _BranchChance: 1
-    - _BranchCurve: -0.16
-    - _BranchDensity: 3.56
-    - _BranchLength: 0.863
-    - _BranchOpacity: 0.947
-    - _BranchSlope: 1.05
-    - _BranchTaper: 0.6
-    - _BranchThickness: 0.0766
     - _CordLumpAmount: 0.1
     - _CordLumpFreq: 14
     - _CordWanderAmp: 0.14
     - _CordWanderFreq: 2.2
     - _CoreOpacity: 0.994
     - _CoreThickness: 0.386
-    - _CrossAngle: 1.4
-    - _CrossArc: 0.35
-    - _CrossDensity: 1.4
-    - _CrossIrregularity: 0.494
-    - _CrossOpacity: 0.356
-    - _CrossThickness: 0.095
     - _DewDensity: 0
     - _DewIntensity: 0.8
     - _DewSize: 0.056

@@ -31,17 +31,7 @@ Shader "Custom/Line_Spiderweb"
         _HoleAspect ("Hole Elongation", Range(0.3, 3.0)) = 0.85
         _HoleStrength ("Hole Cutout Strength", Range(0.0, 1.0)) = 1.0
 
-        [Header(Side Branches and Anchor Filaments)]
-        _BranchOpacity ("Branch Opacity", Range(0.0, 1.5)) = 0.9
-        _BranchDensity ("Branch Density", Range(0.0, 15.0)) = 2.5
-        _BranchChance ("Branch Spawn Chance", Range(0.0, 1.0)) = 0.45
-        _BranchThickness ("Branch Thickness", Range(0.005, 0.15)) = 0.035
-        _BranchSlope ("Branch Angle Slope", Range(0.2, 4.0)) = 1.35
-        _BranchCurve ("Branch Curve", Range(-1.0, 1.0)) = 0.25
-        _BranchLength ("Branch Reach", Range(0.1, 1.2)) = 0.85
-        _BranchTaper ("Branch Tip Taper", Range(0.0, 1.5)) = 0.45
-
-        [Header(Extra Wavy Strands and Cross Webbing)]
+        [Header(Extra Wavy Strands)]
         _StrandCount ("Extra Wavy Strands", Range(0, 6)) = 0
         _StrandThickness ("Wavy Strand Thickness", Range(0.005, 0.25)) = 0.025
         _StrandSpread ("Wavy Strand Spread", Range(0.0, 1.0)) = 0.35
@@ -49,13 +39,6 @@ Shader "Custom/Line_Spiderweb"
         _WaveAmplitude ("Wave Amplitude", Range(0.0, 0.6)) = 0.14
         _StrandOpacity ("Wavy Strand Opacity", Range(0.0, 1.5)) = 0.6
         _StrandIrregularity ("Strand Irregularity", Range(0.0, 1.0)) = 0.35
-
-        _CrossDensity ("Cross Web Density", Range(0.0, 20.0)) = 0.0
-        _CrossThickness ("Cross Web Thickness", Range(0.005, 0.2)) = 0.02
-        _CrossAngle ("Cross Web Slope", Range(0.1, 4.0)) = 1.4
-        _CrossArc ("Cross Web Curve (Arc)", Range(-1.0, 1.0)) = 0.25
-        _CrossOpacity ("Cross Web Opacity", Range(0.0, 1.5)) = 0.4
-        _CrossIrregularity ("Cross Web Irregularity", Range(0.0, 1.0)) = 0.6
 
         [Header(Dewdrops and Motion)]
         _DewDensity ("Dewdrop Density", Range(0.0, 20.0)) = 0.0
@@ -129,15 +112,6 @@ Shader "Custom/Line_Spiderweb"
             float _HoleAspect;
             float _HoleStrength;
 
-            float _BranchOpacity;
-            float _BranchDensity;
-            float _BranchChance;
-            float _BranchThickness;
-            float _BranchSlope;
-            float _BranchCurve;
-            float _BranchLength;
-            float _BranchTaper;
-
             float _StrandCount;
             float _StrandThickness;
             float _StrandSpread;
@@ -145,13 +119,6 @@ Shader "Custom/Line_Spiderweb"
             float _WaveAmplitude;
             float _StrandOpacity;
             float _StrandIrregularity;
-
-            float _CrossDensity;
-            float _CrossThickness;
-            float _CrossAngle;
-            float _CrossArc;
-            float _CrossOpacity;
-            float _CrossIrregularity;
 
             float _DewDensity;
             float _DewSize;
@@ -239,42 +206,7 @@ Shader "Custom/Line_Spiderweb"
                     }
                 }
 
-                // 3. Irregular side branches / anchor filaments radiating off the cord
-                float branches = 0.0;
-                if (_BranchOpacity > 0.001 && _BranchDensity > 0.001)
-                {
-                    float bu = u * _BranchDensity;
-                    float baseBCell = floor(bu);
-
-                    [unroll]
-                    for (int bc = -1; bc <= 1; bc++)
-                    {
-                        float bCell = baseBCell + (float)bc;
-                        if (hash11(bCell + 9.1) < _BranchChance)
-                        {
-                            float bLu = (bu - (bCell + 0.5));
-                            float side = hash11(bCell + 17.3) > 0.5 ? 1.0 : -1.0;
-                            float slope = _BranchSlope * (0.55 + hash11(bCell + 23.9) * 0.9) * (hash11(bCell + 31.1) > 0.5 ? 1.0 : -1.0);
-
-                            float outDist = (vw - wander) * side;
-                            if (outDist >= -0.02)
-                            {
-                                float targetLu = outDist / max(0.15, abs(slope)) * sign(slope) + (bLu * 0.0);
-                                float arc = (outDist * outDist) * _BranchCurve;
-                                float dBranch = abs(bLu - (outDist / slope + arc));
-
-                                float taper = max(0.25, 1.0 - saturate(outDist * _BranchTaper));
-                                float bThick = _BranchThickness * taper;
-                                float bMask = 1.0 - smoothstep(bThick, bThick + _ThreadSoftness, dBranch);
-                                bMask *= 1.0 - smoothstep(_BranchLength - 0.12, _BranchLength, outDist);
-                                branches = max(branches, bMask);
-                            }
-                        }
-                    }
-                    branches *= _BranchOpacity;
-                }
-
-                // 4. Optional extra wavy strands
+                // 3. Optional extra wavy strands
                 float strands = 0.0;
                 int count = (int)round(_StrandCount);
                 [unroll]
@@ -293,31 +225,7 @@ Shader "Custom/Line_Spiderweb"
                     }
                 }
 
-                // 5. Optional cross-webbing
-                float crossWeb = 0.0;
-                if (_CrossDensity > 0.001 && _CrossOpacity > 0.001)
-                {
-                    float cu = u * _CrossDensity;
-                    float cell = floor(cu);
-                    float lu = frac(cu) - 0.5;
-
-                    float r1 = hash11(cell + 11.7);
-                    float r2 = hash11(cell + 29.3);
-                    float r3 = hash11(cell + 47.9);
-
-                    float slope = _CrossAngle * (1.0 + (r1 - 0.5) * _CrossIrregularity);
-                    float yShift = (r2 - 0.5) * _CrossIrregularity * 0.6;
-                    float arc = (0.25 - lu * lu) * _CrossArc * (0.7 + r3 * 0.6);
-
-                    float dCross1 = abs(vw - (lu * slope + yShift + arc));
-                    float dCross2 = abs(vw - (-lu * slope + yShift - arc));
-
-                    float c1 = 1.0 - smoothstep(_CrossThickness, _CrossThickness + _ThreadSoftness, dCross1);
-                    float c2 = 1.0 - smoothstep(_CrossThickness, _CrossThickness + _ThreadSoftness, dCross2);
-                    crossWeb = max(c1, c2) * _CrossOpacity;
-                }
-
-                // 6. Optional dewdrops
+                // 4. Optional dewdrops
                 float dew = 0.0;
                 if (_DewDensity > 0.001 && _DewIntensity > 0.001)
                 {
@@ -338,7 +246,7 @@ Shader "Custom/Line_Spiderweb"
                 float edgeMask = 1.0 - smoothstep(1.0 - _EdgeFade, 1.0, abs(v));
 
                 // Color & alpha composition
-                float secondaryMask = saturate(max(branches, max(strands, crossWeb)));
+                float secondaryMask = saturate(strands);
                 float primaryMask = saturate(cordMask);
                 float highlightMask = saturate(dew);
 
