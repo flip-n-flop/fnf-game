@@ -41,7 +41,7 @@ O objetivo principal é ensinar o funcionamento prático de **Flip-Flops** (JK, 
 ### 📐 Simulação Lógica
 - Cada fase é definida por um arquivo **JSON** (`LevelData`).
 - As entradas digitais mudam ao longo do tempo (divididas em passos de tempo / ciclos de clock).
-- O simulador de Flip-Flop interno (`FlipFlopSimulator`) calcula a saída lógica ideal esperada \(Q\) em cada borda de subida/descida do clock e em eventos assíncronos (Preset e Clear).
+- O simulador de Flip-Flop interno (`FlipFlopSimulator`) calcula a saída lógica ideal esperada \(Q\) em cada borda de subida/descida do clock e em eventos assíncronos (Preset e Clear). A simulação J-K, o gabarito, a validação do traçado e a pontuação vêm da biblioteca comum **FlipNflopCommons** (ver [Regras comuns](#regras-comuns-flipnflopcommons)).
 
 ---
 
@@ -54,11 +54,15 @@ FlipNflop/
 │   ├── Animations/       # Animações de personagem e objetos do jogo
 │   ├── Arts/             # Sprites 2D, texturas e elementos visuais
 │   ├── Materials/        # Materiais URP e Shaders
+│   ├── Plugins/          # DLLs de terceiros e a biblioteca comum FlipNflopCommons (Plugins/FlipNflopCommons/)
 │   ├── Prefab/           # Prefabs (Jogador, Obstáculos, UI Elementos)
 │   ├── Resources/        # Fases JSON nativas e recursos carregáveis via script
 │   ├── Scenes/           # Cenas Unity (MainMenu, GameScene)
 │   ├── Scripts/          # Código-fonte C# organizado modularmente
-│   └── UI Toolkit/       # Documentos de UI (.uxml) e estilos (.uss)
+│   ├── Tests/Gla/        # Testes EditMode do GLA e exemplos canônicos do contrato (Contract/)
+│   ├── UI Toolkit/       # Documentos de UI (.uxml) e estilos (.uss)
+│   └── link.xml          # Protege os tipos do FlipNflopCommons do stripping do IL2CPP
+├── scripts/              # update-commons.sh (atualiza a biblioteca comum) e set_unity_version.py
 ├── Docs/                 # Documentação em Markdown para desenvolvedores
 ├── Packages/             # Pacotes de dependência do Unity (Input System, URP, Localization)
 └── ProjectSettings/      # Configurações do projeto Unity
@@ -73,6 +77,7 @@ A pasta `Assets/Scripts/` é dividida em 6 subdomínios totalmente modulares:
 ```text
 Assets/Scripts/
 ├── Common/       # Utilitários compartilhados (Controle de Câmera, Captura de Tela)
+├── Gla/          # Game Learning Analytics: Serialization/ tem o GlaJson (assembly FlipNflop.Gla.Serialization)
 ├── Hint/         # Sistema de dicas visuais em tempo real (Linhas de Clock, Overlays)
 ├── Level/        # Dados da fase, simulação de Flip-Flops, carregamento e Tilemaps
 │   ├── Loading/  # Leitura de JSON, sequência de fases e interop WebGL
@@ -87,14 +92,41 @@ Assets/Scripts/
 
 | Módulo | Script Principal | Responsabilidade |
 | :--- | :--- | :--- |
-| **Level** | [`FlipFlopSimulator.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Level/FlipFlopSimulator.cs) | Núcleo matemático/lógico. Simula transições síncronas (borda de clock) e assíncronas (PRE/CLR). |
+| **Level** | [`FlipFlopSimulator.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Level/FlipFlopSimulator.cs) | Núcleo matemático/lógico. Simula transições síncronas (borda de clock) e assíncronas (PRE/CLR). O J-K delega ao `JkSimulator` do commons. |
 | **Level** | [`LevelJsonLoader.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Level/Loading/LevelJsonLoader.cs) | Carrega o JSON da fase, invoca o simulador e aciona a renderização dos Tilemaps e Rótulos. |
 | **Level** | [`TilemapRenderer.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Level/Rendering/TilemapRenderer.cs) | Converte padrões de sinais (3 bits) nos tiles gráficos correspondentes do cenário. |
 | **Player** | [`PlayerController.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/PlayerController.cs) | Controla físicas, gravidade, pulo, dash, colisões com inimigos e animações do personagem. |
-| **Player** | [`GabaritoGenerator.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/GabaritoGenerator.cs) | Converte os eventos lógicos do simulador nas coordenadas exatas de quinas no mundo Unity. |
-| **Player** | [`PathVerifier.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/PathVerifier.cs) | Compara o trajeto feito pelo jogador contra o gabarito ideal e gera feedback gráfico (verde/vermelho). |
-| **Player** | [`ScoreController.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/ScoreController.cs) | Avalia a taxa de acerto do trajeto, aplica penalidades de tempo e calcula a pontuação final. |
+| **Player** | [`GabaritoGenerator.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/GabaritoGenerator.cs) | Gera as quinas do gabarito no mundo Unity com o `AnswerKeyCorners` do commons. |
+| **Player** | [`PathVerifier.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/PathVerifier.cs) | Compara o trajeto feito pelo jogador contra o gabarito ideal, gera feedback gráfico (verde/vermelho) e publica o resultado da validação (`ValidationCompleted`). |
+| **Player** | [`ScoreController.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Player/ScoreController.cs) | Avalia a taxa de acerto do trajeto, aplica penalidades de tempo e calcula a pontuação final (`ScoreRules` do commons). |
 | **Settings** | [`SignalColorManager.cs`](file:///D:/Projetos/FlipNflop/Assets/Scripts/Settings/SignalColorManager.cs) | Gerencia a paleta de cores dos sinais lógicos (suporta acessibilidade/daltonismo). |
+
+### Regras comuns (FlipNflopCommons)
+
+O jogo, a API e o script de dados sintéticos calculam o gabarito, a validação do traçado e a pontuação com o mesmo código: o *namespace* `FlipNflop.Commons.PhaseRules` da biblioteca comum `FlipNflopCommons` (repositório `fnf-commons`). Os scripts do jogo são adaptadores finos, que convertem `Vector3` em `PathPoint` e chamam o commons, mantendo as assinaturas e os campos serializados:
+
+| Script do jogo | Regra do commons |
+| :--- | :--- |
+| `FlipFlopSimulator.SimulateJK` | `JkSimulator` (só J-K, passo de clock 6) |
+| `GabaritoGenerator.BuildFromEvents` | `AnswerKeyCorners`, com a fase do `LevelJsonLoader` (`CreatePhaseDefinition`) |
+| `PathChecker.Evaluate` | `CornerEvaluator` (diagrama correto e acerto geral) |
+| `PathVerifier.IsSegmentValid` | `SegmentValidator` (verde ou vermelho) |
+| `ScoreController.ComputeScore` | `ScoreRules`, com o `maxScore` do componente |
+| `PathVerifier` (resultado por trecho) | `ColumnEvaluator` (nível traçado e acerto por trecho) |
+
+A geometria vem da cena `Custom.unity`: início da área jogável em x = 0, `startX` = 4 do `LevelJsonLoader`, níveis −0,5 e 3,25 e **tolerância de 0,2** (`cornerTolerance` do `PathVerifier`; o padrão do código é 1,0, mas vale o valor da cena), com a folga do `LevelManager`.
+
+**Resultado da validação.** Ao fim de cada tentativa concluída ou encerrada por morte, `PathVerifier` dispara o evento estático `PathVerifier.ValidationCompleted` com um `TraceValidationResult`: `Conclusion` (diagrama correto), `OverallAccuracy` (segmentos cobertos / total), `Performance` (a pontuação mostrada na tela), `Trace` e `Correct` (um valor por trecho, `null` onde não há traçado). Traçado com menos de 2 pontos gera `Conclusion = false`, pontuação 0, acerto 0 e vetores só com `null`. É um gancho de lógica para a coleta: quem assina deve se desinscrever em `OnDisable`, e o evento é zerado ao iniciar o *Play Mode*. Em *Development Build*, o resultado é impresso no console.
+
+**Serialização do contrato.** O `GlaJson` (`Assets/Scripts/Gla/Serialization/`, *assembly* `FlipNflop.Gla.Serialization`) escreve e lê os tipos do contrato do commons com o Newtonsoft.Json, nos nomes de `ContractNames`, com `null` explícito, a causa em minúsculas e as datas em UTC com `Z`. Os testes EditMode (`Assets/Tests/Gla/`) o conferem contra os exemplos canônicos.
+
+**Como atualizar a biblioteca comum.** Com o `fnf-commons` ao lado (no monorepo, `../fnf-commons`) e o .NET SDK instalado, rode na raiz do jogo:
+
+```bash
+scripts/update-commons.sh [caminho-do-fnf-commons]
+```
+
+O script compila o commons para `netstandard2.1`, copia `FlipNflopCommons.dll`, a documentação XML e um `VERSION` (versão e commit de origem) para `Assets/Plugins/FlipNflopCommons/`, e os exemplos canônicos do contrato para `Assets/Tests/Gla/Contract/`. Depois, abra o projeto no editor para importar o DLL e rode os testes EditMode (*Window > General > Test Runner*). O `Assets/link.xml` impede que o IL2CPP remova os tipos do DLL no build WebGL.
 
 ---
 
@@ -129,6 +161,7 @@ sequenceDiagram
     Play->>Eval: Envia pontos percorridos pelo jogador
     Eval->>Eval: Compara quinas do trajeto com o Gabarito ideal
     Eval->>Jogador: Desenha linhas de feedback (Verde = Acerto, Vermelho = Erro)
+    Eval->>Eval: Publica ValidationCompleted (TraceValidationResult) para a coleta
     Eval->>Menu: Exibe ResultScreenController (Pontuação, Tempo, Precisão)
 ```
 

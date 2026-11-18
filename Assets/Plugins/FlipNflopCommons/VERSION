@@ -1,0 +1,3 @@
+version: 2.0.0
+commit: 291d126f12b7e6db35521c708691b182569cebb5
+framework: netstandard2.1

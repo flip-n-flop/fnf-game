@@ -1,0 +1,22 @@
+{
+  "phase_name": "ninth_level",
+  "sections": [
+    {
+      "dateTimeStart": "2026-10-20T18:02:13.420Z",
+      "dateTimeFinish": "2026-10-20T18:03:02.118Z",
+      "conclusion": null,
+      "performance": null,
+      "path_player": {
+        "game_version": "0.15.0",
+        "end_cause": "exit",
+        "overall_accuracy": null,
+        "columns": {
+          "time": [1.75, 1.445, 1.166, 1.437, 1.444, 1.349, 1.131, 1.306, 1.128, 1.41, 1.161, 1.497, 1.305, 1.053, 1.035, 1.363, 1.24, 1.381, 0.993, 1.583, 1.599, 1.402, 1.276, 1.32, 1.426, 1.246, 1.527, 1.261, 1.013, 1.334, 1.169, 2.4, 1.9, 1.2, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+          "hints": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "correct": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+          "trace": [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+        }
+      }
+    }
+  ]
+}

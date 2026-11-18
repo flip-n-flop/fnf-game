@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using FlipNflop.Commons.PhaseRules;
 using UnityEngine;
 
 /// <summary>
 /// Simulates various flip-flop logic types (JK, SR, D, T) with synchronous and asynchronous inputs.
 /// Provides timeline computation and event generation for level path verification and tilemap rendering.
+/// The JK simulation, the only one the levels use, delegates to <see cref="JkSimulator"/> of the shared library FlipNflopCommons.
 /// Interacts with <see cref="LevelData"/> and is invoked by <see cref="LevelJsonLoader"/> and <see cref="PathVerifier"/>.
 /// </summary>
 public static class FlipFlopSimulator
@@ -12,22 +14,29 @@ public static class FlipFlopSimulator
     #region JK Flip-Flop Simulation
 
     /// <summary>
+    /// Name given to the phase definitions built by <see cref="CreateJkPhase"/>, which receive only the signals.
+    /// </summary>
+    private const string SimulatedLevelName = "simulated_level";
+
+    /// <summary>
     /// Computes JK flip-flop timeline with asynchronous preset/clear support.
     /// Returns doubled-resolution output: each input tile produces 2 output positions (X.0 and X.5).
     /// This allows both synchronous (at X.0) and asynchronous (at X.5) operations to coexist.
     /// Timeline length = (diagramLength+1) * 2, where even indices are sync, odd indices are async.
+    /// Delegates to <see cref="JkSimulator"/> of the shared library FlipNflopCommons, with the phase built by <see cref="CreateJkPhase"/>.
     /// Used by <see cref="LevelJsonLoader"/> and <see cref="PathVerifier"/>.
     /// </summary>
     /// <param name="jSignal">Input array for J signal values.</param>
     /// <param name="kSignal">Input array for K signal values.</param>
     /// <param name="presetSignal">Input array for asynchronous Preset signal values.</param>
     /// <param name="clearSignal">Input array for asynchronous Clear signal values.</param>
-    /// <param name="clockStep">Clock step interval in tile units.</param>
-    /// <param name="diagramLength">Total logical length of the diagram.</param>
+    /// <param name="clockStep">Clock step interval in tile units; the shared rules support only 6.</param>
+    /// <param name="diagramLength">Total logical length of the diagram; a multiple of the clock step.</param>
     /// <param name="ops">Output array containing operation tokens for each step.</param>
     /// <param name="events">Output list containing state change events.</param>
     /// <param name="asyncActiveHigh">If true, preset/clear active when signal=1; if false, active when signal=0.</param>
-    /// <returns>Boolean array representing the output Q signal timeline over time.</returns>
+    /// <returns>Boolean array representing the output Q signal timeline over time, or null when <paramref name="diagramLength"/> is not positive.</returns>
+    /// <exception cref="InvalidOperationException">Preset and Clear are active in the same tile, or the clock step or the length is not supported by the shared rules.</exception>
     public static bool[] SimulateJK(bool[] jSignal, bool[] kSignal, bool[] presetSignal, bool[] clearSignal,
         int clockStep, int diagramLength, out string[] ops, out List<SignalEvent> events, bool asyncActiveHigh = true)
     {
@@ -35,101 +44,59 @@ public static class FlipFlopSimulator
         events = null;
         if (diagramLength <= 0) return null;
 
-        int inputLength = diagramLength + 1;
-        int outputLength = inputLength * 2;
-        var timeline = new bool[outputLength];
-        var opArr = new string[outputLength];
-        var eventList = new List<SignalEvent>();
+        PhaseDefinition phase = CreateJkPhase(jSignal, kSignal, presetSignal, clearSignal, clockStep, diagramLength, asyncActiveHigh);
+        JkSimulation simulation = JkSimulator.Simulate(phase);
 
-        bool q = false;
-        bool asyncAtPreviousTile = false;
+        var timeline = new bool[simulation.Output.Count];
+        for (int i = 0; i < timeline.Length; i++) timeline[i] = simulation.Output[i];
 
-        for (int i = 0; i < inputLength; i++)
-        {
-            int syncIndex = i * 2;
-            int asyncIndex = i * 2 + 1;
+        var opArr = new string[simulation.Tokens.Count];
+        for (int i = 0; i < opArr.Length; i++) opArr[i] = simulation.Tokens[i];
 
-            bool isEdge = (clockStep > 0 && i > 0 && (i % clockStep) == 0);
-
-            bool qBeforeSync = q;
-            bool syncApplied = false;
-            string syncToken = null;
-
-            if (isEdge)
-            {
-                if (!asyncAtPreviousTile)
-                {
-                    bool j = GetAt(jSignal, i - 1);
-                    bool k = GetAt(kSignal, i - 1);
-
-                    if (j && !k) q = true;
-                    else if (!j && k) q = false;
-                    else if (j && k) q = !q;
-
-                    syncApplied = true;
-                    if (j && k) syncToken = "switch_sync";
-                    else if (qBeforeSync != q) syncToken = j ? "set_sync" : "reset_sync";
-                    else syncToken = "hold_sync";
-
-                    if (q != qBeforeSync)
-                    {
-                        eventList.Add(new SignalEvent(i, q));
-                    }
-                }
-                else
-                {
-                    syncApplied = false;
-                    syncToken = "sync_ignored";
-                }
-            }
-
-            timeline[syncIndex] = q;
-            opArr[syncIndex] = syncApplied && syncToken != null && syncToken != "hold_sync"
-                ? syncToken
-                : (syncToken == "sync_ignored" ? syncToken : (qBeforeSync == q ? "keep" : (q ? "set_initial" : "reset_initial")));
-
-            bool qBeforeAsync = q;
-            bool presetValue = GetAt(presetSignal, i);
-            bool clearValue = GetAt(clearSignal, i);
-
-            bool hasPreset = presetSignal != null && i < presetSignal.Length && (asyncActiveHigh ? presetValue : !presetValue);
-            bool hasClear = clearSignal != null && i < clearSignal.Length && (asyncActiveHigh ? clearValue : !clearValue);
-
-            string asyncToken;
-
-            if (hasPreset && hasClear)
-            {
-                throw new InvalidOperationException($"Invalid level inputs: Asynchronous Preset and Clear cannot be active simultaneously at tile {i}.");
-            }
-
-            if (hasPreset || hasClear)
-            {
-                q = hasClear ? false : true;
-
-                asyncToken = (q != qBeforeAsync)
-                    ? (hasClear ? "clear_async" : "preset_async")
-                    : (hasClear ? "clear_async_noop" : "preset_async_noop");
-
-                if (q != qBeforeAsync)
-                {
-                    eventList.Add(new SignalEvent(i + 0.5f, q));
-                }
-
-                asyncAtPreviousTile = true;
-            }
-            else
-            {
-                asyncToken = (qBeforeAsync == q) ? "keep" : (q ? "set_initial" : "reset_initial");
-                asyncAtPreviousTile = false;
-            }
-
-            timeline[asyncIndex] = q;
-            opArr[asyncIndex] = asyncToken;
-        }
+        var eventList = new List<SignalEvent>(simulation.Events.Count);
+        foreach (OutputEvent change in simulation.Events) eventList.Add(new SignalEvent(change.X, change.Value));
 
         ops = opArr;
         events = eventList;
         return timeline;
+    }
+
+    /// <summary>
+    /// Builds the phase definition of the shared library FlipNflopCommons (<see cref="PhaseDefinition"/>)
+    /// from the signals of a JK level, as <see cref="SimulateJK"/> receives them.
+    /// The flip-flop type is always JK, because <see cref="LevelData"/> does not read it, and the active
+    /// clock edge is the game default (falling), because it does not change the simulation.
+    /// Missing J or K signals read as 0, as in the game. Used by <see cref="SimulateJK"/> and <see cref="LevelJsonLoader"/>.
+    /// </summary>
+    /// <param name="jSignal">Input array for J signal values.</param>
+    /// <param name="kSignal">Input array for K signal values.</param>
+    /// <param name="presetSignal">Input array for asynchronous Preset signal values, or null.</param>
+    /// <param name="clearSignal">Input array for asynchronous Clear signal values, or null.</param>
+    /// <param name="clockStep">Clock step interval in tile units; must be <see cref="PhaseDefinition.ColumnsPerClockCycle"/>.</param>
+    /// <param name="diagramLength">Total logical length of the diagram; a positive multiple of the clock step.</param>
+    /// <param name="asyncActiveHigh">If true, preset/clear active when signal=1; if false, active when signal=0.</param>
+    /// <returns>The phase definition, with <paramref name="diagramLength"/> / 6 clock cycles.</returns>
+    /// <exception cref="InvalidOperationException">The clock step is not 6 or the length is not a positive multiple of it.</exception>
+    public static PhaseDefinition CreateJkPhase(bool[] jSignal, bool[] kSignal, bool[] presetSignal, bool[] clearSignal,
+        int clockStep, int diagramLength, bool asyncActiveHigh = true)
+    {
+        if (clockStep != PhaseDefinition.ColumnsPerClockCycle || diagramLength <= 0 || diagramLength % clockStep != 0)
+        {
+            throw new InvalidOperationException(
+                $"Unsupported level geometry: the shared JK rules need a clock step of {PhaseDefinition.ColumnsPerClockCycle} tiles " +
+                $"and a diagram length multiple of it (got step {clockStep}, length {diagramLength}).");
+        }
+
+        return new PhaseDefinition(
+            SimulatedLevelName,
+            diagramLength / clockStep,
+            PhaseDefinition.JkFlipFlopType,
+            ClockEdge.Falling,
+            jSignal ?? Array.Empty<bool>(),
+            kSignal ?? Array.Empty<bool>(),
+            presetSignal,
+            clearSignal,
+            asyncActiveHigh);
     }
 
     #endregion

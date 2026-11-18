@@ -24,6 +24,7 @@ A pasta `Assets/Scripts/` está organizada nos seguintes subdomínios modulares:
 ```
 Assets/Scripts/
 ├── Common/            # Controladores comuns (Câmera, utilitários)
+├── Gla/               # Game Learning Analytics (Serialization/: GlaJson, assembly FlipNflop.Gla.Serialization)
 ├── Hint/              # Sistema de dicas visuais em tempo real
 ├── Level/             # Dados da fase, simulação lógica, carregamento e renderização de Tilemaps
 │   ├── Loading/       # Deserialização JSON, sequência de fases e interop WebGL
@@ -43,12 +44,13 @@ Assets/Scripts/
   - `UnityColorConverter`: Converte strings hex (ex: `"#FF0000"`) para `UnityEngine.Color`.
   - `AsyncActiveConverter`: Trata fallbacks de nível ativo assíncrono (High/Low ou 1/0).
 - **`FlipFlopSimulator.cs`**: Classe estática responsável pela simulação puramente lógica dos flip-flops (JK, SR, D, T).
+  - O `SimulateJK`, o único usado pelas fases, delega ao `JkSimulator` do FlipNflopCommons (seção 2.7). Só aceita passo de clock 6 e comprimento múltiplo dele; fora disso lança `InvalidOperationException`. `CreateJkPhase` monta a `PhaseDefinition` do commons (tipo JK fixo, porque o `LevelData` não lê `ffType`). SR, D e T continuam locais e sem uso.
   - Suporta entradas síncronas (bordas de clock) e assíncronas (Preset e Clear).
   - Gera uma linha do tempo com **dupla resolução** (índices pares = síncrono em `X.0`, índices ímpares = assíncrono em `X.5`).
   - Lança exceções caso ocorram combinações inválidas (ex: Preset e Clear ativos simultaneamente).
 - **`LevelManager.cs`**: Singleton MonoBehaviour que centraliza as dimensões lógicas da fase (`diagramEndX`, `phaseSlackTiles`, `phaseEndX`, `levelEndX`, `clockStepX`).
 - **`Loading/`**:
-  - **`LevelJsonLoader.cs`**: Carrega o JSON ativo (seja via WebGL upload `UploadedLevelJson`, `Resources/Levels/` pelo `MenuManager`, ou `TextAsset` do editor). Executa o `FlipFlopSimulator`, invoca o `TilemapRenderer` e o `ObstacleSpawner`, e registra ouvintes para atualização de cores em tempo real (`SignalColorManager.OnColorsChanged`).
+  - **`LevelJsonLoader.cs`**: Carrega o JSON ativo (seja via WebGL upload `UploadedLevelJson`, `Resources/Levels/` pelo `MenuManager`, ou `TextAsset` do editor). Executa o `FlipFlopSimulator`, invoca o `TilemapRenderer` e o `ObstacleSpawner`, e registra ouvintes para atualização de cores em tempo real (`SignalColorManager.OnColorsChanged`). `CreatePhaseDefinition()` entrega a `PhaseDefinition` do commons da fase carregada, com o mesmo passo e comprimento da simulação.
   - **`LevelSequenceManager.cs`**: Gerencia o índice e a lista sequencial de fases.
   - **`UploadLevelJson.cs`**: Armazena estaticamente o conteúdo JSON enviado via WebGL upload.
 - **`Obstacles/`**:
@@ -68,10 +70,12 @@ Assets/Scripts/
   - **Dash:** Override de velocidade horizontal com congelamento no eixo Y (`FreezePositionY`) e cooldown.
   - **Eventos:** Notifica o término da fase ou a morte do jogador (ao colidir com a tag `"Enemy"` ou cair fora dos limites).
 - **`SignalPath.cs`**: Registra os pontos do trajeto do jogador via `LineRenderer`. Insere segmentos verticais em transições de gravidade e limpa o histórico caso o jogador recue para `X <= 0`.
-- **`GabaritoGenerator.cs`**: Converte os eventos lógicos calculados pelo `FlipFlopSimulator` em uma lista de pontos ordenados no mundo (`CorrectCorners`), removendo duplicatas e pontos colineares.
-- **`PathChecker.cs`**: Avaliador independente (não-MonoBehaviour) que testa o caminho do jogador contra as quinas do gabarito com tolerância ajustável (`cornerTolerance`), retornando a struct imutável `PathCheckResult`.
-- **`PathVerifier.cs`**: Orquestrador da verificação final. Desenha linhas de feedback sólidas (`successColor`) ou tracejadas (`failureColor`), enviando os resultados para o `ScoreController` e `ResultScreenController`.
-- **`ScoreController.cs`**: Singleton responsável pelo cronômetro em tempo real, pelo cálculo do score final (\(\text{Score} = \max(0, \text{AccuracyPart} - \text{TimePenalty})\)) e por repassar os dados de exibição.
+- **`GabaritoGenerator.cs`**: Gera as quinas do gabarito no mundo (`CorrectCorners`) com o `AnswerKeyCorners` do commons, a partir da `PhaseDefinition` do `LevelJsonLoader` e da geometria da cena; expõe o objeto do commons em `AnswerKeyCorners`. `BuildFromEvents` mantém a assinatura, mas as quinas seguem a fase carregada: eventos diferentes dos dela, ou estado inicial alto, só geram um `Debug.LogError`.
+- **`PathChecker.cs`**: Avaliador independente (não-MonoBehaviour) que testa o caminho do jogador contra as quinas do gabarito com o `CornerEvaluator` do commons, retornando a struct imutável `PathCheckResult`. Avalia só com o construtor `PathChecker(AnswerKeyCorners, bool)`; o construtor só com tolerância é mantido por compatibilidade e faz `Evaluate` lançar `InvalidOperationException`.
+- **`PathVerifier.cs`**: Orquestrador da verificação final. Desenha linhas de feedback sólidas (`successColor`) ou tracejadas (`failureColor`), com o critério do `SegmentValidator` do commons, enviando os resultados para o `ScoreController` e `ResultScreenController`. Publica o resultado da validação no evento estático `ValidationCompleted` (seção 2.7).
+- **`ScoreController.cs`**: Singleton responsável pelo cronômetro em tempo real, pelo cálculo do score final (\(\text{Score} = \max(0, \text{AccuracyPart} - \text{TimePenalty})\), pelo `ScoreRules` do commons, com o `maxScore` do componente) e por repassar os dados de exibição. `ReportResult` devolve a pontuação mostrada.
+- **`TraceValidationResult.cs`**: Resultado da validação (C# puro): `Conclusion`, `OverallAccuracy`, `Performance`, `Trace` e `Correct` (`int?[]`, um por trecho). `ForShortTrace(n)` é o resultado do traçado com menos de 2 pontos.
+- **`PathPointConversion.cs`**: Extensões que convertem `Vector3` ↔ `PathPoint` do commons (z descartado).
 
 ---
 
@@ -113,6 +117,16 @@ Assets/Scripts/
   1. `FollowPlayer`: Acompanha o jogador no eixo X com `Lerp` e limites (`minX`, `maxX`).
   2. `ManualControl`: Permite ao jogador rolar a câmera manualmente (usado ao final da fase ou após a morte com travamento de limite à direita).
 - **`PrintController.cs`**: Utilitário auxiliar.
+
+---
+
+### 2.7. Regras comuns e GLA (FlipNflopCommons, `Assets/Scripts/Gla/`)
+
+- **Biblioteca comum:** `Assets/Plugins/FlipNflopCommons/` tem o `FlipNflopCommons.dll` (`netstandard2.1`, sem dependências), a documentação XML e o `VERSION` (versão e commit do `fnf-commons`). Não edite à mão: rode `scripts/update-commons.sh [caminho-do-fnf-commons]` (padrão `../fnf-commons`), que também copia os exemplos canônicos do contrato para `Assets/Tests/Gla/Contract/`. O `Assets/link.xml` preserva o *assembly* no *stripping* do IL2CPP.
+- **Regras do traçado:** gabarito, diagrama correto, acerto geral, verde/vermelho, nível e acerto por trecho e pontuação vêm de `FlipNflop.Commons.PhaseRules`. Não reimplemente essas regras no jogo: mude-as no commons e atualize o DLL. A geometria é a da cena `Custom.unity`: área jogável a partir de x = 0, `startX` 4, níveis −0,5 e 3,25 e **tolerância 0,2** (o padrão 1,0 do código não vale).
+- **`PathVerifier.ValidationCompleted`** (`Action<TraceValidationResult>`): disparado em `RunPipeline` na chegada e na morte (inclusive no traçado curto), depois do cálculo e antes de `ResultScreenController.Show`. É o gancho de lógica da coleta (gla-14): assine em `OnEnable` e desinscreva em `OnDisable`. O evento é zerado em `SubsystemRegistration` (*Domain Reload* desligado), e a exceção de um assinante é registrada sem interromper a validação. Em *Development Build*, o resultado é impresso no console.
+- **`GlaJson`** (`Assets/Scripts/Gla/Serialization/`, *assembly* `FlipNflop.Gla.Serialization`, referenciado automaticamente pelo `Assembly-CSharp`): serializador do contrato em Newtonsoft.Json. Nomes de `ContractNames`, todo campo escrito (com `null` explícito), campo ausente ou desconhecido é erro na leitura, causa em minúsculas e datas em UTC `yyyy-MM-ddTHH:mm:ss.fffZ`. Use `GlaJson.Serialize` e `GlaJson.Deserialize<T>`; não serialize o contrato com `JsonUtility`.
+- **Testes:** `Assets/Tests/Gla/` (*assembly* EditMode `FlipNflop.Gla.Tests`) confere o `GlaJson` contra os exemplos canônicos. Rode pelo Test Runner do editor depois de atualizar o DLL.
 
 ---
 

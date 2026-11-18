@@ -1,0 +1,8 @@
+{
+  "error": "invalid_record",
+  "message": "O registro da tentativa não segue o contrato.",
+  "details": [
+    "sections[0].path_player.columns.time: expected 42 items, got 41",
+    "sections[0].path_player.columns.trace[3]: must be 0, 1 or null, got 2"
+  ]
+}

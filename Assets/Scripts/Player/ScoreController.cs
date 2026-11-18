@@ -1,3 +1,4 @@
+using FlipNflop.Commons.PhaseRules;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -103,11 +104,13 @@ public class ScoreController : MonoBehaviour
 
     /// <summary>
     /// Stops the timer, computes the final score based on segment accuracy and time, and reports results to <see cref="ResultScreenController"/>.
+    /// The returned score is the one shown on the result screen; <see cref="PathVerifier"/> puts it in the validation result.
     /// </summary>
     /// <param name="correctSegments">Number of path segments the player drew correctly.</param>
     /// <param name="gabaritoTotal">Total number of segments in the reference path.</param>
     /// <param name="success">Whether the overall level attempt was successful.</param>
-    public void ReportResult(int correctSegments, int gabaritoTotal, bool success)
+    /// <returns>The final score.</returns>
+    public int ReportResult(int correctSegments, int gabaritoTotal, bool success)
     {
         StopTimer();
 
@@ -125,6 +128,8 @@ public class ScoreController : MonoBehaviour
             score.ToString(),
             timeString
         );
+
+        return score;
     }
 
     #endregion
@@ -144,7 +149,8 @@ public class ScoreController : MonoBehaviour
 
     /// <summary>
     /// Calculates the final score value based on accuracy ratio minus elapsed seconds penalty.
-    /// score = max(0, round(accuracyRatio * maxScore) - floor(elapsedSeconds))
+    /// score = max(0, round(accuracyRatio * maxScore) - floor(elapsedSeconds)), and 0 without segments.
+    /// Delegates to <see cref="ScoreRules.Compute"/> of the shared library FlipNflopCommons, with the serialized <see cref="maxScore"/>.
     /// </summary>
     /// <param name="correct">Number of correct segments.</param>
     /// <param name="total">Total segments.</param>
@@ -152,11 +158,7 @@ public class ScoreController : MonoBehaviour
     /// <returns>Final calculated score integer.</returns>
     private int ComputeScore(int correct, int total, float seconds)
     {
-        if (total <= 0) return 0;
-        float accuracy = (float)correct / total;
-        int accuracyPart = Mathf.RoundToInt(accuracy * maxScore);
-        int timePenalty = Mathf.FloorToInt(seconds);
-        return Mathf.Max(0, accuracyPart - timePenalty);
+        return ScoreRules.Compute(correct, total, seconds, maxScore);
     }
 
     #endregion

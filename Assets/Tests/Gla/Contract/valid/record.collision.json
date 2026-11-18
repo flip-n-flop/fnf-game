@@ -1,0 +1,22 @@
+{
+  "phase_name": "first_level",
+  "sections": [
+    {
+      "dateTimeStart": "2026-10-20T17:20:44.902Z",
+      "dateTimeFinish": "2026-10-20T17:20:54.587Z",
+      "conclusion": false,
+      "performance": 116,
+      "path_player": {
+        "game_version": "0.15.0",
+        "end_cause": "collision",
+        "overall_accuracy": 0.125,
+        "columns": {
+          "time": [1.9, 1.056, 1.059, 1.05, 0.922, 1.284, 1.094, 0.835, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+          "hints": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "correct": [1, 1, 1, 1, 1, 1, 1, 1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+          "trace": [0, 0, 0, 0, 0, 0, 1, 1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+        }
+      }
+    }
+  ]
+}

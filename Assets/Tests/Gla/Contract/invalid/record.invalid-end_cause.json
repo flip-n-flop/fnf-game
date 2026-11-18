@@ -1,0 +1,22 @@
+{
+  "phase_name": "third_level",
+  "sections": [
+    {
+      "dateTimeStart": "2026-10-20T17:33:01.050Z",
+      "dateTimeFinish": "2026-10-20T17:33:25.311Z",
+      "conclusion": false,
+      "performance": 199,
+      "path_player": {
+        "game_version": "0.15.0",
+        "end_cause": "timeout",
+        "overall_accuracy": 0.22222222,
+        "columns": {
+          "time": [1.4, 1.2, 1.429, 0.913, 0.884, 0.914, 0.972, 0.912, 1.276, 0.972, 1.19, 1.1, 1.183, 1.161, 1.228, 1.263, 1.098, 0.983, 1.25, 1.027, 1.145, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+          "hints": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "correct": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+          "trace": [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+        }
+      }
+    }
+  ]
+}

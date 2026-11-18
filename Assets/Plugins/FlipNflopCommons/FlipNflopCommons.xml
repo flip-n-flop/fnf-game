@@ -1,0 +1,1391 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FlipNflopCommons</name>
+    </assembly>
+    <members>
+        <member name="T:FlipNflop.Commons.Building.AttemptRecordBuilder">
+            <summary>
+            Builds the record of one attempt from the events of the game (or of the synthetic data
+            script): time and hints per column while the attempt runs, then a single end.
+            </summary>
+            <remarks>
+            <para>
+            The builder knows columns, not world coordinates: the caller converts the position of the
+            character into a column index. An index below 0 counts for column 0 and an index from
+            <see cref="P:FlipNflop.Commons.Building.AttemptRecordBuilder.ColumnCount"/> on counts for the last column (time before the diagram and in the
+            slack column after it, open point 9).
+            </para>
+            <para>The builder is not thread-safe.</para>
+            </remarks>
+        </member>
+        <member name="M:FlipNflop.Commons.Building.AttemptRecordBuilder.#ctor(System.String,System.Int32,System.String,System.DateTimeOffset)">
+            <summary>Starts the attempt.</summary>
+            <param name="phaseName">The <c>levelName</c> of the phase (<c>phase_name</c>).</param>
+            <param name="columnCount">The number of columns of the phase: <c>clockCicles</c> × 6.</param>
+            <param name="gameVersion">The game version (<c>game_version</c>).</param>
+            <param name="startedAt">When the phase scene was loaded (<c>dateTimeStart</c>).</param>
+            <exception cref="T:System.ArgumentException">The phase name or the game version is empty.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="columnCount"/> is not positive.</exception>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.AttemptRecordBuilder.PhaseName">
+            <summary>The phase of the attempt.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.AttemptRecordBuilder.ColumnCount">
+            <summary>The number of columns of the phase.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.AttemptRecordBuilder.GameVersion">
+            <summary>The game version.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.AttemptRecordBuilder.StartedAt">
+            <summary>When the attempt started.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.AttemptRecordBuilder.IsFinished">
+            <summary>Whether <see cref="M:FlipNflop.Commons.Building.AttemptRecordBuilder.TryFinish(FlipNflop.Commons.Records.EndCause,System.DateTimeOffset,System.Nullable{System.Int32}[],FlipNflop.Commons.Building.ValidationResult,FlipNflop.Commons.Records.Phase@)"/> already produced the record.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Building.AttemptRecordBuilder.AddTime(System.Int32,System.Double)">
+            <summary>
+            Adds play time to a column. Every pass counts: going back to a column adds to what it
+            already has. Any call marks the column as visited, even with 0 seconds, so that its
+            time is 0 instead of <c>null</c>. Ignored after the end.
+            </summary>
+            <param name="column">The column index; clamped to [0, <see cref="P:FlipNflop.Commons.Building.AttemptRecordBuilder.ColumnCount"/> − 1].</param>
+            <param name="seconds">Seconds of play, without pause (in Unity, <c>Time.deltaTime</c>).</param>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="seconds"/> is negative, NaN or infinite.</exception>
+        </member>
+        <member name="M:FlipNflop.Commons.Building.AttemptRecordBuilder.AddHint(System.Int32)">
+            <summary>Counts one hint request in a column. Ignored after the end.</summary>
+            <param name="column">The column index; clamped to [0, <see cref="P:FlipNflop.Commons.Building.AttemptRecordBuilder.ColumnCount"/> − 1].</param>
+        </member>
+        <member name="M:FlipNflop.Commons.Building.AttemptRecordBuilder.TryFinish(FlipNflop.Commons.Records.EndCause,System.DateTimeOffset,System.Nullable{System.Int32}[],FlipNflop.Commons.Building.ValidationResult,FlipNflop.Commons.Records.Phase@)">
+            <summary>
+            Ends the attempt and produces its record. Only the first call has effect: later calls
+            return <c>false</c> and produce nothing, so the first cause prevails.
+            </summary>
+            <remarks>
+            <para>
+            On abandonment (<c>restart</c>, <c>exit</c>) the validation fields are <c>null</c> and
+            <c>correct</c> is a vector of <c>null</c>, even when <paramref name="validation"/> is
+            given. On arrival and death the validation is required.
+            </para>
+            <para>
+            Time is rounded to 3 decimals (<see cref="F:System.MidpointRounding.AwayFromZero"/>); a column
+            that never received time is <c>null</c>. Dates are converted to UTC and truncated to
+            milliseconds, the precision of the transport format. The arrays are copied.
+            </para>
+            <para>
+            When an argument is invalid the method throws and the builder stays open, so the
+            caller can still finish it.
+            </para>
+            </remarks>
+            <param name="cause">What ended the attempt.</param>
+            <param name="finishedAt">When the attempt ended; not earlier than <see cref="P:FlipNflop.Commons.Building.AttemptRecordBuilder.StartedAt"/>.</param>
+            <param name="trace">The traced level per column (0, 1 or <c>null</c>), with <see cref="P:FlipNflop.Commons.Building.AttemptRecordBuilder.ColumnCount"/> items.</param>
+            <param name="validation">The validation result; required on arrival and death, ignored on abandonment.</param>
+            <param name="record">The record, when the method returns <c>true</c>.</param>
+            <returns><c>true</c> when this call ended the attempt; <c>false</c> when it had already ended.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="trace"/> is <c>null</c>, or <paramref name="validation"/> is <c>null</c> on arrival or death.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            A vector does not have <see cref="P:FlipNflop.Commons.Building.AttemptRecordBuilder.ColumnCount"/> items, or <paramref name="finishedAt"/> is earlier than the start.
+            </exception>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="cause"/> is not a defined cause.</exception>
+        </member>
+        <member name="T:FlipNflop.Commons.Building.ValidationResult">
+            <summary>
+            The result of the trace validation, computed by the game at the end of an attempt that was
+            completed or ended by death. It feeds <see cref="M:FlipNflop.Commons.Building.AttemptRecordBuilder.TryFinish(FlipNflop.Commons.Records.EndCause,System.DateTimeOffset,System.Nullable{System.Int32}[],FlipNflop.Commons.Building.ValidationResult,FlipNflop.Commons.Records.Phase@)"/>.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Building.ValidationResult.#ctor(System.Boolean,System.Int32,System.Single,System.Nullable{System.Int32}[])">
+            <summary>Creates the result.</summary>
+            <param name="conclusion">Whether the traced diagram is correct.</param>
+            <param name="performance">The score, from 0 to 1000.</param>
+            <param name="overallAccuracy">The overall accuracy, from 0 to 1.</param>
+            <param name="correct">
+            1 or 0 per column, <c>null</c> where the column has no trace. It is copied.
+            </param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="correct"/> is <c>null</c>.</exception>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.ValidationResult.Conclusion">
+            <summary>Whether the traced diagram is correct (<c>conclusion</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.ValidationResult.Performance">
+            <summary>The score, from 0 to 1000 (<c>performance</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.ValidationResult.OverallAccuracy">
+            <summary>The overall accuracy, from 0 to 1 (<c>overall_accuracy</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Building.ValidationResult.Correct">
+            <summary>The per-column accuracy (<c>correct</c>).</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames">
+            <summary>
+            The transport name of every field of the contract, exactly as in section 7 of
+            <c>contexto-implementacao-gla.md</c>. Serializers of the game and of the API take the names
+            from here and never type a field name.
+            </summary>
+            <remarks>
+            <para>
+            Each contract type has a nested class with the same name, and each of its properties has a
+            constant with the same name as the property: <c>Section.DateTimeStart</c> is written as
+            <see cref="F:FlipNflop.Commons.Contract.ContractNames.Section.DateTimeStart"/> (<c>"dateTimeStart"</c>). The message types are under
+            <see cref="T:FlipNflop.Commons.Contract.ContractNames.Messages"/>. <see cref="M:FlipNflop.Commons.Contract.ContractNames.ForType(System.Type)"/> gives the same mapping as a
+            dictionary.
+            </para>
+            <para>
+            The GLBoard names mix camelCase (<c>dateTimeStart</c>) and snake_case (<c>phase_name</c>):
+            no naming policy can produce them, so each name is explicit.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Phase">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Records.Phase"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Phase.PhaseName">
+            <summary><see cref="P:FlipNflop.Commons.Records.Phase.PhaseName"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Phase.Sections">
+            <summary><see cref="P:FlipNflop.Commons.Records.Phase.Sections"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Section">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Records.Section"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Section.DateTimeStart">
+            <summary><see cref="P:FlipNflop.Commons.Records.Section.DateTimeStart"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Section.DateTimeFinish">
+            <summary><see cref="P:FlipNflop.Commons.Records.Section.DateTimeFinish"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Section.Conclusion">
+            <summary><see cref="P:FlipNflop.Commons.Records.Section.Conclusion"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Section.Performance">
+            <summary><see cref="P:FlipNflop.Commons.Records.Section.Performance"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Section.PathPlayer">
+            <summary><see cref="P:FlipNflop.Commons.Records.Section.PathPlayer"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.PathPlayer">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Records.PathPlayer"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.PathPlayer.GameVersion">
+            <summary><see cref="P:FlipNflop.Commons.Records.PathPlayer.GameVersion"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.PathPlayer.EndCause">
+            <summary><see cref="P:FlipNflop.Commons.Records.PathPlayer.EndCause"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.PathPlayer.OverallAccuracy">
+            <summary><see cref="P:FlipNflop.Commons.Records.PathPlayer.OverallAccuracy"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.PathPlayer.Columns">
+            <summary><see cref="P:FlipNflop.Commons.Records.PathPlayer.Columns"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Columns">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Records.Columns"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Columns.Time">
+            <summary><see cref="P:FlipNflop.Commons.Records.Columns.Time"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Columns.Hints">
+            <summary><see cref="P:FlipNflop.Commons.Records.Columns.Hints"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Columns.Correct">
+            <summary><see cref="P:FlipNflop.Commons.Records.Columns.Correct"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Columns.Trace">
+            <summary><see cref="P:FlipNflop.Commons.Records.Columns.Trace"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Messages">
+            <summary>Names of the identification and session messages (section 7.2).</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Messages.CodeRequest">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Messages.CodeRequest"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.CodeRequest.Email">
+            <summary><see cref="P:FlipNflop.Commons.Messages.CodeRequest.Email"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerification">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Messages.CodeVerification"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerification.Email">
+            <summary><see cref="P:FlipNflop.Commons.Messages.CodeVerification.Email"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerification.Code">
+            <summary><see cref="P:FlipNflop.Commons.Messages.CodeVerification.Code"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerificationResult">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Messages.CodeVerificationResult"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerificationResult.Credential">
+            <summary><see cref="P:FlipNflop.Commons.Messages.CodeVerificationResult.Credential"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerificationResult.ExpiresAt">
+            <summary><see cref="P:FlipNflop.Commons.Messages.CodeVerificationResult.ExpiresAt"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpening">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Messages.SessionOpening"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpening.GameVersion">
+            <summary><see cref="P:FlipNflop.Commons.Messages.SessionOpening.GameVersion"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpening.Credential">
+            <summary><see cref="P:FlipNflop.Commons.Messages.SessionOpening.Credential"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpening.StartedAt">
+            <summary><see cref="P:FlipNflop.Commons.Messages.SessionOpening.StartedAt"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpened">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Messages.SessionOpened"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpened.SessionToken">
+            <summary><see cref="P:FlipNflop.Commons.Messages.SessionOpened.SessionToken"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpened.Identified">
+            <summary><see cref="P:FlipNflop.Commons.Messages.SessionOpened.Identified"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.ContractNames.ApiError">
+            <summary>Names of <see cref="T:FlipNflop.Commons.Errors.ApiError"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.ApiError.Error">
+            <summary><see cref="P:FlipNflop.Commons.Errors.ApiError.Error"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.ApiError.Message">
+            <summary><see cref="P:FlipNflop.Commons.Errors.ApiError.Message"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.ContractNames.ApiError.Details">
+            <summary><see cref="P:FlipNflop.Commons.Errors.ApiError.Details"/>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Contract.ContractNames.ContractTypes">
+            <summary>
+            Every type of the contract: the record (<see cref="T:FlipNflop.Commons.Records.Phase"/>, <see cref="T:FlipNflop.Commons.Records.Section"/>,
+            <see cref="T:FlipNflop.Commons.Records.PathPlayer"/>, <see cref="T:FlipNflop.Commons.Records.Columns"/>), the messages and the error body.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Contract.ContractNames.ForType(System.Type)">
+            <summary>
+            The transport names of a contract type, keyed by C# property name, for example
+            <c>ForType(typeof(Section))["DateTimeStart"] == "dateTimeStart"</c>. Every public
+            property of the type has exactly one entry.
+            </summary>
+            <returns>The names, or <c>null</c> when <paramref name="type"/> is not a contract type.</returns>
+        </member>
+        <member name="T:FlipNflop.Commons.Contract.EndCauseText">
+            <summary>
+            The transport text of each <see cref="T:FlipNflop.Commons.Records.EndCause"/>: lowercase, compared ordinally
+            (case-sensitive). Serializers convert the cause with this class only.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.EndCauseText.Arrival">
+            <summary>Text of <see cref="F:FlipNflop.Commons.Records.EndCause.Arrival"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.EndCauseText.Fall">
+            <summary>Text of <see cref="F:FlipNflop.Commons.Records.EndCause.Fall"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.EndCauseText.Collision">
+            <summary>Text of <see cref="F:FlipNflop.Commons.Records.EndCause.Collision"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.EndCauseText.Restart">
+            <summary>Text of <see cref="F:FlipNflop.Commons.Records.EndCause.Restart"/>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Contract.EndCauseText.Exit">
+            <summary>Text of <see cref="F:FlipNflop.Commons.Records.EndCause.Exit"/>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Contract.EndCauseText.All">
+            <summary>The five texts, in the order of the <see cref="T:FlipNflop.Commons.Records.EndCause"/> values.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Contract.EndCauseText.ToText(FlipNflop.Commons.Records.EndCause)">
+            <summary>The transport text of the cause.</summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">The value is not a defined cause.</exception>
+        </member>
+        <member name="M:FlipNflop.Commons.Contract.EndCauseText.TryParse(System.String,FlipNflop.Commons.Records.EndCause@)">
+            <summary>
+            Converts the transport text to the cause. Accepts only the five lowercase texts:
+            <c>Fall</c>, <c>FALL</c>, <c>" fall"</c>, <c>timeout</c> and <c>null</c> are rejected.
+            </summary>
+            <returns><c>true</c> when <paramref name="text"/> is a valid cause.</returns>
+        </member>
+        <member name="T:FlipNflop.Commons.Errors.ApiError">
+            <summary>
+            The single error body of the API routes used by the game:
+            <c>{ "error": string, "message": string, "details": string[] | null }</c>.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.ApiError"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Errors.ApiError.Error">
+            <summary><c>error</c>: one of <see cref="T:FlipNflop.Commons.Errors.ApiErrorCodes"/>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Errors.ApiError.Message">
+            <summary>
+            <c>message</c>: text in Portuguese for the player. The game shows it only in the
+            e-mail flow.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Errors.ApiError.Details">
+            <summary>
+            <c>details</c>: the problems of an <see cref="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidRecord"/>; <c>null</c>
+            for every other code. Always written, even when <c>null</c>.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Errors.ApiError.Create(System.String,System.String)">
+            <summary>Creates an error without details, for any code except <see cref="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidRecord"/>.</summary>
+            <exception cref="T:System.ArgumentException">The code is empty or is <see cref="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidRecord"/>.</exception>
+        </member>
+        <member name="M:FlipNflop.Commons.Errors.ApiError.InvalidRecord(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>Creates an <see cref="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidRecord"/> error listing the problems.</summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="details"/> is <c>null</c>.</exception>
+        </member>
+        <member name="T:FlipNflop.Commons.Errors.ApiErrorCodes">
+            <summary>The values of <c>error</c> in the <see cref="T:FlipNflop.Commons.Errors.ApiError"/> body.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidEmail">
+            <summary>The e-mail does not have a valid format.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.DomainNotAllowed">
+            <summary>The e-mail domain is not in the institutional list.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.RateLimited">
+            <summary>Too many requests or attempts.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidCode">
+            <summary>The verification code is wrong.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.ExpiredCode">
+            <summary>The verification code expired.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidCredential">
+            <summary>The credential is not valid (unknown or expired). The game discards it.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidRecord">
+            <summary>The attempt record breaks the contract. <c>details</c> lists the problems.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidSession">
+            <summary>The session token is missing, unknown or expired.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InvalidRequest">
+            <summary>The request body does not follow the format of the route.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Errors.ApiErrorCodes.InternalError">
+            <summary>Unexpected server failure.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Errors.ApiErrorCodes.All">
+            <summary>The ten codes, in the order above.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Messages.CodeRequest">
+            <summary>
+            Game → API: asks for a verification code sent to the institutional e-mail.
+            The API answers with success and no body.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Messages.CodeRequest"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.CodeRequest.Email">
+            <summary><c>email</c>: the e-mail typed by the player. The API normalizes it.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Messages.CodeVerification">
+            <summary>
+            Game → API: proves ownership of the e-mail with the code it received. The API answers
+            with a <see cref="T:FlipNflop.Commons.Messages.CodeVerificationResult"/>.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerification"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.CodeVerification.Email">
+            <summary><c>email</c>: the same e-mail of the code request.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.CodeVerification.Code">
+            <summary>
+            <c>code</c>: the code typed by the player. Always text, never a number, so that leading
+            zeros are kept (<c>"012345"</c>).
+            </summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Messages.CodeVerificationResult">
+            <summary>API → game: the credential that spares the player from a new code for 4 hours.</summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Messages.CodeVerificationResult"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.CodeVerificationResult.Credential">
+            <summary>
+            <c>credential</c>: opaque to the game and without the e-mail in plain text. It is the only
+            data the game keeps in the browser.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.CodeVerificationResult.ExpiresAt">
+            <summary><c>expires_at</c>: when the credential stops being accepted.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Messages.SessionOpened">
+            <summary>API → game: the opened session.</summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpened"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.SessionOpened.SessionToken">
+            <summary>
+            <c>session_token</c>: opaque token sent as <c>Authorization: Bearer</c>. It lives only in
+            the game memory, never in browser storage.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.SessionOpened.Identified">
+            <summary><c>identified</c>: <c>true</c> when the session belongs to an identified player.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Messages.SessionOpening">
+            <summary>
+            Game → API: opens a game session, identified (with a credential) or guest (credential
+            <c>null</c>). The API answers with a <see cref="T:FlipNflop.Commons.Messages.SessionOpened"/>.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Messages.SessionOpening"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.SessionOpening.GameVersion">
+            <summary><c>game_version</c>: the game's <c>Application.version</c>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.SessionOpening.Credential">
+            <summary>
+            <c>credential</c>: the credential from <see cref="T:FlipNflop.Commons.Messages.CodeVerificationResult"/>, or
+            <c>null</c> for a guest session. Always written, even when <c>null</c>.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Messages.SessionOpening.StartedAt">
+            <summary><c>started_at</c>: when the session started, by the client clock.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.AnswerKeyCorners">
+            <summary>
+            The corners of the answer key in world coordinates, as the game's
+            <c>GabaritoGenerator.BuildFromEvents</c> (v0.15.0) generates them, without change of behavior.
+            </summary>
+            <remarks>
+            <para>
+            The corners start at the start of the playable area (<see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.PlayAreaStartX"/>,
+            x = 0 in the game, where the character is born) at level 0. Each change of Q, moved by the
+            diagram origin, gives a corner at the old level and another at the new one. They end at the
+            end of the playable area (<see cref="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.PhaseEndX(System.Int32)"/>), which includes the slack and
+            so the final clock edge at x = n. Duplicates (closer than 0.01) and collinear corners are
+            removed, from the last to the first, as in the game.
+            </para>
+            <para>
+            The corners and the geometry feed <see cref="T:FlipNflop.Commons.PhaseRules.CornerEvaluator"/>, <see cref="T:FlipNflop.Commons.PhaseRules.SegmentValidator"/>
+            and <see cref="T:FlipNflop.Commons.PhaseRules.ColumnEvaluator"/>.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.AnswerKeyCorners.#ctor(FlipNflop.Commons.PhaseRules.PhaseAnswerKey,FlipNflop.Commons.PhaseRules.PhaseGeometry)">
+            <summary>Generates the corners of a phase.</summary>
+            <param name="answerKey">The answer key of the phase.</param>
+            <param name="geometry">The geometry; <c>null</c> for <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.Default"/>.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="answerKey"/> is <c>null</c>.</exception>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.AnswerKeyCorners.AnswerKey">
+            <summary>The answer key of the phase.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.AnswerKeyCorners.Geometry">
+            <summary>The geometry used to generate the corners and to evaluate the path.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.AnswerKeyCorners.Corners">
+            <summary>The corners, in order.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.AnswerKeyCorners.SegmentCount">
+            <summary>
+            The number of segments between consecutive corners (corners − 1), the game's
+            <c>GabaritoTotal</c> and the denominator of the overall accuracy.
+            </summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.ClockEdge">
+            <summary>
+            The active edge of the clock (<c>activeClockEdge</c> of the phase file). As in the game, it
+            only changes how the clock is drawn: the simulation is the same for both edges.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ClockEdge.Rising">
+            <summary>Rising edge (<c>"rising"</c>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ClockEdge.Falling">
+            <summary>Falling edge (<c>"falling"</c>, the game default when the file has no edge).</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.ColumnEvaluation">
+            <summary>
+            The result of <see cref="M:FlipNflop.Commons.PhaseRules.ColumnEvaluator.Evaluate(FlipNflop.Commons.PhaseRules.AnswerKeyCorners,System.Collections.Generic.IReadOnlyList{FlipNflop.Commons.PhaseRules.PathPoint})"/>: the vectors <c>trace</c> and
+            <c>correct</c> of the attempt record, one item per column, <c>null</c> in the same columns.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.ColumnEvaluation.Trace">
+            <summary>The traced level of each column: 0, 1 or <c>null</c> (<c>trace</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.ColumnEvaluation.Correct">
+            <summary>The accuracy of each column: 1, 0 or <c>null</c> (<c>correct</c>).</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.ColumnEvaluator">
+            <summary>
+            The two rules per column (trecho) of the attempt record, new in gla-02: the traced level
+            (<c>trace</c>, open point 1) and the accuracy per column (<c>correct</c>, open point 8).
+            </summary>
+            <remarks>
+            <para>
+            Pass the final path, in the order the points were recorded (after the game's
+            <c>SignalPath.FinalizePath</c> on arrival and death). The rules do not assume increasing x:
+            the game's path has two exceptions of up to one frame, a point ahead of a vertical (gravity
+            flipped while going back) and a final point behind the previous one (collision while going
+            back).
+            </para>
+            <para>
+            <b>Column with trace.</b> Column <c>i</c> has trace when the path has at least one point and
+            the x of its last point is greater than origin + <c>i</c>, strictly. Both rules use this
+            condition, so <c>trace[i]</c> and <c>correct[i]</c> are <c>null</c> in exactly the same
+            columns, as the attempt record validator requires, and the traced columns are a prefix.
+            A path that ends exactly at the left border of column <c>i</c> does not reach it.
+            </para>
+            <para>
+            The final clock edge, at x = n in the slack, belongs to no column: what the path does in the
+            slack does not enter these rules (it enters <see cref="T:FlipNflop.Commons.PhaseRules.CornerEvaluator"/>).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.ColumnEvaluator.TraceLevels(System.Collections.Generic.IReadOnlyList{FlipNflop.Commons.PhaseRules.PathPoint},System.Int32,FlipNflop.Commons.PhaseRules.PhaseGeometry)">
+            <summary>
+            The traced level of each column (0, 1 or <c>null</c>): the level of the path at 3/4 of
+            the column (origin + <c>i</c> + 0.75, the center of its second half, the same split in
+            half columns as the simulation).
+            </summary>
+            <remarks>
+            Going through the points in the order of the path, the level at the sample point is the
+            level of the last point with x &lt;= sample. On a vertical exactly at the sample point, it
+            is the point after the vertical. If the path ends inside the column before the sample
+            point, it is the level of the last point. The level of a point is 1 when its y is closer
+            to the y of level 1 than to the y of level 0. Columns without trace are <c>null</c>.
+            If no point has x &lt;= sample (a path that starts after the sample point, which the game
+            does not produce), it is the level of the first point.
+            </remarks>
+            <param name="path">The final path.</param>
+            <param name="columnCount">The number of columns of the phase.</param>
+            <param name="geometry">The geometry; <c>null</c> for <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.Default"/>.</param>
+            <returns><paramref name="columnCount"/> items.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="path"/> is <c>null</c>.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="columnCount"/> is not positive.</exception>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.ColumnEvaluator.Correctness(FlipNflop.Commons.PhaseRules.AnswerKeyCorners,System.Collections.Generic.IReadOnlyList{FlipNflop.Commons.PhaseRules.PathPoint})">
+            <summary>
+            The accuracy of each column (1, 0 or <c>null</c>), by the green or red criterion of the
+            game (<see cref="T:FlipNflop.Commons.PhaseRules.SegmentValidator"/>).
+            </summary>
+            <remarks>
+            <para>
+            Each piece of the path between consecutive points is cut at the borders of the columns
+            [origin + <c>i</c>, origin + <c>i</c> + 1), using its smallest and largest x (it may go
+            backwards); a part keeps the original ends of the piece where they are inside the column.
+            A vertical piece belongs to the column that contains its x. Each part is checked against
+            the corners: the column is 1 when all its parts are valid and 0 when some part is
+            invalid. Columns without trace are <c>null</c>.
+            </para>
+            <para>
+            Unlike the drawing on the screen, a long piece (a dash, for example) that crosses a
+            column border is not all red when each cut part fits a band: only the part that is out
+            of the band counts. Parts before column 0 and in the slack are not evaluated. A column
+            with trace but no part (only when the path starts after it, which the game does not
+            produce) is 1.
+            </para>
+            </remarks>
+            <param name="corners">The answer key corners of the phase, with their geometry.</param>
+            <param name="path">The final path.</param>
+            <returns><see cref="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.ColumnCount"/> items.</returns>
+            <exception cref="T:System.ArgumentNullException">An argument is <c>null</c>.</exception>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.ColumnEvaluator.Evaluate(FlipNflop.Commons.PhaseRules.AnswerKeyCorners,System.Collections.Generic.IReadOnlyList{FlipNflop.Commons.PhaseRules.PathPoint})">
+            <summary>The traced level and the accuracy of each column, for a validated attempt (arrival or death).</summary>
+            <param name="corners">The answer key corners of the phase, with their geometry.</param>
+            <param name="path">The final path.</param>
+            <exception cref="T:System.ArgumentNullException">An argument is <c>null</c>.</exception>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.ColumnOperation">
+            <summary>
+            The expected operation of a column (trecho), for the axis of the dashboard. See
+            <see cref="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.Operations"/> for the order in which it is decided.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.None">
+            <summary>No clock edge and no asynchronous signal in the column (<c>none</c>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Set">
+            <summary>Clock edge with J = 1 and K = 0 (<c>set</c>), even when Q is already 1.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Reset">
+            <summary>Clock edge with J = 0 and K = 1 (<c>reset</c>), even when Q is already 0.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Switch">
+            <summary>Clock edge with J = K = 1 (<c>switch</c>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Hold">
+            <summary>Clock edge with J = K = 0 (<c>hold</c>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Preset">
+            <summary>Preset active in the column (<c>preset</c>), even when Q is already 1.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Clear">
+            <summary>Clear active in the column (<c>clear</c>), even when Q is already 0.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Ignored">
+            <summary>
+            Clock edge cancelled because Preset or Clear was active in the previous column
+            (<c>ignored</c>), even when the asynchronous signal is still active in the column.
+            </summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.CornerEvaluation">
+            <summary>
+            The result of <see cref="M:FlipNflop.Commons.PhaseRules.CornerEvaluator.Evaluate(FlipNflop.Commons.PhaseRules.AnswerKeyCorners,System.Collections.Generic.IReadOnlyList{FlipNflop.Commons.PhaseRules.PathPoint})"/>, as the game's <c>PathCheckResult</c>:
+            whether the diagram is correct (<c>conclusion</c>) and the overall accuracy
+            (<c>overall_accuracy</c>), with the data behind them.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.IsCorrect">
+            <summary>
+            Whether the path passes within the tolerance of every corner (<c>IsCorrect</c>): the
+            diagram is correct (<c>conclusion</c>), the game's criterion to win the phase.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.CoveredSegments">
+            <summary>
+            The number of answer key segments whose midpoint is within the tolerance of the path
+            (<c>CoveredSegments</c>).
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.SegmentCount">
+            <summary>The number of answer key segments (<c>GabaritoTotal</c>, corners − 1).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.OverallAccuracy">
+            <summary>
+            The overall accuracy (<c>overall_accuracy</c>): <see cref="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.CoveredSegments"/> /
+            <see cref="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.SegmentCount"/> in <c>float</c>, as the game computes it for the score; 0 when
+            there is no segment. It is not the mean of the accuracy per column.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.CornerHits">
+            <summary>Whether each corner was hit, in the order of the corners (<c>CornerChecks</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.MissedCorners">
+            <summary>The corners not hit, in order (<c>MissedCorners</c>).</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.CornerEvaluator">
+            <summary>
+            The evaluation of the path by corners, ported from the game's <c>PathChecker</c> (v0.15.0)
+            without change of behavior.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item>
+            A corner is hit when some segment between consecutive points of the path passes within the
+            tolerance of it (distance &lt;= tolerance). The diagram is correct when every corner is hit.
+            Extra transitions far from the corners do not make it incorrect.
+            </item>
+            <item>
+            A segment of the answer key is covered when its midpoint is within the tolerance of the
+            path. The overall accuracy is covered / total segments.
+            </item>
+            </list>
+            Pass the final path, after the game's <c>SignalPath.FinalizePath</c>.
+            </remarks>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.CornerEvaluator.Evaluate(FlipNflop.Commons.PhaseRules.AnswerKeyCorners,System.Collections.Generic.IReadOnlyList{FlipNflop.Commons.PhaseRules.PathPoint})">
+            <summary>Evaluates the path against the corners of the answer key.</summary>
+            <param name="corners">The answer key corners, with the tolerance of their geometry.</param>
+            <param name="path">The points of the traced path, in the order they were recorded.</param>
+            <returns>The evaluation.</returns>
+            <exception cref="T:System.ArgumentNullException">An argument is <c>null</c>.</exception>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.FloatMath">
+            <summary>
+            The <c>Vector3</c> and <c>Mathf</c> operations of Unity that the ported rules use, in
+            <c>float</c> and in the same order of operations, so the results match the game bit for bit
+            (design D1). The z of the game is always 0: the terms in z add +0 and are left out.
+            </summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.JkSimulation">
+            <summary>
+            The result of <see cref="M:FlipNflop.Commons.PhaseRules.JkSimulator.Simulate(FlipNflop.Commons.PhaseRules.PhaseDefinition)"/>: the output Q in half columns, the
+            operation token of each half column and the changes of Q.
+            </summary>
+            <remarks>
+            The simulation covers the columns 0 to <c>n</c>, inclusive, where <c>n</c> is
+            <see cref="P:FlipNflop.Commons.PhaseRules.JkSimulation.ColumnCount"/>: the clock edge at <c>x = n</c>, in the slack after the last
+            column, is simulated too, as in the game. Half column <c>2i</c> is column <c>i</c> right
+            after its clock edge (if any), and half column <c>2i + 1</c> is column <c>i</c> after
+            Preset and Clear.
+            </remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.JkSimulation.ColumnCount">
+            <summary>The number of columns of the phase (<c>n</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.JkSimulation.Output">
+            <summary>The value of Q in each half column, <c>2 × (n + 1)</c> items.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.JkSimulation.Tokens">
+            <summary>
+            The operation token of each half column, <c>2 × (n + 1)</c> items, with the texts of
+            <see cref="T:FlipNflop.Commons.PhaseRules.SimulationTokens"/>.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.JkSimulation.Events">
+            <summary>The changes of Q, in increasing <see cref="P:FlipNflop.Commons.PhaseRules.OutputEvent.X"/>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.JkSimulator">
+            <summary>
+            The J-K flip-flop of the game, ported from <c>FlipFlopSimulator.SimulateJK</c> (v0.15.0)
+            without change of behavior.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item>Q starts at 0.</item>
+            <item>
+            The clock edges are at the start of the columns multiple of 6, from column 6 on, up to
+            column <c>n</c> inclusive (the edge in the slack). At an edge, J and K are sampled in the
+            previous column: J = 1 and K = 0 sets Q, J = 0 and K = 1 resets it, J = K = 1 toggles it,
+            J = K = 0 keeps it.
+            </item>
+            <item>The edge is ignored when Preset or Clear was active in the previous column.</item>
+            <item>Preset or Clear active in a column changes Q in the second half of that column.</item>
+            </list>
+            The active edge of the clock does not change the simulation, as in the game.
+            </remarks>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.JkSimulator.Simulate(FlipNflop.Commons.PhaseRules.PhaseDefinition)">
+            <summary>Simulates the phase.</summary>
+            <param name="phase">The phase.</param>
+            <returns>The output, the tokens and the events, from column 0 to column <c>n</c>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="phase"/> is <c>null</c>.</exception>
+            <exception cref="T:System.InvalidOperationException">
+            Preset and Clear are both active in a column from 0 to <c>n</c>; the message cites the first one.
+            </exception>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.OutputEvent">
+            <summary>
+            A change of the flip-flop output Q in the simulation, as the game's
+            <c>FlipFlopSimulator.SignalEvent</c>.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.OutputEvent.#ctor(System.Single,System.Boolean)">
+            <summary>Creates the event.</summary>
+            <param name="x">Where Q changes, in columns from the start of the diagram.</param>
+            <param name="value">The value of Q after the change.</param>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.OutputEvent.X">
+            <summary>
+            Where Q changes, in columns from the start of the diagram (column 0 starts at 0): <c>i</c>
+            for a clock edge at the start of column <c>i</c>, and <c>i + 0.5</c> for Preset or Clear in
+            column <c>i</c>.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.OutputEvent.Value">
+            <summary>The value of Q after the change (<c>true</c> for 1).</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.OutputEvent.ToString">
+            <summary>Returns the position and the new value, for example <c>12.5 -> 0</c>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.PathPoint">
+            <summary>
+            A point in world coordinates of the game, in <c>float</c> like the Unity <c>Vector3</c>
+            (the z of the game is always 0 and is left out): a point of the traced path or a corner of
+            the answer key.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.#ctor(System.Single,System.Single)">
+            <summary>Creates the point.</summary>
+            <param name="x">The world x.</param>
+            <param name="y">The world y.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">A coordinate is NaN or infinite.</exception>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PathPoint.X">
+            <summary>The world x.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PathPoint.Y">
+            <summary>The world y.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.Equals(FlipNflop.Commons.PhaseRules.PathPoint)">
+            <summary>Whether both coordinates are equal (<c>==</c> on <c>float</c>).</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.op_Equality(FlipNflop.Commons.PhaseRules.PathPoint,FlipNflop.Commons.PhaseRules.PathPoint)">
+            <summary>Whether both coordinates are equal.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.op_Inequality(FlipNflop.Commons.PhaseRules.PathPoint,FlipNflop.Commons.PhaseRules.PathPoint)">
+            <summary>Whether a coordinate differs.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PathPoint.ToString">
+            <summary>Returns <c>(x, y)</c> with the shortest exact text of each coordinate.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.PhaseAnswerKey">
+            <summary>
+            The answer key of a phase per column (trecho): the expected level of Q and the expected
+            operation, plus the operation and the level of the final clock edge, which belongs to no
+            column.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.#ctor(FlipNflop.Commons.PhaseRules.PhaseDefinition)">
+            <summary>Simulates the phase and builds its answer key.</summary>
+            <param name="phase">The phase.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="phase"/> is <c>null</c>.</exception>
+            <exception cref="T:System.InvalidOperationException">Preset and Clear are both active in a column (see <see cref="M:FlipNflop.Commons.PhaseRules.JkSimulator.Simulate(FlipNflop.Commons.PhaseRules.PhaseDefinition)"/>).</exception>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.Phase">
+            <summary>The phase.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.Simulation">
+            <summary>The simulation of the phase, from column 0 to column <c>n</c> inclusive.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.ColumnCount">
+            <summary>The number of columns (<c>n</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.ExpectedLevels">
+            <summary>
+            The expected level of each column (0 or 1): the value of Q in the second half of the
+            column, after Preset and Clear. <see cref="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.ColumnCount"/> items.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.Operations">
+            <summary>
+            The expected operation of each column <c>i</c>, <see cref="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.ColumnCount"/> items, decided
+            in this order:
+            <list type="number">
+            <item>
+            <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Ignored"/> when the column has a clock edge (<c>i &gt; 0</c> and
+            <c>i</c> multiple of 6) that was cancelled by Preset or Clear active in column <c>i − 1</c>
+            (token <see cref="F:FlipNflop.Commons.PhaseRules.SimulationTokens.SyncIgnored"/>), even when the signal is still active in
+            column <c>i</c>;
+            </item>
+            <item>
+            otherwise <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Clear"/> or <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Preset"/> when
+            that signal is active in the column, even when Q does not change;
+            </item>
+            <item>
+            otherwise, in a column with a clock edge, the operation given by J and K sampled in column
+            <c>i − 1</c>, as the operation hint of the game (<c>OperationHint.ResolveOperation</c>),
+            even when Q does not change: <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Set"/> (J = 1, K = 0),
+            <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Reset"/> (J = 0, K = 1), <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Switch"/>
+            (J = K = 1) or <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Hold"/> (J = K = 0);
+            </item>
+            <item>otherwise <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.None"/>.</item>
+            </list>
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.FinalEdgeOperation">
+            <summary>
+            The operation of the clock edge at <c>x = n</c>, in the slack after the last column, by
+            the rules 1 and 3 of <see cref="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.Operations"/>: <see cref="F:FlipNflop.Commons.PhaseRules.ColumnOperation.Ignored"/> or the
+            operation given by J and K in column <c>n − 1</c>. This edge belongs to no column: it
+            counts in the corners (diagram correct and overall accuracy), not in the traced level nor
+            in the accuracy per column.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.FinalEdgeLevel">
+            <summary>The value of Q (0 or 1) right after the final clock edge, at <c>x = n</c>.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.PhaseDefinition">
+            <summary>
+            The logical part of a phase of the game: name, clock cycles, flip-flop type, active edge,
+            input signals and active level of the asynchronous signals. Colors, description, floor,
+            ceiling and obstacles are not part of it.
+            </summary>
+            <remarks>
+            <para>
+            The library reads no phase file: each consumer builds the definition with its own reader
+            (the game with its <c>LevelData</c>, the API and the synthetic data script with the reader
+            of gla-07), using <see cref="M:FlipNflop.Commons.PhaseRules.SignalBits.Parse(System.String)"/> for the signals. The rules of the file
+            (the legacy name <c>clockCicles</c>, <c>asyncActive</c> as <c>"low"</c>, <c>"high"</c>, 0 or
+            1, with high as the default) stay with the reader.
+            </para>
+            <para>
+            The signals may be longer than the number of columns and have different lengths, as in the
+            files of the game. J and K read beyond their end are 0. Preset and Clear missing, empty or
+            read beyond their end are inactive, whatever the active level, as in the game.
+            </para>
+            <para>The definition is immutable: the signal arrays are copied.</para>
+            </remarks>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseDefinition.JkFlipFlopType">
+            <summary>The only flip-flop type supported: <c>"JK"</c>.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseDefinition.ColumnsPerClockCycle">
+            <summary>The number of columns (trechos) in each clock cycle.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseDefinition.#ctor(System.String,System.Int32,System.String,FlipNflop.Commons.PhaseRules.ClockEdge,System.Boolean[],System.Boolean[],System.Boolean[],System.Boolean[],System.Boolean)">
+            <summary>Creates the definition.</summary>
+            <param name="levelName">The <c>levelName</c> of the phase, for example <c>third_level</c>.</param>
+            <param name="clockCycles">The number of clock cycles; the phase has <c>clockCycles × 6</c> columns.</param>
+            <param name="ffType">The flip-flop type (<c>ffType</c>); only <see cref="F:FlipNflop.Commons.PhaseRules.PhaseDefinition.JkFlipFlopType"/> is accepted.</param>
+            <param name="activeClockEdge">The active edge of the clock; it does not change the simulation.</param>
+            <param name="jSignal">The J signal, one level per column. Required.</param>
+            <param name="kSignal">The K signal, one level per column. Required.</param>
+            <param name="presetSignal">The asynchronous Preset signal; <c>null</c> or empty when the phase has none.</param>
+            <param name="clearSignal">The asynchronous Clear signal; <c>null</c> or empty when the phase has none.</param>
+            <param name="asyncActiveHigh">
+            <c>true</c> when Preset and Clear are active at level 1; <c>false</c> when they are active at level 0.
+            </param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="levelName"/> is empty, or <paramref name="ffType"/> is not <c>"JK"</c>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="ffType"/>, <paramref name="jSignal"/> or <paramref name="kSignal"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            <paramref name="clockCycles"/> is not positive (or too large), or
+            <paramref name="activeClockEdge"/> is not a defined edge.
+            </exception>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.LevelName">
+            <summary>The <c>levelName</c> of the phase (<c>phase_name</c> in the attempt record).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.ClockCycles">
+            <summary>The number of clock cycles.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.ColumnCount">
+            <summary>The number of columns (trechos): <see cref="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.ClockCycles"/> × 6.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.FlipFlopType">
+            <summary>The flip-flop type, always <see cref="F:FlipNflop.Commons.PhaseRules.PhaseDefinition.JkFlipFlopType"/>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.ActiveClockEdge">
+            <summary>The active edge of the clock, for drawing only.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.AsyncActiveHigh">
+            <summary>Whether Preset and Clear are active at level 1 (<c>true</c>) or at level 0 (<c>false</c>).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.JSignal">
+            <summary>The J signal, as given.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.KSignal">
+            <summary>The K signal, as given.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.PresetSignal">
+            <summary>The Preset signal, or <c>null</c> when the phase has none.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.ClearSignal">
+            <summary>The Clear signal, or <c>null</c> when the phase has none.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.HasPreset">
+            <summary>Whether the phase has a Preset signal.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseDefinition.HasClear">
+            <summary>Whether the phase has a Clear signal.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseDefinition.JAt(System.Int32)">
+            <summary>The level of J in a column; 0 (<c>false</c>) outside the signal.</summary>
+            <param name="column">The column index.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseDefinition.KAt(System.Int32)">
+            <summary>The level of K in a column; 0 (<c>false</c>) outside the signal.</summary>
+            <param name="column">The column index.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseDefinition.IsPresetActive(System.Int32)">
+            <summary>
+            Whether Preset is active in a column: the signal exists, the column is inside it and the
+            level is the active one. Missing or beyond the end, it is inactive even when the active
+            level is 0.
+            </summary>
+            <param name="column">The column index.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseDefinition.IsClearActive(System.Int32)">
+            <summary>
+            Whether Clear is active in a column: the signal exists, the column is inside it and the
+            level is the active one. Missing or beyond the end, it is inactive even when the active
+            level is 0.
+            </summary>
+            <param name="column">The column index.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseDefinition.ToString">
+            <summary>Returns the level name and the number of columns.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.PhaseGeometry">
+            <summary>
+            The world geometry of a phase in the game, used by the answer key corners and by the trace
+            rules. <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.Default"/> has the values of the scene <c>Custom.unity</c> in v0.15.0,
+            which replace some defaults of the game code (the tolerance is 0.2, not 1.0).
+            </summary>
+            <remarks>
+            A future version of the game that changes the scene passes its own values, and the
+            synthetic data script needs the same ones. All values are <c>float</c>, as in the game.
+            </remarks>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseGeometry.DefaultPlayAreaStartX">
+            <summary>Default <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.PlayAreaStartX"/>: 0, where the character is born.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseGeometry.DefaultDiagramOriginX">
+            <summary>Default <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.DiagramOriginX"/>: 4 (<c>LevelJsonLoader.startX</c>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseGeometry.DefaultLowY">
+            <summary>Default <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.LowY"/>: −0.5 (<c>PathVerifier.lowY</c> and <c>SignalPath.groundY</c> in the scene).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseGeometry.DefaultHighY">
+            <summary>Default <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.HighY"/>: 3.25 (<c>PathVerifier.highY</c> and <c>SignalPath.ceilingY</c> in the scene).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseGeometry.DefaultTolerance">
+            <summary>Default <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.Tolerance"/>: 0.2 (<c>PathVerifier.cornerTolerance</c> in the scene; 1.0 in the code).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.PhaseGeometry.DefaultSlackColumns">
+            <summary>Default <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.SlackColumns"/>: 1 (<c>LevelManager.phaseSlackTiles</c>).</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.#ctor(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single)">
+            <summary>Creates a geometry.</summary>
+            <param name="playAreaStartX">The x where the playable area, the answer key and the traced path start.</param>
+            <param name="diagramOriginX">The x where column 0 starts.</param>
+            <param name="lowY">The y of level 0 (the floor).</param>
+            <param name="highY">The y of level 1 (the ceiling).</param>
+            <param name="tolerance">The corner tolerance, in world units.</param>
+            <param name="slackColumns">The slack after the last column, in columns.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            A value is NaN or infinite, the tolerance or the slack is negative, or the two levels are equal.
+            </exception>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.Default">
+            <summary>
+            The geometry of the game in v0.15.0: playable area from x = 0, column 0 at x = 4, levels at
+            y = −0.5 and 3.25, tolerance 0.2 and slack of 1 column.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.PlayAreaStartX">
+            <summary>
+            The x where the playable area starts: the first answer key corner, where the character is
+            born and the traced path starts.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.DiagramOriginX">
+            <summary>The x where column (trecho) 0 starts; column <c>i</c> is [origin + i, origin + i + 1).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.LowY">
+            <summary>The y of level 0 (the floor).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.HighY">
+            <summary>The y of level 1 (the ceiling).</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.Tolerance">
+            <summary>
+            The corner tolerance, in world units: the maximum distance from the path to a corner, and
+            the width of the valid band around the answer key.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.SlackColumns">
+            <summary>The slack after the last column, in columns (<c>LevelManager.phaseSlackTiles</c>).</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.ColumnStartX(System.Int32)">
+            <summary>The x where a column starts: origin + <paramref name="column"/>.</summary>
+            <param name="column">The column index.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.SampleX(System.Int32)">
+            <summary>
+            The x where the traced level of a column is sampled: 3/4 of the column, the center of its
+            second half (origin + <paramref name="column"/> + 0.75).
+            </summary>
+            <param name="column">The column index.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.PhaseEndX(System.Int32)">
+            <summary>
+            The x where the playable area ends, the last answer key corner: origin + n + slack, as the
+            game's <c>LevelManager.phaseEndX</c>.
+            </summary>
+            <param name="columnCount">The number of columns of the phase (<c>n</c>).</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.LevelY(System.Boolean)">
+            <summary>The y of a level: <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.HighY"/> for 1, <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.LowY"/> for 0.</summary>
+            <param name="high"><c>true</c> for level 1.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.LevelOf(System.Single)">
+            <summary>The level of a y: 1 when it is closer to <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.HighY"/> than to <see cref="P:FlipNflop.Commons.PhaseRules.PhaseGeometry.LowY"/>, else 0.</summary>
+            <param name="y">The world y.</param>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.PhaseGeometry.ToString">
+            <summary>Returns the six values.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.ScoreRules">
+            <summary>
+            The score of an attempt (<c>performance</c>), ported from the game's
+            <c>ScoreController.ComputeScore</c> (v0.15.0) without change of behavior.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.ScoreRules.DefaultMaxScore">
+            <summary>The maximum score of the game (<c>ScoreController.maxScore</c>, 1000 in the code and in the scene).</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.ScoreRules.Compute(System.Int32,System.Int32,System.Single,System.Int32)">
+            <summary>
+            The score: <c>max(0, round(accuracy × maxScore) − floor(seconds))</c>, where accuracy is
+            <paramref name="coveredSegments"/> / <paramref name="totalSegments"/> (the overall accuracy).
+            It is computed in <c>float</c> and rounded half to even, as the game does
+            (<c>Mathf.RoundToInt</c>). With no segment it is 0.
+            </summary>
+            <param name="coveredSegments">The covered answer key segments (<see cref="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.CoveredSegments"/>).</param>
+            <param name="totalSegments">The answer key segments (<see cref="P:FlipNflop.Commons.PhaseRules.CornerEvaluation.SegmentCount"/>).</param>
+            <param name="seconds">The play time of the attempt, in seconds, without pause.</param>
+            <param name="maxScore">The maximum score; the game passes the value of its component, others use the default.</param>
+            <returns>The score, from 0 to <paramref name="maxScore"/>.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            <paramref name="seconds"/> is NaN, infinite, negative or not below 2^31;
+            <paramref name="coveredSegments"/> is negative or greater than a positive
+            <paramref name="totalSegments"/>; or <paramref name="maxScore"/> is negative. The game
+            never produces these values.
+            </exception>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.SegmentValidator">
+            <summary>
+            The green or red criterion of the game for a piece of the path, ported from
+            <c>PathVerifier.IsSegmentValid</c> (v0.15.0) without change of behavior.
+            </summary>
+            <remarks>
+            A piece is valid (green) when both its ends fit the band of one same segment of the answer
+            key. The orientation that decides is the one of the answer key segment, not of the piece:
+            <list type="bullet">
+            <item>
+            a level segment (its corners differ in y by at most 0.1): y of both ends within the tolerance
+            of the level, and x within the segment with a margin of 0.1;
+            </item>
+            <item>
+            a transition segment: x of both ends within the tolerance of the x of the transition, and y
+            within the segment with a margin of 0.1. So, next to a transition, a horizontal piece on
+            either level is valid, and a switch early or late by up to the tolerance stays all green.
+            </item>
+            </list>
+            A piece shorter than 0.01 is valid. The others are invalid (red).
+            </remarks>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.SegmentValidator.IsValid(FlipNflop.Commons.PhaseRules.AnswerKeyCorners,FlipNflop.Commons.PhaseRules.PathPoint,FlipNflop.Commons.PhaseRules.PathPoint)">
+            <summary>Whether the piece from <paramref name="start"/> to <paramref name="end"/> is valid.</summary>
+            <param name="corners">The answer key corners, with the tolerance of their geometry.</param>
+            <param name="start">One end of the piece.</param>
+            <param name="end">The other end of the piece.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="corners"/> is <c>null</c>.</exception>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.SignalBits">
+            <summary>
+            The bit string of a signal in a phase file, for example <c>"000011 111111"</c>: one character
+            per column, <c>1</c> for the high level and <c>0</c> for the low level, with spaces that only
+            group the clock cycles. Pure text conversion; the library reads no phase file.
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.PhaseRules.SignalBits.Parse(System.String)">
+            <summary>
+            Converts the bit string of a signal into logical levels, one per column, ignoring the
+            spaces, as the game's <c>BinaryBoolArrayConverter</c> does.
+            </summary>
+            <remarks>
+            Unlike the game, which reads any character other than <c>1</c> as 0, any character other
+            than <c>0</c>, <c>1</c> and space is refused. In the nine phase files of the game both give
+            the same levels. An empty string gives no levels; deciding whether an empty or missing
+            signal is absent is up to whoever reads the file.
+            </remarks>
+            <param name="text">The bit string.</param>
+            <returns>The levels, <c>true</c> for 1.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
+            <exception cref="T:System.FormatException">
+            The text has a character other than <c>0</c>, <c>1</c> and space. The message cites the
+            zero-based position of the first one in <paramref name="text"/>, spaces included.
+            </exception>
+        </member>
+        <member name="T:FlipNflop.Commons.PhaseRules.SimulationTokens">
+            <summary>
+            The operation tokens of the simulation, one per half column, with the same text as the
+            game's <c>FlipFlopSimulator.SimulateJK</c>. They describe what happened to Q, not the
+            expected operation of a column: for that, see <see cref="P:FlipNflop.Commons.PhaseRules.PhaseAnswerKey.Operations"/>.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.Keep">
+            <summary>Q did not change (also a set or reset at an edge that did not change Q).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.SetInitial">
+            <summary>Q changed outside an operation (not produced by the JK simulation; kept from the game).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.ResetInitial">
+            <summary>Q changed outside an operation (not produced by the JK simulation; kept from the game).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.SetSync">
+            <summary>A clock edge set Q (J = 1, K = 0, with Q at 0).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.ResetSync">
+            <summary>A clock edge reset Q (J = 0, K = 1, with Q at 1).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.SwitchSync">
+            <summary>A clock edge toggled Q (J = K = 1).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.HoldSync">
+            <summary>
+            Internal token of an edge that kept Q; in the output it becomes <see cref="F:FlipNflop.Commons.PhaseRules.SimulationTokens.Keep"/>, as in the game.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.SyncIgnored">
+            <summary>A clock edge ignored because Preset or Clear was active in the previous column.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.PresetAsync">
+            <summary>Preset set Q in the second half of the column.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.ClearAsync">
+            <summary>Clear reset Q in the second half of the column.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.PresetAsyncNoop">
+            <summary>Preset was active, but Q was already 1.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.PhaseRules.SimulationTokens.ClearAsyncNoop">
+            <summary>Clear was active, but Q was already 0.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.AttemptOutcome">
+            <summary>
+            Outcome of an attempt, derived from its <see cref="T:FlipNflop.Commons.Records.EndCause"/>. It is not sent: the
+            receiver derives it from <c>end_cause</c>.
+            </summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.AttemptOutcome.Completed">
+            <summary>The attempt reached the end of the diagram (<see cref="F:FlipNflop.Commons.Records.EndCause.Arrival"/>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.AttemptOutcome.Death">
+            <summary>The character died (<see cref="F:FlipNflop.Commons.Records.EndCause.Fall"/> or <see cref="F:FlipNflop.Commons.Records.EndCause.Collision"/>).</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.AttemptOutcome.Abandonment">
+            <summary>The player gave up (<see cref="F:FlipNflop.Commons.Records.EndCause.Restart"/> or <see cref="F:FlipNflop.Commons.Records.EndCause.Exit"/>).</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.Columns">
+            <summary>
+            The four per-column vectors. A column (trecho) is a column of the scenery grid; each clock
+            cycle has 6 columns. Every vector has one position per column of the phase, and position 0
+            is the first column.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Columns"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Columns.Time">
+            <summary>
+            <c>time</c>: seconds spent in each column, summing every pass and excluding pauses,
+            &gt;= 0. <c>null</c> for a column never visited, never 0.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Columns.Hints">
+            <summary><c>hints</c>: how many times the hint was requested in each column, &gt;= 0. Never <c>null</c>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Columns.Correct">
+            <summary>
+            <c>correct</c>: 1 when the traced level matches the answer key in the column, 0 when it
+            does not, <c>null</c> where <see cref="P:FlipNflop.Commons.Records.Columns.Trace"/> is <c>null</c>. On abandonment, every
+            position is <c>null</c>.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Columns.Trace">
+            <summary>
+            <c>trace</c>: the Q level drawn by the player in each column, 0 or 1, <c>null</c> for a
+            column without trace. The non-null values form a prefix that starts at column 0.
+            </summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.EndCause">
+            <summary>
+            What ended an attempt. The transport text of each value is in
+            <see cref="T:FlipNflop.Commons.Contract.EndCauseText"/>; the outcome derived from it is given by
+            <see cref="M:FlipNflop.Commons.Records.EndCauseExtensions.ToOutcome(FlipNflop.Commons.Records.EndCause)"/>.
+            </summary>
+            <remarks>
+            The numeric values start at 1 so that an unset value (0) is not a valid cause and is
+            rejected by the validator. The numeric value never goes on the wire.
+            </remarks>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.EndCause.Arrival">
+            <summary>The character reached the end of the diagram (<c>arrival</c>). Outcome: completed.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.EndCause.Fall">
+            <summary>The character fell (<c>fall</c>). Outcome: death.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.EndCause.Collision">
+            <summary>The character hit an obstacle (<c>collision</c>). Outcome: death.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.EndCause.Restart">
+            <summary>The player restarted the phase (<c>restart</c>). Outcome: abandonment.</summary>
+        </member>
+        <member name="F:FlipNflop.Commons.Records.EndCause.Exit">
+            <summary>The player left to the menu (<c>exit</c>). Outcome: abandonment.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.EndCauseExtensions">
+            <summary>Rules derived from the <see cref="T:FlipNflop.Commons.Records.EndCause"/>.</summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Records.EndCauseExtensions.ToOutcome(FlipNflop.Commons.Records.EndCause)">
+            <summary>
+            Maps the cause to the outcome: <c>arrival</c> is completed, <c>fall</c> and
+            <c>collision</c> are death, <c>restart</c> and <c>exit</c> are abandonment.
+            </summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">The value is not a defined cause.</exception>
+        </member>
+        <member name="M:FlipNflop.Commons.Records.EndCauseExtensions.IsDefined(FlipNflop.Commons.Records.EndCause)">
+            <summary>Whether the value is one of the five defined causes.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.PathPlayer">
+            <summary>
+            Domain data of the attempt. In GLBoard <c>path_player</c> is a list of strings; here it is
+            a structured object.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.PathPlayer"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.PathPlayer.GameVersion">
+            <summary><c>game_version</c>: the game's <c>Application.version</c>, for example <c>0.15.0</c>.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.PathPlayer.EndCause">
+            <summary><c>end_cause</c>: what ended the attempt, sent as lowercase text.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.PathPlayer.OverallAccuracy">
+            <summary>
+            <c>overall_accuracy</c>: proportion of the answer key covered by the trace, from 0 to 1.
+            <c>null</c> on abandonment.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.PathPlayer.Columns">
+            <summary><c>columns</c>: the per-column vectors.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.Phase">
+            <summary>
+            The attempt record sent by the game to the API (GLBoard <c>Phase</c>): the phase played
+            and exactly one <see cref="T:FlipNflop.Commons.Records.Section"/>, the attempt. It carries no player data: the API
+            links the attempt to the session through the session token.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Phase"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Phase.PhaseName">
+            <summary>
+            <c>phase_name</c>: the <c>levelName</c> of the phase JSON, from <c>first_level</c> to
+            <c>ninth_level</c>.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Phase.Sections">
+            <summary><c>sections</c>: the attempt. The validator requires exactly one element.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Records.Section">
+            <summary>
+            One attempt (GLBoard <c>Section</c>). The generic fields are here; the domain data is in
+            <see cref="P:FlipNflop.Commons.Records.Section.PathPlayer"/>.
+            </summary>
+            <remarks>Transport names: <see cref="T:FlipNflop.Commons.Contract.ContractNames.Section"/>.</remarks>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Section.DateTimeStart">
+            <summary><c>dateTimeStart</c>: when the phase scene was loaded.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Section.DateTimeFinish">
+            <summary><c>dateTimeFinish</c>: when the attempt ended. Not earlier than the start.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Section.Conclusion">
+            <summary>
+            <c>conclusion</c>: whether the traced diagram is correct. <c>null</c> on abandonment.
+            </summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Section.Performance">
+            <summary><c>performance</c>: the score, from 0 to 1000. <c>null</c> on abandonment.</summary>
+        </member>
+        <member name="P:FlipNflop.Commons.Records.Section.PathPlayer">
+            <summary><c>path_player</c>: the domain data of the attempt.</summary>
+        </member>
+        <member name="T:FlipNflop.Commons.Validation.AttemptRecordValidator">
+            <summary>
+            Domain validation of the attempt record. It works on objects: a missing or unknown field is
+            a format matter, refused by the consumer's serializer (see <c>contract/README.md</c>).
+            </summary>
+        </member>
+        <member name="M:FlipNflop.Commons.Validation.AttemptRecordValidator.Validate(FlipNflop.Commons.Records.Phase,System.Int32)">
+            <summary>
+            Validates the record against the contract rules for a phase with
+            <paramref name="columnCount"/> columns.
+            </summary>
+            <param name="record">The record to check.</param>
+            <param name="columnCount">The number of columns (trechos) of the phase: <c>clockCicles</c> × 6.</param>
+            <returns>
+            The problems found, empty when the record is valid. Each problem is a technical English
+            sentence that starts with the field path in transport names, for example
+            <c>sections[0].path_player.columns.time: expected 42 items, got 41</c>. The API returns
+            them in <c>details</c>.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="record"/> is <c>null</c>.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="columnCount"/> is not positive.</exception>
+        </member>
+    </members>
+</doc>

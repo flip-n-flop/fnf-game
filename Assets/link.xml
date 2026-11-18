@@ -1,0 +1,9 @@
+<linker>
+  <!--
+    FlipNflopCommons (Assets/Plugins/FlipNflopCommons) holds the GLA contract types and the phase rules.
+    GlaJson (Assets/Scripts/Gla/Serialization) reads and writes the contract types with Newtonsoft.Json,
+    which reaches their constructors and properties by reflection; without this entry the IL2CPP
+    managed code stripping of the WebGL build would remove them.
+  -->
+  <assembly fullname="FlipNflopCommons" preserve="all"/>
+</linker>
