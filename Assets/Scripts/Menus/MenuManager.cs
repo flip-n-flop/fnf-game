@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FlipNflop.Gla;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -8,7 +9,8 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Controls main menu navigation, panel switching, level selection, and WebGL json uploads.
 /// Interacts with <see cref="UIDocument"/> for UI Toolkit elements, <see cref="UploadMenuManager"/> for level file uploads,
-/// <see cref="LevelSequenceManager"/> to track current level index, and <see cref="SceneManager"/> for scene loading.
+/// <see cref="LevelSequenceManager"/> to track current level index, <see cref="SceneManager"/> for scene loading,
+/// and <see cref="GlaServices"/>, which overlays the GLA entry screen and the "Trocar e-mail" button on the menu.
 /// </summary>
 public class MenuManager : MonoBehaviour
 {
@@ -84,8 +86,9 @@ public class MenuManager : MonoBehaviour
     #region Unity Lifecycle
 
     /// <summary>
-    /// Caches UI elements, attaches button listeners, and configures level select buttons.
-    /// Interacts with <see cref="UIDocument"/> and <see cref="UploadMenuManager"/>.
+    /// Caches UI elements, attaches button listeners, configures level select buttons, and hands the
+    /// document root to the GLA entry screen hook.
+    /// Interacts with <see cref="UIDocument"/>, <see cref="UploadMenuManager"/> and <see cref="GlaServices.AttachEntryScreen"/>.
     /// </summary>
     private void OnEnable()
     {
@@ -144,6 +147,10 @@ public class MenuManager : MonoBehaviour
                 ConfigureLevelButton(root, buttonId, jsonName, i);
             }
         }
+
+        GlaServices glaServices = GlaServices.Instance;
+        if (glaServices != null)
+            glaServices.AttachEntryScreen(root);
     }
 
     /// <summary>
