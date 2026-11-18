@@ -141,6 +141,16 @@ Assets/Scripts/
 
 ---
 
+### 2.9. Coleta de tentativas (GLA-14)
+
+O `AttemptCollector` é filho do `GlaServices` persistente. `LevelJsonLoader.Awake` abre uma tentativa apenas para uma das nove fases de `LevelSequenceManager.Levels` carregada de `Resources/Levels`. Upload e arquivo padrão da cena ficam fora da coleta. A recusa de consentimento, a configuração desligada e a sessão rejeitada bloqueiam a coleta.
+
+`OperationHint.ShowHint` conta cada pedido na posição da personagem, mesmo quando a operação exibida pertence à borda seguinte. `ColumnTiming.Distribute` reparte o tempo de jogo entre os trechos atravessados nos dois sentidos. A pausa soma zero, a aproximação entra no primeiro trecho e a folga no último. O cronômetro pode diferir em até um quadro, além do arredondamento por trecho.
+
+Na chegada, queda ou colisão, `PlayerController` fecha o tempo e informa a causa antes de `PathVerifier.FinalizeAndCheckPath`. `ValidationCompleted` fornece o resultado. Se a validação faltar, o descarregamento ou a próxima fase fecha a tentativa com o resultado de traçado curto e um aviso. O evento `RecordReady` entrega o registro do commons. O Development Build também imprime o JSON indentado.
+
+A exceção a B4 são as chamadas em `GameMenuManager.RestartLevel`, `GameMenuManager.ExitToMainMenu` e `PauseManager.OpenMenuScene`. Cada botão novo de reinício ou saída durante a partida deve chamar `Abandon` **antes de carregar a cena**, enquanto o traçado ainda existe. Os botões de resultado já encontram a tentativa encerrada. O `PauseManager` está fora das cenas da v0.15.0.
+
 ## 3. Interface de Usuário com UI Toolkit (`Assets/UI Toolkit/`)
 
 Toda a interface moderna do projeto é construída via **Unity UI Toolkit**:

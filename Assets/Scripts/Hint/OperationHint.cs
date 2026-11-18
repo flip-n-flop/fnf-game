@@ -1,5 +1,6 @@
 using System.Collections;
 using TMPro;
+using FlipNflop.Gla;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -102,6 +103,7 @@ public class OperationHint : MonoBehaviour
             return;
         }
 
+        GlaServices.Instance?.Collector?.RecordHint(player.position.x);
         float clockStep = LevelManager.Instance != null ? LevelManager.Instance.clockStepX : 6f;
         float startXOffset = levelJsonLoader.StartX;
         float relativePlayerX = Mathf.Max(0f, player.position.x - startXOffset);

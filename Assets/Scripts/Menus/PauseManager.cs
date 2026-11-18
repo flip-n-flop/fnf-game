@@ -1,3 +1,5 @@
+using FlipNflop.Commons.Records;
+using FlipNflop.Gla;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -48,6 +50,7 @@ public class PauseManager : MonoBehaviour
     /// </summary>
     public void OpenMenuScene()
     {
+        GlaServices.Instance?.Collector?.Abandon(EndCause.Exit);
         SceneManager.LoadScene(menuSceneName);
         Time.timeScale = 1f;
     }

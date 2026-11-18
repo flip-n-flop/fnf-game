@@ -1,3 +1,5 @@
+using FlipNflop.Commons.Records;
+using FlipNflop.Gla;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -341,7 +343,7 @@ public class PlayerController : MonoBehaviour
 
         if (y < -limit || y > limit)
         {
-            PlayerDeath();
+            PlayerDeath(EndCause.Fall);
         }
 
         if (transform.position.x > LevelManager.Instance.levelEndX + 1)
@@ -354,6 +356,7 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("run", false);
             animator.SetFloat("speed", 0f);
 
+            GlaServices.Instance?.Collector?.NotifyEnd(EndCause.Arrival, transform.position.x);
             pathVerifier.FinalizeAndCheckPath();
 
             cameraController.EnableManualControl();
@@ -513,12 +516,13 @@ public class PlayerController : MonoBehaviour
     /// Triggers death sequence by stopping timers, enabling manual camera control, and finalizing path verification.
     /// Interacts with <see cref="ScoreController"/>, <see cref="CameraController"/>, and <see cref="PathVerifier"/>.
     /// </summary>
-    private void PlayerDeath()
+    private void PlayerDeath(EndCause cause)
     {
         scoreController.StopTimer();
 
         cameraController.EnableManualControlWithRightLimit(transform.position.x);
 
+        GlaServices.Instance?.Collector?.NotifyEnd(cause, transform.position.x);
         pathVerifier.FinalizeAndCheckPath(transform.position.x);
 
         gameObject.SetActive(false);
@@ -531,7 +535,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            PlayerDeath();
+            PlayerDeath(EndCause.Collision);
         }
     }
 

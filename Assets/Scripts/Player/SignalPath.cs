@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FlipNflop.Commons.PhaseRules;
 using UnityEngine;
 
 /// <summary>
@@ -36,6 +37,18 @@ public class SignalPath : MonoBehaviour
     /// Read-only access to the list of recorded path points.
     /// </summary>
     public List<Vector3> PathPoints => pathPoints;
+
+    /// <summary>Evaluates a copy of the live path through the current player position for abandonment.</summary>
+    public int?[] TraceAt(float finalX, float diagramOrigin, int columns)
+    {
+        var points = pathPoints.ToPathPoints();
+        points.RemoveAll(point => point.X > finalX);
+        points.Add(new PathPoint(finalX, playerController.IsGravityInverted ? ceilingY : groundY));
+        var defaults = PhaseGeometry.Default;
+        var geometry = new PhaseGeometry(defaults.PlayAreaStartX, diagramOrigin, groundY, ceilingY,
+            defaults.Tolerance, defaults.SlackColumns);
+        return ColumnEvaluator.TraceLevels(points, columns, geometry);
+    }
 
     #endregion
 
