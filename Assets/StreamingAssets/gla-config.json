@@ -1,0 +1,4 @@
+{
+  "api_base_url": "http://localhost:5000",
+  "collection_enabled": true
+}

@@ -1,0 +1,56 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+    <!--
+        GLA entry screen (gla-13). Loaded by IdentificationScreenController with Resources.Load and
+        overlaid on the main menu by GlaServices.AttachEntryScreen; no scene references it.
+        The texts below are the pt-BR fallback; the controller replaces them with the entries of the
+        localization table "Identification". The element names are used by the controller.
+    -->
+    <Style src="Identification.uss" />
+    <ui:VisualElement name="GlaEntryScreen" class="gla-entry-overlay">
+        <ui:VisualElement name="GlaEntryCard" class="gla-entry-card">
+            <ui:VisualElement name="WaitingView" class="gla-view">
+                <ui:Label name="WaitingLabel" text="Carregando..." class="gla-text" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="EmailView" class="gla-view">
+                <ui:Label name="EmailTitle" text="Antes de jogar" class="gla-title" />
+                <ui:Label name="ConsentNotice"
+                    text="Ao informar seu e-mail institucional, você aceita que suas jogadas sejam registradas e vistas pelo seu professor."
+                    class="gla-text" />
+                <ui:TextField name="EmailField" label="E-mail institucional (opcional)" class="gla-field" />
+                <ui:Button name="RequestCodeButton" text="Receber código" class="gla-button" />
+                <ui:Button name="GuestButton" text="Entrar como convidado" class="gla-button gla-button-secondary" />
+                <ui:Label name="SharedComputerTip"
+                    text="Em computador compartilhado, use &quot;Trocar e-mail&quot; no menu ao terminar."
+                    class="gla-hint" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="CodeView" class="gla-view">
+                <ui:Label name="CodeTitle" text="Código de verificação" class="gla-title" />
+                <ui:Label name="CodePrompt" text="Digite o código que enviamos para o seu e-mail." class="gla-text" />
+                <ui:TextField name="CodeField" label="Código" class="gla-field" />
+                <ui:Button name="ConfirmButton" text="Confirmar" class="gla-button" />
+                <ui:Button name="ResendCodeButton" text="Reenviar código" class="gla-button gla-button-secondary" />
+                <ui:VisualElement class="gla-row">
+                    <ui:Button name="CodeBackButton" text="Voltar" class="gla-button gla-button-secondary gla-row-button" />
+                    <ui:Button name="CodeGuestButton" text="Entrar como convidado"
+                        class="gla-button gla-button-secondary gla-row-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="GuestView" class="gla-view">
+                <ui:Label name="GuestTitle" text="Entrar como convidado" class="gla-title" />
+                <ui:Label name="GuestQuestion"
+                    text="Você aceita que suas jogadas sejam registradas de forma anônima, sem o seu e-mail, para o seu professor ver os resultados da turma?"
+                    class="gla-text" />
+                <ui:Button name="GuestAcceptButton" text="Sim, aceito" class="gla-button" />
+                <ui:Button name="GuestRefuseButton" text="Não, jogar sem registro" class="gla-button" />
+                <ui:Button name="GuestBackButton" text="Voltar" class="gla-button gla-button-secondary" />
+            </ui:VisualElement>
+
+            <ui:Label name="MessageLabel" class="gla-message" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

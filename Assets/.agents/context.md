@@ -24,7 +24,7 @@ A pasta `Assets/Scripts/` está organizada nos seguintes subdomínios modulares:
 ```
 Assets/Scripts/
 ├── Common/            # Controladores comuns (Câmera, utilitários)
-├── Gla/               # Game Learning Analytics (Serialization/: GlaJson, assembly FlipNflop.Gla.Serialization)
+├── Gla/               # Game Learning Analytics: GlaServices e tela de entrada; Core/ (identificação e sessão, sem engine); Serialization/ (GlaJson)
 ├── Hint/              # Sistema de dicas visuais em tempo real
 ├── Level/             # Dados da fase, simulação lógica, carregamento e renderização de Tilemaps
 │   ├── Loading/       # Deserialização JSON, sequência de fases e interop WebGL
@@ -81,7 +81,7 @@ Assets/Scripts/
 
 ### 2.3. Módulo Menus (`Assets/Scripts/Menus/`)
 
-- **`MenuManager.cs`**: Gerencia a interface do menu principal usando **UI Toolkit** (`UIDocument`). Controla a navegação entre submenus (`MainMenu`, `About`, `LevelSelect`, `HowToPlay`), a seleção de níveis e a integração com upload WebGL.
+- **`MenuManager.cs`**: Gerencia a interface do menu principal usando **UI Toolkit** (`UIDocument`). Controla a navegação entre submenus (`MainMenu`, `About`, `LevelSelect`, `HowToPlay`), a seleção de níveis e a integração com upload WebGL. No fim do `OnEnable`, entrega a raiz do documento a `GlaServices.AttachEntryScreen` (gancho de UI da gla-13, seção 2.7), que sobrepõe a tela de entrada e insere o botão "Trocar e-mail".
 - **`GameMenuManager.cs`**: Gerencia o menu de pausa in-game (`UIDocument`). Trata a parada do tempo (`Time.timeScale = 0`), bloqueia os inputs do jogador (`PlayerInput.Disable()`) e gerencia a navegação entre as opções da pausa.
 - **`ResultScreenController.cs`**: Modal de fim de jogo (Vitória/Derrota). Utiliza **Unity Localization** (`LocalizationSettings`) para internacionalização de títulos e estatísticas (Score, Tempo).
 - **`UploadMenuManager.cs`**: Ponte WebGL (`[DllImport("__Internal")]`) para abrir o seletor de arquivos do navegador e carregar arquivos JSON customizados do usuário.
@@ -126,7 +126,18 @@ Assets/Scripts/
 - **Regras do traçado:** gabarito, diagrama correto, acerto geral, verde/vermelho, nível e acerto por trecho e pontuação vêm de `FlipNflop.Commons.PhaseRules`. Não reimplemente essas regras no jogo: mude-as no commons e atualize o DLL. A geometria é a da cena `Custom.unity`: área jogável a partir de x = 0, `startX` 4, níveis −0,5 e 3,25 e **tolerância 0,2** (o padrão 1,0 do código não vale).
 - **`PathVerifier.ValidationCompleted`** (`Action<TraceValidationResult>`): disparado em `RunPipeline` na chegada e na morte (inclusive no traçado curto), depois do cálculo e antes de `ResultScreenController.Show`. É o gancho de lógica da coleta (gla-14): assine em `OnEnable` e desinscreva em `OnDisable`. O evento é zerado em `SubsystemRegistration` (*Domain Reload* desligado), e a exceção de um assinante é registrada sem interromper a validação. Em *Development Build*, o resultado é impresso no console.
 - **`GlaJson`** (`Assets/Scripts/Gla/Serialization/`, *assembly* `FlipNflop.Gla.Serialization`, referenciado automaticamente pelo `Assembly-CSharp`): serializador do contrato em Newtonsoft.Json. Nomes de `ContractNames`, todo campo escrito (com `null` explícito), campo ausente ou desconhecido é erro na leitura, causa em minúsculas e datas em UTC `yyyy-MM-ddTHH:mm:ss.fffZ`. Use `GlaJson.Serialize` e `GlaJson.Deserialize<T>`; não serialize o contrato com `JsonUtility`.
-- **Testes:** `Assets/Tests/Gla/` (*assembly* EditMode `FlipNflop.Gla.Tests`) confere o `GlaJson` contra os exemplos canônicos. Rode pelo Test Runner do editor depois de atualizar o DLL.
+- **Testes:** `Assets/Tests/Gla/` (*assembly* EditMode `FlipNflop.Gla.Tests`) confere o `GlaJson` contra os exemplos canônicos, e `Assets/Tests/Gla/Core/` confere a identificação e a sessão (seção 2.8) com um transporte falso. Rode pelo Test Runner do editor depois de atualizar o DLL.
+
+---
+
+### 2.8. Identificação do jogador e sessão (GLA, gla-13)
+
+- **Serviços (`GlaServices`, `Assets/Scripts/Gla/`):** criado por código em `RuntimeInitializeOnLoadMethod(BeforeSceneLoad)`, sem cena, num objeto `DontDestroyOnLoad`. Grava `PageLoadedAt` (UTC, truncado ao milissegundo), lê a configuração e reúne o `GlaApiClient` (`Api`) e o `PlayerSession` (`Session`). `GlaServices.Instance` é zerado em `SubsystemRegistration`. A coleta (gla-14) e a entrega (gla-15) ficam penduradas nesse objeto.
+- **Configuração (`Assets/StreamingAssets/gla-config.json`):** `{ "api_base_url": "http://localhost:5000", "collection_enabled": true }`, lida por `UnityWebRequest` (no WebGL é o único jeito) e conferida por `GlaConfig.TryParse`. Pode ser editada depois do build, para trocar a URL da API sem compilar de novo (ponto 17). Com `collection_enabled = false`, arquivo ausente, inválido (URL que não é `http`/`https` absoluta, chave faltando ou de tipo errado) ou não lido em 5 s, o modo vira `Disabled`: sem tela de entrada e sem nenhuma requisição à API, como na v0.15.0, e o motivo vai para o log. O valor versionado aponta para a API local de desenvolvimento; o build publicado precisa da URL da hospedagem, e a API precisa da origem do jogo em `Cors:AllowedOrigins`.
+- **Núcleo sem engine (`Assets/Scripts/Gla/Core/`, *assembly* `FlipNflop.Gla.Core`, `noEngineReferences`):** `GlaConfig`, `GlaApiClient` (POST JSON com `GlaJson`, *timeout* de 10 s, conversão em `ApiResponse` com o `ApiError` lido), `CredentialStore`, `PlayerSession`, `IdentificationScreenModel` e `GlaOperation<T>` (operação assíncrona sem *threads*: `OnCompleted(callback)` ou `yield return` numa corrotina). O motor entra por interfaces: `IHttpTransport` (`UnityWebRequestTransport`, com o *timeout* medido em tempo real pela corrotina do `GlaServices`), `IKeyValueStorage` (`PlayerPrefsStorage`) e `IGlaLog` (`UnityGlaLog`, prefixo `[GLA]`).
+- **`PlayerSession`:** modo (`Loading`, `Undecided`, `Identified`, `Guest`, `GuestRefused`, `Disabled`), estado da sessão (`None`, `Pending`, `Open`, `Rejected`), `SessionToken` (só em memória) e o evento `Changed`. `IsCollectionBlocked` é verdadeiro em `GuestRefused`, `Disabled` e `Rejected` (gla-14 D7, gla-15 D6). `OpenSessionAsync()` abre uma sessão nova do modo atual com `started_at = PageLoadedAt` (também na troca de e-mail e na reabertura por token vencido) e junta chamadas simultâneas numa só requisição. Respostas: 201 → `Open`; erro de rede, *timeout*, 429, 5xx ou resposta ilegível → `Pending` (a gla-15 tenta de novo antes de enviar); 401 `invalid_credential` → credencial apagada e `Undecided`; 400 → `Rejected` até recarregar a página, com o `message` no log e sem nova tentativa. `ResetIdentity()` ("Trocar e-mail" / "Identificar-me") apaga a credencial e o token e volta a `Undecided`; não age em `GuestRefused` nem com a sessão `Rejected`, porque nada mais pode ser enviado naquele carregamento.
+- **Credencial (`CredentialStore`):** só as chaves `gla.credential` e `gla.credential_expires_at` (ISO 8601 em UTC) de `PlayerPrefs`, seguidas de `PlayerPrefs.Save()` (no WebGL, IndexedDB). Ao iniciar, a credencial vencida ou ilegível é apagada; a válida pula a tela e abre a sessão identificada. Nenhuma chave guarda o e-mail ou o token. **Nunca** escreva no log o e-mail, o código, a credencial ou o token.
+- **Tela de entrada:** `Assets/Resources/UI/Identification.uxml` e `Identification.uss`, carregados por `Resources.Load` (nenhuma cena os referencia), e o `IdentificationScreenController`, que os sobrepõe à raiz do menu: tela de espera em `Loading` e, em `Undecided`, os passos e-mail → "Receber código" → código → "Confirmar", com "Reenviar código", "Voltar" e "Entrar como convidado" (que pergunta o consentimento do registro anônimo). O menu por baixo fica desabilitado até a escolha. Os erros mostram o `message` do `ApiError`; sem resposta, "Não foi possível falar com o servidor. Tente de novo ou entre como convidado." O botão do painel `MainMenu` mostra "Identificado — Trocar e-mail" ou "Convidado — Identificar-me". Os textos vêm da tabela de localização `Identification` (chaves em `IdentificationScreenController.FallbackTexts`), carregada de forma assíncrona, com o texto em português do código como alternativa.
 
 ---
 
@@ -134,6 +145,7 @@ Assets/Scripts/
 
 Toda a interface moderna do projeto é construída via **Unity UI Toolkit**:
 
+- **Tela de entrada do GLA (`Assets/Resources/UI/`)**: `Identification.uxml` e `Identification.uss`, carregados por `Resources.Load` pelo `IdentificationScreenController` (seção 2.8), e não por referência de cena.
 - **Layouts (`Assets/UI Toolkit/Layouts/`)**:
   - `MainMenu.uxml`: Menu inicial, seleção de níveis, tela Sobre, HowToPlay e Configurações integradas.
   - `GameMenu.uxml`: Menu de pausa em jogo.

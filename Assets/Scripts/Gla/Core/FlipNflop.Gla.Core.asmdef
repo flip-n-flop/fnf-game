@@ -1,0 +1,19 @@
+{
+    "name": "FlipNflop.Gla.Core",
+    "rootNamespace": "FlipNflop.Gla",
+    "references": [
+        "FlipNflop.Gla.Serialization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "FlipNflopCommons.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

@@ -56,10 +56,11 @@ FlipNflop/
 │   ├── Materials/        # Materiais URP e Shaders
 │   ├── Plugins/          # DLLs de terceiros e a biblioteca comum FlipNflopCommons (Plugins/FlipNflopCommons/)
 │   ├── Prefab/           # Prefabs (Jogador, Obstáculos, UI Elementos)
-│   ├── Resources/        # Fases JSON nativas e recursos carregáveis via script
+│   ├── Resources/        # Fases JSON nativas, a tela de entrada do GLA (UI/) e recursos carregáveis via script
 │   ├── Scenes/           # Cenas Unity (MainMenu, GameScene)
 │   ├── Scripts/          # Código-fonte C# organizado modularmente
-│   ├── Tests/Gla/        # Testes EditMode do GLA e exemplos canônicos do contrato (Contract/)
+│   ├── StreamingAssets/  # gla-config.json: URL da API e liga/desliga da coleta do GLA, editável depois do build
+│   ├── Tests/Gla/        # Testes EditMode do GLA (Core/: identificação e sessão) e exemplos canônicos do contrato (Contract/)
 │   ├── UI Toolkit/       # Documentos de UI (.uxml) e estilos (.uss)
 │   └── link.xml          # Protege os tipos do FlipNflopCommons do stripping do IL2CPP
 ├── scripts/              # update-commons.sh (atualiza a biblioteca comum) e set_unity_version.py
@@ -77,7 +78,7 @@ A pasta `Assets/Scripts/` é dividida em 6 subdomínios totalmente modulares:
 ```text
 Assets/Scripts/
 ├── Common/       # Utilitários compartilhados (Controle de Câmera, Captura de Tela)
-├── Gla/          # Game Learning Analytics: Serialization/ tem o GlaJson (assembly FlipNflop.Gla.Serialization)
+├── Gla/          # Game Learning Analytics: GlaServices e tela de entrada; Core/ (identificação e sessão); Serialization/ (GlaJson)
 ├── Hint/         # Sistema de dicas visuais em tempo real (Linhas de Clock, Overlays)
 ├── Level/        # Dados da fase, simulação de Flip-Flops, carregamento e Tilemaps
 │   ├── Loading/  # Leitura de JSON, sequência de fases e interop WebGL
@@ -128,6 +129,45 @@ scripts/update-commons.sh [caminho-do-fnf-commons]
 
 O script compila o commons para `netstandard2.1`, copia `FlipNflopCommons.dll`, a documentação XML e um `VERSION` (versão e commit de origem) para `Assets/Plugins/FlipNflopCommons/`, e os exemplos canônicos do contrato para `Assets/Tests/Gla/Contract/`. Depois, abra o projeto no editor para importar o DLL e rode os testes EditMode (*Window > General > Test Runner*). O `Assets/link.xml` impede que o IL2CPP remova os tipos do DLL no build WebGL.
 
+### Identificação do jogador (GLA)
+
+Ao abrir o jogo, o estudante escolhe entre informar o e-mail institucional, o que é aceitar o registro das jogadas, e jogar como convidado, podendo recusar o registro. Tudo é criado por código, sem editar cena:
+
+- **`GlaServices`** nasce antes da primeira cena (`RuntimeInitializeOnLoadMethod`), fica entre as cenas (`DontDestroyOnLoad`) e grava o instante do carregamento da página (`PageLoadedAt`), que é o `started_at` de **toda** sessão aberta naquele carregamento.
+- **`gla-config.json`** (`Assets/StreamingAssets/`) traz `api_base_url` e `collection_enabled`. Pode ser editado no build publicado, sem compilar de novo. Enquanto ele é lido, o menu fica coberto por uma tela de espera. Coleta desligada, arquivo ausente ou inválido, ou leitura que passa de 5 segundos: o jogo abre como na v0.15.0, sem tela de entrada e sem nenhuma requisição à API.
+- **Tela de entrada** (`Assets/Resources/UI/Identification.uxml`, controlada por `IdentificationScreenController`): e-mail (opcional) → "Receber código" → código → "Confirmar", com "Reenviar código", "Voltar" e "Entrar como convidado". O texto diz: "Ao informar seu e-mail institucional, você aceita que suas jogadas sejam registradas e vistas pelo seu professor." Os erros mostram a mensagem em português da API; sem resposta, uma mensagem que sugere tentar de novo ou entrar como convidado.
+- **Convidado:** o jogo pergunta se ele aceita o registro anônimo. Quem aceita abre uma sessão de convidado; quem recusa joga normalmente, e nada é enviado até a página ser recarregada.
+- **Credencial:** depois da verificação, o navegador guarda só `gla.credential` e `gla.credential_expires_at` (4 horas), em `PlayerPrefs` (IndexedDB no WebGL). O e-mail não é guardado, e o token da sessão fica só na memória. Com a credencial válida, a recarga pula a tela; vencida, ou recusada pela API (`invalid_credential`), ela é apagada e a tela volta. O botão "Identificado — Trocar e-mail" (ou "Convidado — Identificar-me") do menu apaga a credencial e o token e mostra a tela de novo.
+- **Sessão (`PlayerSession`):** `POST /sessions` com a versão do jogo, a credencial (ou `null`) e `started_at`. Sem rede, com *timeout* (10 s), 429 ou 5xx, ela fica `Pending` e é aberta mais tarde, antes de enviar uma tentativa (gla-15). Recusada com 400 (relógio do computador adiantado mais de 5 minutos), ela fica `Rejected`: o jogo segue jogável, não tenta de novo, grava a recusa no log e não monta nem envia registros até a página ser recarregada.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Estudante
+    participant Menu as MenuManager / IdentificationScreenController
+    participant Gla as GlaServices / PlayerSession
+    participant API as API do GLA
+
+    Gla->>Gla: PageLoadedAt e leitura do gla-config.json (até 5 s)
+    alt credencial válida no navegador
+        Gla->>API: POST /sessions (credencial, started_at = PageLoadedAt)
+        Menu-->>Estudante: menu direto, "Identificado — Trocar e-mail"
+    else sem credencial
+        Menu-->>Estudante: tela de entrada
+        Estudante->>Menu: e-mail institucional
+        Menu->>Gla: Receber código
+        Gla->>API: POST /identification/code-requests
+        Estudante->>Menu: código recebido
+        Menu->>Gla: Confirmar
+        Gla->>API: POST /identification/code-verifications
+        API-->>Gla: credencial (guardada por 4 h)
+        Gla->>API: POST /sessions (credencial, started_at = PageLoadedAt)
+    else convidado que aceita o registro
+        Gla->>API: POST /sessions (credential = null, started_at = PageLoadedAt)
+    end
+    API-->>Gla: session_token (só em memória)
+```
+
 ---
 
 ## 5. Fluxo de Execução de uma Fase
@@ -171,6 +211,7 @@ sequenceDiagram
 
 O **Flip'n Flop** foi construído com suporte nativo a builds **WebGL** para execução em navegadores:
 - **Upload Dinâmico de Fases:** Em builds WebGL, o jogador pode carregar arquivos `.json` diretamente do seu computador usando a ponte WebGL nativa (`UploadMenuManager.cs`).
+- **Configuração do GLA depois do build:** o `StreamingAssets/gla-config.json` fica ao lado do build e pode ser editado para apontar o jogo para a API da hospedagem (`api_base_url`) ou desligar a coleta (`collection_enabled`). A API precisa autorizar a origem do jogo em `Cors:AllowedOrigins`.
 - **Internacionalização (i18n):** O jogo utiliza o pacote **Unity Localization** para alternar facilmente os textos entre Português e Inglês nas telas de UI Toolkit e nas descrições.
 
 ---

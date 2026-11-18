@@ -1,0 +1,184 @@
+/*
+ * GLA entry screen (gla-13): style of Identification.uxml and of the identity button that
+ * IdentificationScreenController adds to the MainMenu panel. Colors follow Panel.uss and MainMenu.uss.
+ * Visibility is set inline by the controller, so the screen still works without this sheet.
+ */
+
+.gla-entry-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(5, 10, 24, 0.92);
+}
+
+.gla-entry-card {
+    width: 640px;
+    max-width: 90%;
+    padding-top: 28px;
+    padding-right: 32px;
+    padding-bottom: 28px;
+    padding-left: 32px;
+    background-color: rgb(14, 23, 52);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-top-color: rgba(54, 229, 255, 0.8);
+    border-right-color: rgba(54, 229, 255, 0.8);
+    border-bottom-color: rgba(54, 229, 255, 0.8);
+    border-left-color: rgba(54, 229, 255, 0.8);
+}
+
+.gla-view {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.gla-title {
+    color: rgb(245, 247, 250);
+    font-size: 28px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-bottom: 16px;
+}
+
+.gla-text {
+    color: rgb(245, 247, 250);
+    font-size: 20px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-bottom: 16px;
+}
+
+.gla-hint {
+    color: rgba(245, 247, 250, 0.75);
+    font-size: 16px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-top: 8px;
+}
+
+.gla-field {
+    flex-direction: column;
+    align-items: stretch;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 16px;
+}
+
+.gla-field > .unity-label {
+    color: rgb(245, 247, 250);
+    font-size: 18px;
+    min-width: 0;
+    margin-bottom: 6px;
+}
+
+.gla-field .unity-base-text-field__input {
+    min-height: 44px;
+    font-size: 22px;
+    color: rgb(245, 247, 250);
+    background-color: rgb(7, 16, 34);
+    border-top-color: rgb(54, 229, 255);
+    border-right-color: rgb(54, 229, 255);
+    border-bottom-color: rgb(54, 229, 255);
+    border-left-color: rgb(54, 229, 255);
+}
+
+.gla-button {
+    height: 52px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 10px;
+    background-color: rgb(28, 43, 92);
+    color: rgb(245, 247, 250);
+    font-size: 22px;
+    -unity-font-style: bold;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-top-color: rgb(255, 179, 71);
+    border-right-color: rgb(255, 179, 71);
+    border-bottom-color: rgb(255, 179, 71);
+    border-left-color: rgb(255, 179, 71);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+}
+
+.gla-button:hover,
+.gla-button:focus {
+    background-color: rgb(47, 91, 255);
+}
+
+.gla-button:disabled {
+    opacity: 0.5;
+}
+
+.gla-button-secondary {
+    background-color: rgba(28, 43, 92, 0.4);
+    border-top-color: rgba(245, 247, 250, 0.5);
+    border-right-color: rgba(245, 247, 250, 0.5);
+    border-bottom-color: rgba(245, 247, 250, 0.5);
+    border-left-color: rgba(245, 247, 250, 0.5);
+    font-size: 20px;
+}
+
+.gla-row {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.gla-row-button {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.gla-message {
+    color: rgb(255, 179, 71);
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-top: 12px;
+}
+
+.gla-identity-button {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    height: 44px;
+    padding-left: 16px;
+    padding-right: 16px;
+    background-color: rgba(28, 43, 92, 0.85);
+    color: rgb(245, 247, 250);
+    font-size: 18px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-top-color: rgb(255, 179, 71);
+    border-right-color: rgb(255, 179, 71);
+    border-bottom-color: rgb(255, 179, 71);
+    border-left-color: rgb(255, 179, 71);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.gla-identity-button:hover,
+.gla-identity-button:focus {
+    background-color: rgb(47, 91, 255);
+}
