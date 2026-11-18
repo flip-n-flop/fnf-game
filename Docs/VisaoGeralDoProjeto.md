@@ -244,3 +244,11 @@ Para mais detalhes sobre aspectos específicos do projeto, consulte:
 ---
 
 > *Em caso de dúvidas ou sugestões de melhoria nesta documentação, abra uma issue ou envie um pull request seguindo as diretrizes de versionamento do projeto.*
+
+### Entrega em falha de rede (GLA-15)
+
+A fila de registros existe na memória da página. O jogo envia um registro por vez em segundo plano, inclusive depois de carregar outra cena. A fila conserva a ordem, o corpo JSON e a sessão de cada tentativa. Fechar a aba perde os registros pendentes.
+
+Cada requisição tem timeout de 10 s. Para falha de rede, timeout, HTTP 429 ou 5xx, o jogo espera 2, 4, 8, 16 e 32 s entre os envios, até 6 tentativas no total. As esperas somam 62 s e continuam durante a pausa. Se todas falharem, o registro é descartado. A abertura de uma sessão pendente segue os mesmos limites. O 400 de abertura impede novas requisições naquele carregamento. O 400 de um registro descarta apenas esse registro e grava os detalhes no log. O 204 confirma a entrega.
+
+Se a API recusar o token com `invalid_session`, o jogo pode reabrir a sessão de origem com a mesma identidade e o instante de carregamento da página, atualizar o grupo enfileirado e repetir o envio uma vez. O convidado passa a contar como novo jogador nos indicadores. Quem perdeu a credencial volta a identificar-se no próximo menu. Os registros sem identidade definida são descartados.

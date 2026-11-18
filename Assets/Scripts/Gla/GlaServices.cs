@@ -110,6 +110,9 @@ namespace FlipNflop.Gla
             var collectorObject = new GameObject(nameof(AttemptCollector));
             collectorObject.transform.SetParent(transform, false);
             Collector = collectorObject.AddComponent<AttemptCollector>();
+            var deliveryObject = new GameObject(nameof(AttemptDelivery));
+            deliveryObject.transform.SetParent(transform, false);
+            deliveryObject.AddComponent<AttemptDelivery>().Initialize(this);
 
             log.Info($"Page loaded at {GlaTime.Format(pageLoadedAt)}, game version {Application.version}. Reading {GlaConfig.FileName}.");
             StartCoroutine(LoadConfig());
