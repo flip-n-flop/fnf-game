@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using FlipNflop.Commons.Records;
+using FlipNflop.Gla;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -361,6 +363,7 @@ public class GameMenuManager : MonoBehaviour
     /// </summary>
     public void RestartLevel()
     {
+        GlaServices.Instance?.Collector?.Abandon(EndCause.Restart);
         Time.timeScale = 1f;
 
         EnablePlayerInput();
@@ -373,6 +376,7 @@ public class GameMenuManager : MonoBehaviour
     /// </summary>
     public void ExitToMainMenu()
     {
+        GlaServices.Instance?.Collector?.Abandon(EndCause.Exit);
         Time.timeScale = 1f;
 
         EnablePlayerInput();

@@ -1,3 +1,4 @@
+using FlipNflop.Gla;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -169,7 +170,7 @@ public class LevelJsonLoader : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        string json = ResolveJsonSource();
+        string json = ResolveJsonSource(out bool fromResources);
         if (string.IsNullOrWhiteSpace(json))
         {
             Debug.LogError("LevelJsonLoader: No JSON source available.");
@@ -187,6 +188,7 @@ public class LevelJsonLoader : MonoBehaviour
         ApplyLevelConfig(data);
         LoadSignals(data);
         RenderLevel(data);
+        GlaServices.Instance?.Collector?.BeginAttempt(data.LevelName, GetDiagramLength(), fromResources, startX, gameObject.scene);
     }
 
     #endregion
@@ -197,8 +199,9 @@ public class LevelJsonLoader : MonoBehaviour
     /// Resolves the raw JSON string source from <see cref="UploadedLevelJson"/>, <see cref="MenuManager"/>, or default <see cref="levelFile"/>.
     /// </summary>
     /// <returns>Raw JSON string or null if unassigned.</returns>
-    private string ResolveJsonSource()
+    private string ResolveJsonSource(out bool fromResources)
     {
+        fromResources = false;
         if (!string.IsNullOrEmpty(UploadedLevelJson.Content))
         {
             string content = UploadedLevelJson.Content;
@@ -209,7 +212,11 @@ public class LevelJsonLoader : MonoBehaviour
         if (!string.IsNullOrEmpty(MenuManager.LevelToLoadJSON))
         {
             var asset = Resources.Load<TextAsset>("Levels/" + MenuManager.LevelToLoadJSON);
-            if (asset != null) return asset.text;
+            if (asset != null)
+            {
+                fromResources = true;
+                return asset.text;
+            }
             Debug.LogError($"LevelJsonLoader: File '{MenuManager.LevelToLoadJSON}' not found in Resources/Levels/.");
         }
 

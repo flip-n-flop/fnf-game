@@ -58,6 +58,8 @@ namespace FlipNflop.Gla
 
         public PlayerSession Session { get; private set; }
 
+        public AttemptCollector Collector { get; private set; }
+
         public IGlaLog Log => log;
 
         #endregion
@@ -104,6 +106,10 @@ namespace FlipNflop.Gla
                 new CredentialStore(new PlayerPrefsStorage()),
                 () => DateTimeOffset.UtcNow,
                 log);
+
+            var collectorObject = new GameObject(nameof(AttemptCollector));
+            collectorObject.transform.SetParent(transform, false);
+            Collector = collectorObject.AddComponent<AttemptCollector>();
 
             log.Info($"Page loaded at {GlaTime.Format(pageLoadedAt)}, game version {Application.version}. Reading {GlaConfig.FileName}.");
             StartCoroutine(LoadConfig());
