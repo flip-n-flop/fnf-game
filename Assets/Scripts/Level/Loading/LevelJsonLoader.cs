@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using FlipNflop.Commons.PhaseRules;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Newtonsoft.Json;
@@ -475,6 +476,25 @@ public class LevelJsonLoader : MonoBehaviour
                 pathEvents.Add(new PathVerifier.SignalEvent(startX + evt.x, evt.value));
 
         return pathEvents;
+    }
+
+    /// <summary>
+    /// Builds the phase definition of the shared library FlipNflopCommons for the loaded level, from the
+    /// parsed signals and the same clock step and diagram length that <see cref="ComputeOutputEventsFromParsedSignals"/> simulates.
+    /// Invokes <see cref="FlipFlopSimulator.CreateJkPhase"/> and reads <see cref="LevelManager.Instance"/>.
+    /// Used by <see cref="GabaritoGenerator"/> to build the answer key corners.
+    /// </summary>
+    /// <returns>The phase definition, or null when the diagram length is not positive.</returns>
+    /// <exception cref="InvalidOperationException">The clock step or the diagram length is not supported by the shared rules.</exception>
+    public PhaseDefinition CreatePhaseDefinition()
+    {
+        int diagramLen = GetDiagramLength();
+        if (diagramLen <= 0) return null;
+
+        GetClockSamplingParameters(out int step, out _);
+        return FlipFlopSimulator.CreateJkPhase(
+            ParsedJSignal, ParsedKSignal, ParsedPresetSignal, ParsedClearSignal,
+            step, diagramLen, asyncActiveHigh);
     }
 
     #endregion

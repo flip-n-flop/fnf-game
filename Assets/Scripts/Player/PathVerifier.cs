@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using FlipNflop.Commons.PhaseRules;
 using UnityEngine;
 
 /// <summary>
@@ -7,6 +9,8 @@ using UnityEngine;
 /// <see cref="SignalPath"/> for recorded player coordinates, <see cref="SignalColorManager"/> for color synchronization,
 /// <see cref="LevelManager"/> for stage boundaries, <see cref="ScoreController"/> for reporting scores,
 /// and <see cref="ResultScreenController"/> to present final results.
+/// The rules come from the shared library FlipNflopCommons (<see cref="SegmentValidator"/> and <see cref="ColumnEvaluator"/> here),
+/// and the outcome of each validation is published by <see cref="ValidationCompleted"/> as a <see cref="TraceValidationResult"/>.
 /// </summary>
 public class PathVerifier : MonoBehaviour
 {
@@ -33,6 +37,29 @@ public class PathVerifier : MonoBehaviour
         /// <param name="x">World X coordinate.</param>
         /// <param name="value">Logical output state.</param>
         public SignalEvent(float x, bool value) { this.x = x; this.value = value; }
+    }
+
+    #endregion
+
+    #region Events
+
+    /// <summary>
+    /// Raised at the end of every validation run by <see cref="FinalizeAndCheckPath"/> (arrival or death), after the result
+    /// is computed and before the result screen is shown, including the short trace case; it is not raised when the level
+    /// could not be loaded (no answer key). A logic hook for the attempt collection, not for UI. Subscribers must unsubscribe
+    /// in <c>OnDisable</c>; the event is cleared when Play Mode starts (<see cref="ResetStaticEvents"/>), and an exception
+    /// thrown by a subscriber is logged without stopping the pipeline.
+    /// </summary>
+    public static event Action<TraceValidationResult> ValidationCompleted;
+
+    /// <summary>
+    /// Clears <see cref="ValidationCompleted"/> when Play Mode starts, so that subscribers do not survive between runs
+    /// when Domain Reload is disabled in the editor.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticEvents()
+    {
+        ValidationCompleted = null;
     }
 
     #endregion
@@ -86,6 +113,7 @@ public class PathVerifier : MonoBehaviour
 
     private GabaritoGenerator gabaritoGenerator;
     private PathChecker pathChecker;
+    private AnswerKeyCorners answerKeyCorners;
     private List<Vector3> missedCorners = new();
     private LineRenderer signalLineRenderer;
 
@@ -99,11 +127,9 @@ public class PathVerifier : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        gabaritoGenerator = new GabaritoGenerator(lowY, highY);
+        gabaritoGenerator = new GabaritoGenerator(lowY, highY, cornerTolerance);
         gabaritoGenerator.Generate();
-        correctCorners = gabaritoGenerator.CorrectCorners;
-
-        pathChecker = new PathChecker(cornerTolerance, enableDebugLogs);
+        ApplyAnswerKey();
     }
 
     /// <summary>
@@ -220,7 +246,7 @@ public class PathVerifier : MonoBehaviour
         bool initialState = false)
     {
         gabaritoGenerator.BuildFromEvents(events, initialX, initialState);
-        correctCorners = gabaritoGenerator.CorrectCorners;
+        ApplyAnswerKey();
     }
 
     #endregion
@@ -229,7 +255,10 @@ public class PathVerifier : MonoBehaviour
 
     /// <summary>
     /// Executes the full verification sequence: evaluates the player path, renders visual feedback, and notifies score and UI controllers.
-    /// Interacts with <see cref="PathChecker"/>, <see cref="ScoreController"/>, and <see cref="ResultScreenController"/>.
+    /// Publishes the <see cref="TraceValidationResult"/> through <see cref="ValidationCompleted"/> in both branches: the evaluated path
+    /// (with <c>trace</c> and <c>correct</c> from <see cref="ColumnEvaluator"/> and the score returned by <see cref="ScoreController.ReportResult"/>)
+    /// and the path too short to evaluate (incorrect, score 0, accuracy 0 and null vectors).
+    /// Interacts with <see cref="PathChecker"/>, <see cref="ColumnEvaluator"/>, <see cref="ScoreController"/>, and <see cref="ResultScreenController"/>.
     /// </summary>
     private void RunPipeline()
     {
@@ -238,6 +267,15 @@ public class PathVerifier : MonoBehaviour
         if (signalPath == null || signalPath.PathPoints.Count < 2)
         {
             Debug.LogError("[PathVerifier] Invalid player path!");
+            if (answerKeyCorners != null)
+                PublishValidation(TraceValidationResult.ForShortTrace(answerKeyCorners.AnswerKey.ColumnCount));
+            ResultScreenController.Instance?.Show(false);
+            return;
+        }
+
+        if (answerKeyCorners == null)
+        {
+            Debug.LogError("[PathVerifier] No answer key corners: the level could not be loaded, so the path cannot be verified.");
             ResultScreenController.Instance?.Show(false);
             return;
         }
@@ -252,8 +290,43 @@ public class PathVerifier : MonoBehaviour
 
         DrawFeedback(playerPath);
 
-        ScoreController.Instance?.ReportResult(result.CoveredSegments, result.GabaritoTotal, result.IsCorrect);
+        int performance = 0;
+        if (ScoreController.Instance != null)
+            performance = ScoreController.Instance.ReportResult(result.CoveredSegments, result.GabaritoTotal, result.IsCorrect);
+        else
+            Debug.LogWarning("[PathVerifier] ScoreController not found: the validation result carries score 0.");
+
+        float overallAccuracy = result.GabaritoTotal > 0 ? (float)result.CoveredSegments / result.GabaritoTotal : 0f;
+        ColumnEvaluation columns = ColumnEvaluator.Evaluate(answerKeyCorners, playerPath.ToPathPoints());
+        PublishValidation(new TraceValidationResult(result.IsCorrect, overallAccuracy, performance, columns.Trace, columns.Correct));
+
         ResultScreenController.Instance?.Show(result.IsCorrect);
+    }
+
+    /// <summary>
+    /// Raises <see cref="ValidationCompleted"/> for each subscriber, logging an exception thrown by one of them without
+    /// interrupting the others or the pipeline, and prints the result in a Development Build as evidence of the validation.
+    /// </summary>
+    /// <param name="validation">Result of the validation run.</param>
+    private void PublishValidation(TraceValidationResult validation)
+    {
+        if (Debug.isDebugBuild)
+            Debug.Log($"[PathVerifier] Validation result: {validation}");
+
+        Action<TraceValidationResult> handlers = ValidationCompleted;
+        if (handlers == null) return;
+
+        foreach (Delegate handler in handlers.GetInvocationList())
+        {
+            try
+            {
+                ((Action<TraceValidationResult>)handler)(validation);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+        }
     }
 
     #endregion
@@ -302,46 +375,16 @@ public class PathVerifier : MonoBehaviour
 
     /// <summary>
     /// Evaluates if a player path segment falls within orthogonal tolerance of any reference answer key segment.
+    /// Delegates to <see cref="SegmentValidator.IsValid(AnswerKeyCorners, PathPoint, PathPoint)"/> of the shared library FlipNflopCommons.
     /// </summary>
     /// <param name="pStart">Segment start point.</param>
     /// <param name="pEnd">Segment end point.</param>
     /// <returns>True if the segment closely aligns with a valid reference segment.</returns>
     private bool IsSegmentValid(Vector3 pStart, Vector3 pEnd)
     {
-        if ((pEnd - pStart).sqrMagnitude < 0.0001f) return true;
+        if (answerKeyCorners == null) return false;
 
-        for (int i = 0; i < correctCorners.Count - 1; i++)
-        {
-            Vector3 c1 = correctCorners[i];
-            Vector3 c2 = correctCorners[i + 1];
-            bool isHorizontal = Mathf.Abs(c1.y - c2.y) <= 0.1f;
-
-            if (isHorizontal)
-            {
-                if (Mathf.Abs(pStart.y - c1.y) <= cornerTolerance &&
-                    Mathf.Abs(pEnd.y - c1.y) <= cornerTolerance)
-                {
-                    float minX = Mathf.Min(c1.x, c2.x) - 0.1f;
-                    float maxX = Mathf.Max(c1.x, c2.x) + 0.1f;
-                    if (pStart.x >= minX && pStart.x <= maxX &&
-                        pEnd.x >= minX && pEnd.x <= maxX)
-                        return true;
-                }
-            }
-            else
-            {
-                if (Mathf.Abs(pStart.x - c1.x) <= cornerTolerance &&
-                    Mathf.Abs(pEnd.x - c1.x) <= cornerTolerance)
-                {
-                    float minY = Mathf.Min(c1.y, c2.y) - 0.1f;
-                    float maxY = Mathf.Max(c1.y, c2.y) + 0.1f;
-                    if (pStart.y >= minY && pStart.y <= maxY &&
-                        pEnd.y >= minY && pEnd.y <= maxY)
-                        return true;
-                }
-            }
-        }
-        return false;
+        return SegmentValidator.IsValid(answerKeyCorners, pStart.ToPathPoint(), pEnd.ToPathPoint());
     }
 
     /// <summary>
@@ -410,6 +453,33 @@ public class PathVerifier : MonoBehaviour
 
     #endregion
 
+    #region Answer Key
+
+    /// <summary>
+    /// Takes the corners generated by <see cref="GabaritoGenerator"/> (the inspector list and the commons
+    /// <see cref="AnswerKeyCorners"/>) and recreates the <see cref="PathChecker"/> that evaluates them.
+    /// </summary>
+    private void ApplyAnswerKey()
+    {
+        correctCorners = gabaritoGenerator.CorrectCorners;
+        answerKeyCorners = gabaritoGenerator.AnswerKeyCorners;
+        pathChecker = CreatePathChecker();
+    }
+
+    /// <summary>
+    /// Creates the <see cref="PathChecker"/> for the current answer key corners, or a checker without answer key when
+    /// the level could not be loaded.
+    /// </summary>
+    /// <returns>The path checker.</returns>
+    private PathChecker CreatePathChecker()
+    {
+        return answerKeyCorners != null
+            ? new PathChecker(answerKeyCorners, enableDebugLogs)
+            : new PathChecker(cornerTolerance, enableDebugLogs);
+    }
+
+    #endregion
+
     #region Debug & Editor Utilities
 
     /// <summary>
@@ -444,7 +514,7 @@ public class PathVerifier : MonoBehaviour
     private void ToggleDebugLogs()
     {
         enableDebugLogs = !enableDebugLogs;
-        pathChecker = new PathChecker(cornerTolerance, enableDebugLogs);
+        pathChecker = CreatePathChecker();
         Debug.Log($"<color=yellow>[PathVerifier] Debug logs {(enableDebugLogs ? "ENABLED" : "DISABLED")}</color>");
     }
 
