@@ -74,6 +74,12 @@ namespace FlipNflop.Gla
 
         public string GameVersion { get; }
 
+        /// <summary>In-memory generation of the identity that owns a queued attempt.</summary>
+        internal int IdentityVersion => identityVersion;
+
+        /// <summary>The configured transport shared by session opening and attempt delivery.</summary>
+        internal GlaApiClient Api => api;
+
         public PlayerMode Mode { get; private set; } = PlayerMode.Loading;
 
         public SessionState State { get; private set; } = SessionState.None;

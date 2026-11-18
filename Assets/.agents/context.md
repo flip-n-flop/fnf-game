@@ -151,6 +151,12 @@ Na chegada, queda ou colisão, `PlayerController` fecha o tempo e informa a caus
 
 A exceção a B4 são as chamadas em `GameMenuManager.RestartLevel`, `GameMenuManager.ExitToMainMenu` e `PauseManager.OpenMenuScene`. Cada botão novo de reinício ou saída durante a partida deve chamar `Abandon` **antes de carregar a cena**, enquanto o traçado ainda existe. Os botões de resultado já encontram a tentativa encerrada. O `PauseManager` está fora das cenas da v0.15.0.
 
+### 2.10. Entrega de tentativas (GLA-15)
+
+O `AttemptDelivery`, filho do `GlaServices`, recebe `RecordReady`, serializa cada registro uma vez e o enfileira em memória com a identidade e o token da partida. Uma corrotina persistente envia em ordem por `POST /attempts` e atravessa trocas de cena. Um registro já enfileirado conserva seu token quando o estudante troca de e-mail. Registros sem token só podem receber o da mesma identidade. Em `Loading` ou `Undecided` o registro recebido é descartado. A recusa do convidado, a configuração desligada e uma sessão rejeitada interrompem o envio.
+
+O cliente usa timeout de 10 s. Falha de rede, timeout, 429 e 5xx permitem até 6 tentativas com esperas reais de 2, 4, 8, 16 e 32 s (62 s somados), inclusive em pausa. A sessão pendente usa a mesma política na abertura. O esgotamento descarta o registro ou, na abertura, o grupo sem token daquela identidade. Um 400 ao abrir bloqueia o carregamento atual. O 204 confirma a entrega, e o 400 de um registro descarta e registra os detalhes. Um 401 `invalid_session` da identidade atual reabre a sessão com o instante original de carregamento, atualiza os tokens do grupo e repete o envio uma vez. Credencial vencida exige identificação no próximo menu. O fechamento da aba perde a fila. Em Development Build, cada envio deixa no log a fase, o início, o número da tentativa e o resultado HTTP ou de rede.
+
 ## 3. Interface de Usuário com UI Toolkit (`Assets/UI Toolkit/`)
 
 Toda a interface moderna do projeto é construída via **Unity UI Toolkit**:
