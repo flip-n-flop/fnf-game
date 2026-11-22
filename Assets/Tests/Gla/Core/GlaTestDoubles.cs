@@ -119,6 +119,10 @@ namespace FlipNflop.Gla.Tests
 
         public int SaveCount { get; private set; }
 
+        public Action<string> BeforeSet { get; set; }
+        public Action<string> BeforeDelete { get; set; }
+        public Action BeforeSave { get; set; }
+
         /// <summary>
         /// Whether the key exists.
         /// </summary>
@@ -138,18 +142,30 @@ namespace FlipNflop.Gla.Tests
         /// </summary>
         /// <param name="key">The key.</param>
         /// <param name="value">The text.</param>
-        public void SetString(string key, string value) => Values[key] = value;
+        public void SetString(string key, string value)
+        {
+            BeforeSet?.Invoke(key);
+            Values[key] = value;
+        }
 
         /// <summary>
         /// Removes a key.
         /// </summary>
         /// <param name="key">The key.</param>
-        public void DeleteKey(string key) => Values.Remove(key);
+        public void DeleteKey(string key)
+        {
+            BeforeDelete?.Invoke(key);
+            Values.Remove(key);
+        }
 
         /// <summary>
         /// Counts a save.
         /// </summary>
-        public void Save() => SaveCount++;
+        public void Save()
+        {
+            BeforeSave?.Invoke();
+            SaveCount++;
+        }
     }
 
     /// <summary>

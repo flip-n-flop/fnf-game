@@ -13,10 +13,10 @@ namespace FlipNflop.Gla
         /// <summary>A credential whose validity has not passed.</summary>
         Valid,
 
-        /// <summary>A credential whose validity passed; the keys were removed.</summary>
+        /// <summary>A credential whose validity passed; it cannot be reused.</summary>
         Expired,
 
-        /// <summary>A credential without a readable validity, or a validity without a credential; the keys were removed.</summary>
+        /// <summary>A credential without a readable validity, or a validity without a credential; it cannot be reused.</summary>
         Unreadable,
     }
 
@@ -58,7 +58,8 @@ namespace FlipNflop.Gla
         #region Public API
 
         /// <summary>
-        /// Stores the credential and its validity, and saves the storage.
+        /// Stores the credential and its validity through <see cref="IKeyValueStorage"/>, removing the old
+        /// validity first so that an interrupted update cannot pair a new credential with a stale expiry.
         /// </summary>
         /// <param name="credential">The opaque credential of the code verification.</param>
         /// <param name="expiresAt">When the API stops accepting it.</param>
@@ -68,13 +69,14 @@ namespace FlipNflop.Gla
             if (string.IsNullOrEmpty(credential))
                 throw new ArgumentException("The credential must not be empty.", nameof(credential));
 
+            storage.DeleteKey(ExpiresAtKey);
             storage.SetString(CredentialKey, credential);
             storage.SetString(ExpiresAtKey, GlaTime.Format(expiresAt));
             storage.Save();
         }
 
         /// <summary>
-        /// Reads the stored credential. An expired or unreadable one is removed from the storage.
+        /// Reads the stored credential. An expired or unreadable one is discarded and cleanup is attempted.
         /// The credential expires at the instant of its validity.
         /// </summary>
         /// <param name="now">The current instant.</param>
@@ -94,14 +96,14 @@ namespace FlipNflop.Gla
             string storedExpiry = hasExpiry ? storage.GetString(ExpiresAtKey) : null;
             if (string.IsNullOrEmpty(storedCredential) || !GlaTime.TryParse(storedExpiry, out DateTimeOffset validity))
             {
-                Clear();
+                TryClear();
                 return StoredCredentialStatus.Unreadable;
             }
 
             expiresAt = validity;
             if (now >= validity)
             {
-                Clear();
+                TryClear();
                 return StoredCredentialStatus.Expired;
             }
 
@@ -117,6 +119,20 @@ namespace FlipNflop.Gla
             storage.DeleteKey(CredentialKey);
             storage.DeleteKey(ExpiresAtKey);
             storage.Save();
+        }
+
+        /// <summary>Attempts to clear the credential through <see cref="IKeyValueStorage"/> even when persistence is unavailable.</summary>
+        internal bool TryClear()
+        {
+            try
+            {
+                Clear();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         #endregion

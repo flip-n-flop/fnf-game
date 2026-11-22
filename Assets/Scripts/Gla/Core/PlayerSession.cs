@@ -155,10 +155,10 @@ namespace FlipNflop.Gla
                     OpenSessionAsync();
                     return;
                 case StoredCredentialStatus.Expired:
-                    log.Info($"The stored credential expired at {GlaTime.Format(expiresAt)} and was removed.");
+                    log.Info($"The stored credential expired at {GlaTime.Format(expiresAt)} and was discarded.");
                     break;
                 case StoredCredentialStatus.Unreadable:
-                    log.Warning("The stored credential was unreadable and was removed.");
+                    log.Warning("The stored credential was unreadable and was discarded.");
                     break;
                 default:
                     log.Info("No stored credential.");
@@ -188,8 +188,8 @@ namespace FlipNflop.Gla
         }
 
         /// <summary>
-        /// Verifies the code (<see cref="GlaApiClient.VerifyCodeAsync"/>). On success, stores the
-        /// credential and its validity (never the e-mail), turns the mode into
+        /// Verifies the code (<see cref="GlaApiClient.VerifyCodeAsync"/>). On success, keeps the
+        /// credential and its validity in memory, attempts to persist them, turns the mode into
         /// <see cref="PlayerMode.Identified"/> and opens the identified session. A success that arrives
         /// after the player chose another way in is ignored. Only in <see cref="PlayerMode.Undecided"/>.
         /// </summary>
@@ -388,8 +388,8 @@ namespace FlipNflop.Gla
         #region Private Helpers
 
         /// <summary>
-        /// Stores the credential of a successful verification and opens the identified session.
-        /// Interacts with <see cref="CredentialStore.Save"/>.
+        /// Keeps the credential of a successful verification in memory and opens the identified session.
+        /// Attempts to persist it with <see cref="CredentialStore.Save"/>.
         /// </summary>
         /// <param name="result">The verification result.</param>
         private void AcceptCredential(CodeVerificationResult result)
@@ -403,18 +403,27 @@ namespace FlipNflop.Gla
             identityVersion++;
             credential = result.Credential;
             credentialExpiresAt = result.ExpiresAt;
-            credentials.Save(credential, credentialExpiresAt);
+            try
+            {
+                credentials.Save(credential, credentialExpiresAt);
+                log.Info($"E-mail verified: credential stored until {GlaTime.Format(credentialExpiresAt)}.");
+            }
+            catch (Exception)
+            {
+                credentials.TryClear();
+                log.Warning("Could not save the verified credential to browser storage. The game will use it in memory.");
+            }
+
             Mode = PlayerMode.Identified;
             State = SessionState.None;
             SessionToken = null;
-            log.Info($"E-mail verified: credential stored until {GlaTime.Format(credentialExpiresAt)}.");
             NotifyChanged();
             OpenSessionAsync();
         }
 
         /// <summary>
         /// Removes the credential from memory and from the storage, drops the session and returns to
-        /// <see cref="PlayerMode.Undecided"/>. Interacts with <see cref="CredentialStore.Clear"/>.
+        /// <see cref="PlayerMode.Undecided"/>. Interacts with <see cref="CredentialStore.TryClear"/>.
         /// </summary>
         private void DiscardIdentity()
         {
@@ -422,7 +431,8 @@ namespace FlipNflop.Gla
             openingOperation = null;
             credential = null;
             credentialExpiresAt = default;
-            credentials.Clear();
+            if (!credentials.TryClear())
+                log.Warning("Could not clear the credential from browser storage.");
             SessionToken = null;
             State = SessionState.None;
             Mode = PlayerMode.Undecided;

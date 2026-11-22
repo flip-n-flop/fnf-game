@@ -157,6 +157,63 @@ namespace FlipNflop.Gla.Tests
         }
 
         /// <summary>
+        /// A failed credential write, expiry write, or flush leaves the game available and never restores a partial
+        /// credential on the next load. The expiry failure also simulates a storage that cannot remove the partial key.
+        /// </summary>
+        [TestCase(CredentialStore.CredentialKey)]
+        [TestCase(CredentialStore.ExpiresAtKey)]
+        [TestCase(null)]
+        public void AcceptedCodeReleasesTheMenuWhenBrowserStorageFails(string failingKey)
+        {
+            if (failingKey == null)
+                storage.BeforeSave = () => throw new InvalidOperationException("Storage unavailable");
+            else
+                storage.BeforeSet = key =>
+                {
+                    if (key == failingKey)
+                        throw new InvalidOperationException("Storage unavailable");
+                };
+
+            if (failingKey == CredentialStore.ExpiresAtKey)
+            {
+                storage.Values[CredentialStore.ExpiresAtKey] = GlaTime.Format(now.AddHours(1));
+                storage.BeforeDelete = key =>
+                {
+                    if (key == CredentialStore.CredentialKey)
+                        throw new InvalidOperationException("Storage unavailable");
+                };
+            }
+
+            const string credential = "v1.credential";
+            const string token = "s1.identified-token";
+            transport.Enqueue(ApiAnswers.NoContent());
+            model.RequestCode(Email);
+            transport.Enqueue(ApiAnswers.Body(200, new CodeVerificationResult { Credential = credential, ExpiresAt = now.AddHours(4) }));
+            transport.Enqueue(ApiAnswers.Body(201, new SessionOpened { SessionToken = token, Identified = true }));
+
+            model.ConfirmCode("123456");
+
+            Assert.That(model.Busy, Is.False);
+            Assert.That(model.Message, Is.EqualTo(IdentificationMessage.None));
+            Assert.That(session.Mode, Is.EqualTo(PlayerMode.Identified));
+            Assert.That(session.State, Is.EqualTo(SessionState.Open));
+            Assert.That(session.SessionToken, Is.EqualTo(token));
+            Assert.That(session.IsCollectionBlocked, Is.False);
+            Assert.That(transport.Requests[2].Json, Does.Contain("\"credential\":\"" + credential + "\""));
+            if (failingKey == CredentialStore.ExpiresAtKey)
+                Assert.That(storage.Values.Keys, Is.EquivalentTo(new[] { CredentialStore.CredentialKey }));
+            else
+                Assert.That(storage.Values, Is.Empty);
+
+            var reloadTransport = new FakeHttpTransport();
+            var reloaded = new PlayerSession(now, session.GameVersion, new CredentialStore(storage), () => now, new RecordingLog());
+            reloaded.Enable(new GlaApiClient("http://localhost:5000", reloadTransport));
+
+            Assert.That(reloaded.Mode, Is.EqualTo(PlayerMode.Undecided));
+            Assert.That(reloadTransport.Requests, Is.Empty);
+        }
+
+        /// <summary>
         /// While a request runs, every action is ignored, and the buttons can be disabled.
         /// </summary>
         [Test]
