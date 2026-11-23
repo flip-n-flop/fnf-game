@@ -374,7 +374,7 @@ public class MenuManager : MonoBehaviour
         LevelToLoadJSON = levelJsonName;
         Debug.Log($"JSON Selected successfully: {levelJsonName} | Index: {levelIndex}");
 
-        SceneManager.LoadScene(customLevelName);
+        LoadingScreenManager.Load(customLevelName);
     }
 
     #endregion

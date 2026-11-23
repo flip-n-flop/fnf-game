@@ -84,7 +84,7 @@ public class UploadMenuManager : MonoBehaviour
 
         UploadedLevelJson.Content = jsonContent;
         MenuManager.LevelToLoadJSON = "";
-        SceneManager.LoadScene(customSceneName);
+        LoadingScreenManager.Load(customSceneName);
     }
 
     #endregion
