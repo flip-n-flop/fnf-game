@@ -55,6 +55,8 @@ public class LoadingScreenManager : MonoBehaviour
     private Material halftoneMatInstance;
     private Vector2 halftoneOffset;
     private readonly List<UIDocument> hiddenUIDocuments = new List<UIDocument>();
+    private readonly List<(SpriteRenderer sr, float baseAlpha)> cachedSprites = new List<(SpriteRenderer, float)>();
+    private readonly List<(TMP_Text tmp, float baseAlpha)> cachedTexts = new List<(TMP_Text, float)>();
 
     private void Awake()
     {
@@ -67,20 +69,52 @@ public class LoadingScreenManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        int loadingLayer = LayerMask.NameToLayer("LoadingUI");
+        if (loadingLayer >= 0)
+        {
+            SetLayerRecursively(gameObject, loadingLayer);
+            if (loadingCamera != null)
+            {
+                loadingCamera.cullingMask = 1 << loadingLayer;
+            }
+        }
+
         if (halftoneRenderer != null)
         {
             halftoneMatInstance = halftoneRenderer.material;
         }
 
+        CacheVisualAlphas();
+        if (fadeOverlay != null) fadeOverlay.gameObject.SetActive(false);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
         if (showOnAwakeForTesting)
         {
             isLoading = true;
             SetScreenActive(true);
-            SetOverlayAlpha(0f);
+            SetVisualsAlpha(1f);
         }
         else
         {
             SetScreenActive(false);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            Instance = null;
+        }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (isLoading)
+        {
+            HideActiveUIDocuments();
         }
     }
 
@@ -126,43 +160,45 @@ public class LoadingScreenManager : MonoBehaviour
 
         HideActiveUIDocuments();
         ApplyTexts(levelTitle, tip);
+        if (loadingCamera != null) loadingCamera.clearFlags = CameraClearFlags.Depth;
+        SetVisualsAlpha(0f);
         SetScreenActive(true);
 
-        // 1. Fade from black/scene into the loading screen
-        yield return FadeOverlay(1f, 0f, fadeInDuration);
+        // 1. Fade the loading screen directly in (no black screen)
+        yield return FadeVisuals(0f, 1f, fadeInDuration);
 
-        // 2. Start async scene load without activating immediately
-        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
-        if (op != null)
-        {
-            op.allowSceneActivation = false;
-        }
+        // 2. Pause gameplay time and load + activate the new scene behind the opaque loading screen
+        Time.timeScale = 0f;
+        hiddenUIDocuments.Clear();
 
         float elapsed = 0f;
-        while (elapsed < displayDuration || (op != null && op.progress < 0.9f))
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        while (op != null && !op.isDone)
         {
             elapsed += Time.unscaledDeltaTime;
             yield return null;
         }
 
-        // 3. Activate scene and wait for it to finish initializing
-        if (op != null)
-        {
-            op.allowSceneActivation = true;
-            while (!op.isDone)
-            {
-                yield return null;
-            }
-        }
-
-        // Wait one extra frame so LevelJsonLoader / Start() finishes setting up the level
+        // Let Start() and AspectRatioEnforcer settle while still behind the opaque loading screen
+        HideActiveUIDocuments();
+        AspectRatioEnforcer.RefreshNow();
         yield return null;
-
-        // Keep new scene UIDocuments hidden until fade-out completes
+        HideActiveUIDocuments();
+        yield return null;
         HideActiveUIDocuments();
 
-        // 4. Fade out to reveal the loaded level
-        yield return FadeOverlay(0f, 1f, fadeOutDuration);
+        // 3. Finish any remaining minimum display duration while the level is already loaded behind it
+        while (elapsed < displayDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        // 4. Unpause so the spider starts walking and fade the loading screen directly out over the ready level
+        AspectRatioEnforcer.RefreshNow();
+        Time.timeScale = 1f;
+
+        yield return FadeVisuals(1f, 0f, fadeOutDuration);
 
         RestoreHiddenUIDocuments();
         SetScreenActive(false);
@@ -221,37 +257,78 @@ public class LoadingScreenManager : MonoBehaviour
     {
         if (loadingCamera != null) loadingCamera.enabled = active;
         if (visualsRoot != null) visualsRoot.SetActive(active);
-        if (fadeOverlay != null) fadeOverlay.gameObject.SetActive(active);
+        if (fadeOverlay != null) fadeOverlay.gameObject.SetActive(false);
         if (active) AspectRatioEnforcer.RefreshNow();
     }
 
-    private IEnumerator FadeOverlay(float fromAlpha, float toAlpha, float duration)
+    private void CacheVisualAlphas()
     {
-        if (fadeOverlay == null || duration <= 0.001f)
+        cachedSprites.Clear();
+        cachedTexts.Clear();
+        if (visualsRoot == null) return;
+
+        SpriteRenderer[] sprites = visualsRoot.GetComponentsInChildren<SpriteRenderer>(true);
+        for (int i = 0; i < sprites.Length; i++)
         {
-            SetOverlayAlpha(toAlpha);
+            cachedSprites.Add((sprites[i], sprites[i].color.a));
+        }
+
+        TMP_Text[] texts = visualsRoot.GetComponentsInChildren<TMP_Text>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            cachedTexts.Add((texts[i], texts[i].color.a));
+        }
+    }
+
+    private IEnumerator FadeVisuals(float fromAlpha, float toAlpha, float duration)
+    {
+        if (duration <= 0.001f)
+        {
+            SetVisualsAlpha(toAlpha);
             yield break;
         }
 
         float elapsed = 0f;
-        SetOverlayAlpha(fromAlpha);
+        SetVisualsAlpha(fromAlpha);
 
         while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            SetOverlayAlpha(Mathf.Lerp(fromAlpha, toAlpha, t));
+            SetVisualsAlpha(Mathf.Lerp(fromAlpha, toAlpha, t));
             yield return null;
         }
 
-        SetOverlayAlpha(toAlpha);
+        SetVisualsAlpha(toAlpha);
     }
 
-    private void SetOverlayAlpha(float alpha)
+    private void SetVisualsAlpha(float multiplier)
     {
-        if (fadeOverlay == null) return;
-        Color c = fadeOverlay.color;
-        c.a = alpha;
-        fadeOverlay.color = c;
+        for (int i = 0; i < cachedSprites.Count; i++)
+        {
+            var (sr, baseAlpha) = cachedSprites[i];
+            if (sr == null) continue;
+            Color c = sr.color;
+            c.a = baseAlpha * multiplier;
+            sr.color = c;
+        }
+
+        for (int i = 0; i < cachedTexts.Count; i++)
+        {
+            var (tmp, baseAlpha) = cachedTexts[i];
+            if (tmp == null) continue;
+            Color c = tmp.color;
+            c.a = baseAlpha * multiplier;
+            tmp.color = c;
+        }
+    }
+
+    private static void SetLayerRecursively(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursively(child.gameObject, layer);
+        }
     }
 }
