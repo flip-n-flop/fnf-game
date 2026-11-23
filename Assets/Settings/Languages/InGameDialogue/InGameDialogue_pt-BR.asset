@@ -1,0 +1,200 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: InGameDialogue_pt-BR
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: pt-BR
+  m_SharedData: {fileID: 11400000, guid: bd7c0c8e9d1872e44ba2c18bcc5ffe2d, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 575683145728
+    m_Localized: "... Consegue\u2026 Ouvir\u2026 Voz\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226112
+    m_Localized: ACORDE!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226113
+    m_Localized: "Abra seus olhos, pequenina\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226114
+    m_Localized: "Siga a minha voz. Ela te guiar\xE1 at\xE9 a liberdade."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226115
+    m_Localized: "Parab\xE9ns, Dr. Robotnik! A altera\xE7\xE3o gen\xE9tica funcionou."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226116
+    m_Localized: "Os esp\xE9cimes desenvolveram instintos sobre-humanos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226117
+    m_Localized: "Pena que s\xF3 uma das cobaias Flip-Flop sobreviveu."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226118
+    m_Localized: "Mas os resultados s\xE3o promissores."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226119
+    m_Localized: "A atividade neural dela superou todas as proje\xE7\xF5es!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226120
+    m_Localized: "Excelente! O prot\xF3tipo est\xE1 est\xE1vel."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226121
+    m_Localized: "Anos de pesquisa, enfim recompensados. Registrem os dados e\u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226122
+    m_Localized: "Voc\xEA me ouve, pequenina?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226123
+    m_Localized: "...Que bom. Temi que a minha voz n\xE3o chegasse."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226124
+    m_Localized: "J\xE1 fui uma cobaia, como voc\xEA. Pode me chamar de M\xE3e Aranha."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226125
+    m_Localized: "ATEN\xC7\xC3O, TODAS AS UNIDADES!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226126
+    m_Localized: O EXPERIMENTO FF-04 ESCAPOU DO CONFINAMENTO!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226127
+    m_Localized: "ACIONAR PROTOCOLO DE CONTEN\xC7\xC3O!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226128
+    m_Localized: "Ignore-os. Preste aten\xE7\xE3o no que direi."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226129
+    m_Localized: "Seus sistemas ainda est\xE3o reiniciando."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226130
+    m_Localized: "Em instantes, linhas luminosas v\xE3o surgir no topo da sua tela."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226131
+    m_Localized: "Essas s\xE3o as linhas de sinal. Cada uma \xE9 um instinto seu."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226132
+    m_Localized: "Elas n\xE3o mandam em voc\xEA. S\xF3 mostram o caminho."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226133
+    m_Localized: "Voc\xEA pode andar no ch\xE3o\u2026 ou no teto."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226134
+    m_Localized: Leia todas as linhas juntas e decida por onde seguir.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226135
+    m_Localized: "\xD3timo. Voc\xEA j\xE1 consegue v\xEA-las!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226136
+    m_Localized: "Seus instintos ainda est\xE3o confusos. Deixe-me ajudar."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226137
+    m_Localized: "Cada linha funciona de um jeito. Esta \xE9 a linha CLK."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226138
+    m_Localized: "Ela dita o ritmo de tudo, como o tique de um cora\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226139
+    m_Localized: No instante em que ela sobe, o caminho pode mudar.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226140
+    m_Localized: "Entre um tique e outro, o caminho n\xE3o muda."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226141
+    m_Localized: "V\xE1 at\xE9 o primeiro tique para continuarmos a explica\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226142
+    m_Localized: Use <- e -> para se mover.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226143
+    m_Localized: "Perfeito. Bem a\xED!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226144
+    m_Localized: "A linha S indica quando voc\xEA deve andar no teto."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226145
+    m_Localized: "Se estiver alta no tique, o caminho \xE9 o teto. Tente subir."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226146
+    m_Localized: Aperte X para trocar de lado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226147
+    m_Localized: "Isso! Voc\xEA conseguiu!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226148
+    m_Localized: "Sinceramente, n\xE3o esperava tanto desse seu c\xE9rebro pequenino."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226149
+    m_Localized: "A linha R \xE9 o oposto. Se estiver alta no tique, o caminho \xE9
+      o ch\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226150
+    m_Localized: "V\xE1 at\xE9 o pr\xF3ximo tique e des\xE7a."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226151
+    m_Localized: Se as linhas S e R estiverem baixas no tique, siga reto.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226152
+    m_Localized: "As duas nunca ficar\xE3o altas ao mesmo tempo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226153
+    m_Localized: "Por enquanto, isso \xE9 tudo que voc\xEA precisa saber."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 575771226154
+    m_Localized: Agora, use o que aprendeu para concluir a fase.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

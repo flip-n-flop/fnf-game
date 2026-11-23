@@ -1,0 +1,88 @@
+[??? (Mãe Aranha)]
+... Consegue… Ouvir… Voz…
+[??? (Mãe Aranha)]
+ACORDE!
+[??? (Mãe Aranha)]
+Abra seus olhos, pequenina…
+[??? (Mãe Aranha)]
+Siga a minha voz. Ela te guiará até a liberdade.
+[Cientista]
+Parabéns, Dr. Robotnik! A alteração genética funcionou.
+[Cientista]
+Os espécimes desenvolveram instintos sobre-humanos.
+[Cientista]
+Pena que só uma das cobaias Flip-Flop sobreviveu.
+[Cientista]
+Mas os resultados são promissores.
+[Cientista]
+A atividade neural dela superou todas as projeções!
+[Dr. Robotnik]
+Excelente! O protótipo está estável.
+[Dr. Robotnik]
+Anos de pesquisa, enfim recompensados. Registrem os dados e—
+[??? (Mãe Aranha)]
+Você me ouve, pequenina?
+[??? (Mãe Aranha)]
+...Que bom. Temi que a minha voz não chegasse.
+[Mãe Aranha]
+Já fui uma cobaia, como você. Pode me chamar de Mãe Aranha.
+[Auto-Falante]
+ATENÇÃO, TODAS AS UNIDADES!
+[Auto-Falante]
+O EXPERIMENTO FF-04 ESCAPOU DO CONFINAMENTO!
+[Auto-Falante]
+ACIONAR PROTOCOLO DE CONTENÇÃO!
+[Mãe Aranha]
+Ignore-os. Preste atenção no que direi.
+[Mãe Aranha]
+Seus sistemas ainda estão reiniciando.
+[Mãe Aranha]
+Em instantes, linhas luminosas vão surgir no topo da sua tela.
+[Mãe Aranha]
+Essas são as linhas de sinal. Cada uma é um instinto seu.
+[Mãe Aranha]
+Elas não mandam em você. Só mostram o caminho.
+[Mãe Aranha]
+Você pode andar no chão… ou no teto.
+[Mãe Aranha]
+Leia todas as linhas juntas e decida por onde seguir.
+[Mãe Aranha]
+Ótimo. Você já consegue vê-las!
+[Mãe Aranha]
+Seus instintos ainda estão confusos. Deixe-me ajudar.
+[Mãe Aranha]
+Cada linha funciona de um jeito. Esta é a linha CLK.
+[Mãe Aranha]
+Ela dita o ritmo de tudo, como o tique de um coração.
+[Mãe Aranha]
+No instante em que ela sobe, o caminho pode mudar.
+[Mãe Aranha]
+Entre um tique e outro, o caminho não muda.
+[Mãe Aranha]
+Vá até o primeiro tique para continuarmos a explicação.
+[Mãe Aranha]
+Use <- e -> para se mover.
+[Mãe Aranha]
+Perfeito. Bem aí!
+[Mãe Aranha]
+A linha S indica quando você deve andar no teto.
+[Mãe Aranha]
+Se estiver alta no tique, o caminho é o teto. Tente subir.
+[Mãe Aranha]
+Aperte X para trocar de lado.
+[Mãe Aranha]
+Isso! Você conseguiu!
+[Mãe Aranha]
+Sinceramente, não esperava tanto desse seu cérebro pequenino.
+[Mãe Aranha]
+A linha R é o oposto. Se estiver alta no tique, o caminho é o chão.
+[Mãe Aranha]
+Vá até o próximo tique e desça.
+[Mãe Aranha]
+Se as linhas S e R estiverem baixas no tique, siga reto.
+[Mãe Aranha]
+As duas nunca ficarão altas ao mesmo tempo.
+[Mãe Aranha]
+Por enquanto, isso é tudo que você precisa saber.
+[Mãe Aranha]
+Agora, use o que aprendeu para concluir a fase.

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Localization;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -15,6 +16,9 @@ public class DialogueManager : MonoBehaviour
 
     private DialogueData dialogoAtual;
     private int indiceFalaAtual;
+
+    private const string NomeStringTable = "InGameDialogue";
+    private LocalizedString falaLocalizada;
 
     private float escalaTempoAnterior;
 
@@ -56,8 +60,25 @@ public class DialogueManager : MonoBehaviour
         if (characterName != null)
             characterName.text = fala.personagem;
 
-        // Temporário: mostra a chave até integrarmos a String Table de localização.
-        dialogueText.text = fala.chaveTexto;
+        if (falaLocalizada != null)
+        {
+            falaLocalizada.StringChanged -= AtualizarTextoLocalizado;
+            falaLocalizada = null;
+        }
+
+        falaLocalizada = new LocalizedString(NomeStringTable, fala.chaveTexto);
+
+        dialogueText.text = "";
+
+        falaLocalizada.StringChanged += AtualizarTextoLocalizado;
+    }
+
+    private void AtualizarTextoLocalizado(string texto)
+    {
+        if (!DialogoAtivo)
+            return;
+
+        dialogueText.text = texto;
     }
 
     public void AvancarDialogo()
@@ -80,6 +101,12 @@ public class DialogueManager : MonoBehaviour
     {
         if (!DialogoAtivo)
             return;
+
+        if (falaLocalizada != null)
+        {
+            falaLocalizada.StringChanged -= AtualizarTextoLocalizado;
+            falaLocalizada = null;
+        }
 
         dialogueRoot.style.display = DisplayStyle.None;
 

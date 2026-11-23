@@ -41,6 +41,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Locale-en
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cdad72aaa1ec3664d9b049309d84a1a1
+    m_Address: InGameDialogue_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d176465f3b646b34e9b435d271348f14
     m_Address: InGameTutorial_en
     m_ReadOnly: 1

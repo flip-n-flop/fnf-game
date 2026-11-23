@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dfcadcb931e4dd49a6cd4cab0c29d52, type: 3}
+  m_Name: roteiro_fase1
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  id: roteiro_fase1
+  falas:
+  - personagem: "??? (M\xE3e Aranha)"
+    chaveTexto: roteiro_fase1_001
+  - personagem: "??? (M\xE3e Aranha)"
+    chaveTexto: roteiro_fase1_002
+  - personagem: "??? (M\xE3e Aranha)"
+    chaveTexto: roteiro_fase1_003
+  - personagem: "??? (M\xE3e Aranha)"
+    chaveTexto: roteiro_fase1_004
+  - personagem: Cientista
+    chaveTexto: roteiro_fase1_005
+  - personagem: Cientista
+    chaveTexto: roteiro_fase1_006
+  - personagem: Cientista
+    chaveTexto: roteiro_fase1_007
+  - personagem: Cientista
+    chaveTexto: roteiro_fase1_008
+  - personagem: Cientista
+    chaveTexto: roteiro_fase1_009
+  - personagem: Dr. Robotnik
+    chaveTexto: roteiro_fase1_010
+  - personagem: Dr. Robotnik
+    chaveTexto: roteiro_fase1_011
+  - personagem: "??? (M\xE3e Aranha)"
+    chaveTexto: roteiro_fase1_012
+  - personagem: "??? (M\xE3e Aranha)"
+    chaveTexto: roteiro_fase1_013
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_014
+  - personagem: Auto-Falante
+    chaveTexto: roteiro_fase1_015
+  - personagem: Auto-Falante
+    chaveTexto: roteiro_fase1_016
+  - personagem: Auto-Falante
+    chaveTexto: roteiro_fase1_017
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_018
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_019
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_020
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_021
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_022
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_023
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_024
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_025
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_026
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_027
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_028
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_029
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_030
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_031
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_032
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_033
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_034
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_035
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_036
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_037
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_038
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_039
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_040
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_041
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_042
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_043
+  - personagem: "M\xE3e Aranha"
+    chaveTexto: roteiro_fase1_044
