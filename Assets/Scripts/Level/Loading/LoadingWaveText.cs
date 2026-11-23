@@ -22,7 +22,6 @@ public class LoadingWaveText : MonoBehaviour
     [SerializeField] private bool bounceUpOnly = true;
 
     private TMP_Text tmpText;
-    private TMP_MeshInfo[] cachedMeshInfo;
 
     private void Awake()
     {
@@ -48,7 +47,7 @@ public class LoadingWaveText : MonoBehaviour
 
         tmpText.ForceMeshUpdate();
         TMP_TextInfo textInfo = tmpText.textInfo;
-        if (textInfo == null || textInfo.characterCount == 0) return;
+        if (textInfo == null || textInfo.characterCount == 0 || textInfo.meshInfo == null) return;
 
         float time = Time.unscaledTime * waveSpeed;
 
@@ -58,8 +57,11 @@ public class LoadingWaveText : MonoBehaviour
             if (!charInfo.isVisible) continue;
 
             int materialIndex = charInfo.materialReferenceIndex;
+            if (materialIndex < 0 || materialIndex >= textInfo.meshInfo.Length) continue;
+
             int vertexIndex = charInfo.vertexIndex;
             Vector3[] vertices = textInfo.meshInfo[materialIndex].vertices;
+            if (vertices == null || vertexIndex + 3 >= vertices.Length) continue;
 
             float rawWave = Mathf.Sin(time - i * characterPhaseOffset);
             float offsetY = (bounceUpOnly ? Mathf.Max(0f, rawWave) : rawWave) * waveAmplitude;
@@ -74,6 +76,7 @@ public class LoadingWaveText : MonoBehaviour
         for (int i = 0; i < textInfo.meshInfo.Length; i++)
         {
             TMP_MeshInfo meshInfo = textInfo.meshInfo[i];
+            if (meshInfo.mesh == null || meshInfo.vertices == null) continue;
             meshInfo.mesh.vertices = meshInfo.vertices;
             tmpText.UpdateGeometry(meshInfo.mesh, i);
         }
@@ -88,6 +91,5 @@ public class LoadingWaveText : MonoBehaviour
         if (tmpText == null) return;
 
         tmpText.ForceMeshUpdate();
-        cachedMeshInfo = tmpText.textInfo.CopyMeshInfoVertexData();
     }
 }

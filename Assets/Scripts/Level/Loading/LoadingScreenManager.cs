@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
@@ -157,15 +158,33 @@ public class LoadingScreenManager : MonoBehaviour
     private IEnumerator LoadSceneRoutine(string sceneName, string levelTitle, string tip, float displayDuration)
     {
         isLoading = true;
+        Debug.Log($"[LoadingScreen] Start loading '{sceneName}'");
 
-        HideActiveUIDocuments();
         ApplyTexts(levelTitle, tip);
-        if (loadingCamera != null) loadingCamera.clearFlags = CameraClearFlags.Depth;
-        SetVisualsAlpha(0f);
+        SetAsSolidBaseCamera();
+        SetVisualsAlpha(1f);
         SetScreenActive(true);
 
-        // 1. Fade the loading screen directly in (no black screen)
-        yield return FadeVisuals(0f, 1f, fadeInDuration);
+        // 1. Fade out active menu UIDocuments directly over the already-opaque LoadingScreen
+        //    so no empty camera background or black frame ever shows.
+        hiddenUIDocuments.Clear();
+        UIDocument[] sourceDocs = FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude);
+        if (sourceDocs.Length > 0 && fadeInDuration > 0.001f)
+        {
+            float fadeElapsed = 0f;
+            while (fadeElapsed < fadeInDuration)
+            {
+                fadeElapsed += Time.unscaledDeltaTime;
+                float opVal = 1f - Mathf.Clamp01(fadeElapsed / fadeInDuration);
+                for (int i = 0; i < sourceDocs.Length; i++)
+                {
+                    if (sourceDocs[i] != null && sourceDocs[i].rootVisualElement != null)
+                        sourceDocs[i].rootVisualElement.style.opacity = opVal;
+                }
+                yield return null;
+            }
+        }
+        HideActiveUIDocuments();
 
         // 2. Pause gameplay time and load + activate the new scene behind the opaque loading screen
         Time.timeScale = 0f;
@@ -173,11 +192,23 @@ public class LoadingScreenManager : MonoBehaviour
 
         float elapsed = 0f;
         AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
-        while (op != null && !op.isDone)
+        if (op == null)
+        {
+            Debug.LogError($"[LoadingScreen] LoadSceneAsync returned null for '{sceneName}'");
+            Time.timeScale = 1f;
+            RestoreHiddenUIDocuments();
+            SetScreenActive(false);
+            isLoading = false;
+            yield break;
+        }
+
+        while (!op.isDone)
         {
             elapsed += Time.unscaledDeltaTime;
             yield return null;
         }
+
+        Debug.Log($"[LoadingScreen] Scene '{sceneName}' loaded");
 
         // Let Start() and AspectRatioEnforcer settle while still behind the opaque loading screen
         HideActiveUIDocuments();
@@ -194,15 +225,66 @@ public class LoadingScreenManager : MonoBehaviour
             yield return null;
         }
 
-        // 4. Unpause so the spider starts walking and fade the loading screen directly out over the ready level
+        // 4. Attach LoadingCamera as a URP Overlay on the new scene's Main Camera, unpause, and fade out
         AspectRatioEnforcer.RefreshNow();
+        Camera targetCam = Camera.main;
+        bool attachedToTarget = AttachAsOverlay(targetCam);
+
         Time.timeScale = 1f;
 
-        yield return FadeVisuals(1f, 0f, fadeOutDuration);
+        if (attachedToTarget)
+        {
+            yield return FadeVisuals(1f, 0f, fadeOutDuration);
+            DetachFromOverlay(targetCam);
+            SetAsSolidBaseCamera();
+        }
 
         RestoreHiddenUIDocuments();
         SetScreenActive(false);
         isLoading = false;
+        Debug.Log($"[LoadingScreen] Transition complete for '{sceneName}'");
+    }
+
+    private bool AttachAsOverlay(Camera baseCam)
+    {
+        if (loadingCamera == null || baseCam == null || baseCam == loadingCamera)
+            return false;
+
+        var baseData = baseCam.GetUniversalAdditionalCameraData();
+        var loadingData = loadingCamera.GetUniversalAdditionalCameraData();
+        if (baseData == null || loadingData == null)
+            return false;
+
+        loadingData.renderType = CameraRenderType.Overlay;
+        if (!baseData.cameraStack.Contains(loadingCamera))
+        {
+            baseData.cameraStack.Add(loadingCamera);
+        }
+        return true;
+    }
+
+    private void DetachFromOverlay(Camera baseCam)
+    {
+        if (loadingCamera == null || baseCam == null)
+            return;
+
+        var baseData = baseCam.GetUniversalAdditionalCameraData();
+        if (baseData != null)
+        {
+            baseData.cameraStack.Remove(loadingCamera);
+        }
+    }
+
+    private void SetAsSolidBaseCamera()
+    {
+        if (loadingCamera == null) return;
+
+        var loadingData = loadingCamera.GetUniversalAdditionalCameraData();
+        if (loadingData != null)
+        {
+            loadingData.renderType = CameraRenderType.Base;
+        }
+        loadingCamera.clearFlags = CameraClearFlags.SolidColor;
     }
 
     private void HideActiveUIDocuments()
