@@ -2,22 +2,15 @@
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/Exo2-VariableFont_wght.ttf?fileID=12800000&guid=06cc052497f62034fb43e3edf087d21a&type=3#Exo2-VariableFont_wght");
 }
 
-/* ── HUD Root ── */
-
 .hud-root {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    /* No pointer events on the root so it doesn't block gameplay input */
     pointer-events: none;
 }
 
-/* ── In-Game Timer (Left Playfield Badge) ── */
-
-/* Container geral do relógio: altere "scale" aqui (ex: 1.25 1.25 ou 0.85 0.85)
-   para aumentar ou diminuir o relógio inteiro (fundo + ícone + números) de uma vez só */
 .hud-timer-wrapper {
     position: absolute;
     bottom: 28%;
@@ -47,7 +40,7 @@
     height: 37px;
     left: -12px;
     top: 14px;
-    background-image: url("project://database/Assets/Arts/InGameUI/Timer/Clock.png?fileID=4214149858688995037&guid=b246c17d2d0c3e046a894cd50dd0dc82&type=3#Clock_0");
+    background-image: url("project://database/Assets/Arts/InGameUI/Timer/Old.png?fileID=4214149858688995037&guid=b246c17d2d0c3e046a894cd50dd0dc82&type=3#Clock_0");
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -63,10 +56,10 @@
 .hud-timer-text {
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
-    color: #FFFFFF;
+    color: rgb(255, 255, 255);
     -unity-text-align: middle-center;
     -unity-text-outline-width: 1.5px;
-    -unity-text-outline-color: #000000;
+    -unity-text-outline-color: rgb(0, 0, 0);
     padding: 0;
     margin: 0;
 }
@@ -87,8 +80,6 @@
     font-size: 32px;
     margin-bottom: 2px;
 }
-
-/* ── Level Title (Bottom-Left) ── */
 
 .hud-title-wrapper {
     position: absolute;
@@ -112,15 +103,15 @@
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
     font-size: 38px;
-    color: #FFFFFF;
+    color: rgb(255, 255, 255);
     -unity-text-align: middle-left;
     padding: 0;
     padding-bottom: 12px;
     padding-right: 14px;
     margin: 0;
     -unity-text-outline-width: 2px;
-    -unity-text-outline-color: #000000;
-    text-shadow: 7px 7px 0px #000000;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    text-shadow: 7px 7px 0 rgb(0, 0, 0);
     letter-spacing: -5px;
     overflow: visible;
 }
@@ -128,7 +119,7 @@
 .hud-subtitle-text {
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Italic.otf?fileID=12800000&guid=3216756f7c4a20146a30909395f0db55&type=3#FS Industrie Italic");
     font-size: 26px;
-    color: #FFFFFF;
+    color: rgb(255, 255, 255);
     -unity-text-align: middle-left;
     padding: 0;
     margin-top: -10px;
@@ -138,13 +129,10 @@
     letter-spacing: 1px;
 }
 
-/* ── Signal HUD Labels ── */
-
 .signal-label {
     position: absolute;
     align-items: center;
     justify-content: center;
-    /* Hidden by default; script shows them when needed */
     display: none;
 }
 
@@ -178,17 +166,15 @@
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/FS%20Industrie%20Bold%20Italic.otf?fileID=12800000&guid=2bbd195ae471f6740b804e576e15fa3c&type=3#FS Industrie Bold Italic");
     -unity-font-style: bold;
     font-size: 24px;
-    color: #FFFFFF;
+    color: rgb(255, 255, 255);
     -unity-text-align: middle-center;
     padding: 0;
     margin: 0;
     -unity-text-outline-width: 2px;
-    -unity-text-outline-color: #000000;
-    text-shadow: 7px 7px 0px #000000;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    text-shadow: 7px 7px 0 rgb(0, 0, 0);
     rotate: -15deg;
 }
-
-/* ── Tutorial Panel (Bottom-Center) ── */
 
 .tutorial-container {
     position: absolute;
@@ -211,7 +197,7 @@
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/Exo2-VariableFont_wght.ttf?fileID=12800000&guid=06cc052497f62034fb43e3edf087d21a&type=3#Exo2-VariableFont_wght");
     -unity-font-style: bold;
     font-size: 22px;
-    color: #F5F7FA;
+    color: rgb(245, 247, 250);
     -unity-text-align: middle-center;
     white-space: normal;
     padding: 0;
