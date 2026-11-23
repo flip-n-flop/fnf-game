@@ -171,7 +171,7 @@ public class LoadingScreenManager : MonoBehaviour
 
     private void HideActiveUIDocuments()
     {
-        UIDocument[] docs = FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        UIDocument[] docs = FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude);
         for (int i = 0; i < docs.Length; i++)
         {
             UIDocument doc = docs[i];

@@ -54,9 +54,6 @@ public class SignalLabelGroup : MonoBehaviour
     [Tooltip("Smoothing time (in seconds) for LabelHolo to fade in and fade out.")]
     [SerializeField] private float holoSmoothTime = 0.12f;
 
-    [Tooltip("Speed of vertical and alpha transition when signal logic state flips.")]
-    [SerializeField] private float transitionSpeed = 15f;
-
     #endregion
 
     private float targetBrightY = 0.0f;
@@ -507,7 +504,7 @@ public class SignalLabelGroup : MonoBehaviour
                 prefabAsset.EnsureReferences();
             }
 
-            SignalLabelGroup[] sceneGroups = FindObjectsByType<SignalLabelGroup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            SignalLabelGroup[] sceneGroups = FindObjectsByType<SignalLabelGroup>(FindObjectsInactive.Include);
             foreach (SignalLabelGroup group in sceneGroups)
             {
                 if (group == null) continue;

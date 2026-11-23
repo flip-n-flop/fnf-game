@@ -156,7 +156,7 @@ public class GradientMapController : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            SignalLineRenderer slr = FindFirstObjectByType<SignalLineRenderer>();
+            SignalLineRenderer slr = FindAnyObjectByType<SignalLineRenderer>();
             if (slr != null)
             {
                 slr.RefreshFadeColorFromGradient();

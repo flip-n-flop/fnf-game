@@ -691,7 +691,7 @@ public class SignalLineRenderer : MonoBehaviour
             }
             else
             {
-                GradientMapController gmc = FindFirstObjectByType<GradientMapController>();
+                GradientMapController gmc = FindAnyObjectByType<GradientMapController>();
                 if (gmc != null)
                 {
                     fadeColor = gmc.CurrentBackgroundColor;
@@ -834,7 +834,7 @@ public class SignalLineRenderer : MonoBehaviour
             mainCamera = Camera.main;
             if (mainCamera == null)
             {
-                mainCamera = FindFirstObjectByType<Camera>();
+                mainCamera = FindAnyObjectByType<Camera>();
             }
         }
 
@@ -872,7 +872,7 @@ public class SignalLineRenderer : MonoBehaviour
             mainCamera = Camera.main;
             if (mainCamera == null)
             {
-                mainCamera = FindFirstObjectByType<Camera>();
+                mainCamera = FindAnyObjectByType<Camera>();
             }
         }
 

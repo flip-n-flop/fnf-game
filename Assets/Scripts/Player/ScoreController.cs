@@ -195,7 +195,7 @@ public class ScoreController : MonoBehaviour
     private void TriggerGameOver()
     {
         StopTimer();
-        PlayerController player = FindFirstObjectByType<PlayerController>();
+        PlayerController player = FindAnyObjectByType<PlayerController>();
         if (player != null && player.gameObject.activeInHierarchy)
         {
             player.PlayerDeath();

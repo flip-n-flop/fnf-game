@@ -144,7 +144,7 @@ public class AspectRatioEnforcer : MonoBehaviour
 
     private void ApplyToAllCameras()
     {
-        Camera[] cameras = FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Camera[] cameras = FindObjectsByType<Camera>(FindObjectsInactive.Include);
         for (int i = 0; i < cameras.Length; i++)
         {
             Camera cam = cameras[i];
@@ -160,7 +160,7 @@ public class AspectRatioEnforcer : MonoBehaviour
 
     private void ApplyToAllUIDocuments()
     {
-        UIDocument[] docs = FindObjectsByType<UIDocument>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        UIDocument[] docs = FindObjectsByType<UIDocument>(FindObjectsInactive.Include);
         float leftPct = CurrentViewportRect.x * 100f;
         float topPct = (1f - CurrentViewportRect.y - CurrentViewportRect.height) * 100f;
         float widthPct = CurrentViewportRect.width * 100f;
