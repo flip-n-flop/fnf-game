@@ -119,6 +119,84 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &1009954787
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1000001, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_Name
+      value: LoadingScreen
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 15.38109
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.50464
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000002, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000004, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000004, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8000004, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6000001, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7000001, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8000001, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+  m_SourcePrefab: {fileID: 100100000, guid: 1104ce8e051cb7544a3139b23bf276f0, type: 3}
 --- !u!1 &1492164843
 GameObject:
   m_ObjectHideFlags: 0
@@ -495,7 +573,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuManager
   customLevelName: Custom
-  arquivosDasFases:
+  levelFiles:
   - {fileID: 4900000, guid: 99ba21bd0a2f9254f9b04016833c26d2, type: 3}
   - {fileID: 4900000, guid: a6910dc8abf01494b8981e5a1822b90d, type: 3}
   - {fileID: 4900000, guid: 53017f26725e9884ba71e5f8d8a35f38, type: 3}
@@ -648,3 +726,4 @@ SceneRoots:
   - {fileID: 1492164846}
   - {fileID: 1650886761}
   - {fileID: 1801426331}
+  - {fileID: 1009954787}
