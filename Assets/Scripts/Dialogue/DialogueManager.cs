@@ -3,11 +3,18 @@ using UnityEngine.UIElements;
 
 public class DialogueManager : MonoBehaviour
 {
+    [Header("Interface")]
     [SerializeField] private UIDocument hudDocument;
+
+    [Header("Teste")]
+    [SerializeField] private DialogueData dialogoTeste;
 
     private VisualElement dialogueRoot;
     private Label characterName;
     private Label dialogueText;
+
+    private DialogueData dialogoAtual;
+    private int indiceFalaAtual;
 
     private float escalaTempoAnterior;
 
@@ -24,25 +31,49 @@ public class DialogueManager : MonoBehaviour
         dialogueRoot.style.display = DisplayStyle.None;
     }
 
-    public void IniciarDialogo(string nome, string fala)
+    public void IniciarDialogo(DialogueData dialogo)
     {
-        if (DialogoAtivo)
+        if (DialogoAtivo || dialogo == null || dialogo.falas == null || dialogo.falas.Count == 0)
             return;
+
+        dialogoAtual = dialogo;
+        indiceFalaAtual = 0;
 
         DialogoAtivo = true;
 
         escalaTempoAnterior = Time.timeScale;
         Time.timeScale = 0f;
 
-        // --------------
-        // TEMPORÁRIO
-        // --------------
-        if (characterName != null)
-            characterName.text = nome;
-
-        dialogueText.text = fala;
-
         dialogueRoot.style.display = DisplayStyle.Flex;
+
+        ExibirFalaAtual();
+    }
+
+    private void ExibirFalaAtual()
+    {
+        DialogueLine fala = dialogoAtual.falas[indiceFalaAtual];
+
+        if (characterName != null)
+            characterName.text = fala.personagem;
+
+        // Temporário: mostra a chave até integrarmos a String Table de localização.
+        dialogueText.text = fala.chaveTexto;
+    }
+
+    public void AvancarDialogo()
+    {
+        if (!DialogoAtivo)
+            return;
+
+        indiceFalaAtual++;
+
+        if (indiceFalaAtual >= dialogoAtual.falas.Count)
+        {
+            FinalizarDialogo();
+            return;
+        }
+
+        ExibirFalaAtual();
     }
 
     public void FinalizarDialogo()
@@ -53,6 +84,9 @@ public class DialogueManager : MonoBehaviour
         dialogueRoot.style.display = DisplayStyle.None;
 
         Time.timeScale = escalaTempoAnterior;
+
+        dialogoAtual = null;
+        indiceFalaAtual = 0;
         DialogoAtivo = false;
     }
 
@@ -65,10 +99,13 @@ public class DialogueManager : MonoBehaviour
     [ContextMenu("Testar diálogo")]
     private void TestarDialogo()
     {
-        IniciarDialogo(
-            "Dr. Nefário",
-            "Olá! Hoje vamos aprender sobre flip-flops!"
-        );
+        IniciarDialogo(dialogoTeste);
+    }
+
+    [ContextMenu("Avançar diálogo")]
+    private void AvancarTeste()
+    {
+        AvancarDialogo();
     }
 
     [ContextMenu("Encerrar diálogo")]

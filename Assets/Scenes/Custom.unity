@@ -5284,6 +5284,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
   hudDocument: {fileID: 199984141}
+  dialogoTeste: {fileID: 11400000, guid: 61e73682a97a9a44e884f7a28bd243d4, type: 2}
 --- !u!1 &1849092187
 GameObject:
   m_ObjectHideFlags: 0
