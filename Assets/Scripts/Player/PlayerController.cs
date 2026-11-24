@@ -76,6 +76,9 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Distance outside the left edge of the camera screen where the intro walk begins.")]
     [SerializeField] private float introOffscreenOffset = 1.5f;
 
+    [Tooltip("Extra distance the character walks forward automatically after the guide bar closes at level end.")]
+    [SerializeField] private float outroWalkDistance = 1.8f;
+
     [Header("Guide Bar Settings")]
     [Tooltip("SpriteRenderer of the vertical tolerance guide bar (child named 'Guide').")]
     [SerializeField] private SpriteRenderer guideRenderer;
@@ -87,7 +90,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float guideEaseInPower = 2.5f;
 
     [Tooltip("Maximum vertical half-height in world units reached by the guide bar.")]
-    [SerializeField] private float guideMaxWorldRadius = 12f;
+    [SerializeField] private float guideMaxWorldRadius = 25f;
 
     [Tooltip("Normalized softness (0..0.9) of the top/bottom fade-out blur on the guide bar.")]
     [Range(0.05f, 0.9f)]
@@ -177,7 +180,9 @@ public class PlayerController : MonoBehaviour
     private bool isIntroWalking;
     private bool isGuideExpanding;
     private bool isGuideCollapsing;
+    private bool isOutroWalking;
     private bool hasCompletedLevel;
+    private float outroTargetX;
     private float guideExpandTimer;
     private Material guideMaterialInstance;
     private float horizontalInput;
@@ -278,7 +283,11 @@ public class PlayerController : MonoBehaviour
     {
         UpdateGuideExpansion();
         UpdateGuideCollapse();
-        if (hasCompletedLevel) return;
+        if (hasCompletedLevel)
+        {
+            if (isOutroWalking) UpdateAnimator();
+            return;
+        }
         UpdateAnimator();
         CheckWinAndLoseConditions();
         CheckFlipTimeout();
@@ -289,7 +298,15 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
-        if (hasCompletedLevel) return;
+        if (hasCompletedLevel)
+        {
+            if (isOutroWalking)
+            {
+                CheckIfGrounded();
+                HandleOutroWalk();
+            }
+            return;
+        }
         CheckIfGrounded();
         HandleMovement();
         HandleJump();
@@ -521,8 +538,43 @@ public class PlayerController : MonoBehaviour
         {
             isGuideCollapsing = false;
             SetGuideProgress(0f);
-            this.enabled = false;
+            StartOutroWalk();
         }
+    }
+
+    /// <summary>
+    /// Starts the short automatic walk forward once the guide bar has closed at the end of the level.
+    /// </summary>
+    private void StartOutroWalk()
+    {
+        if (outroWalkDistance <= 0.01f)
+        {
+            this.enabled = false;
+            return;
+        }
+
+        outroTargetX = rb.position.x + outroWalkDistance;
+        isOutroWalking = true;
+    }
+
+    /// <summary>
+    /// Moves the character forward during the post-finish outro walk and disables the controller upon arrival.
+    /// </summary>
+    private void HandleOutroWalk()
+    {
+        if (rb.position.x >= outroTargetX)
+        {
+            isOutroWalking = false;
+            rb.position = new Vector2(outroTargetX, rb.position.y);
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            animator.SetBool("run", false);
+            animator.SetFloat("speed", 0f);
+            this.enabled = false;
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
+        spriteRenderer.flipX = false ^ IsGravityInverted;
     }
 
     /// <summary>
@@ -849,7 +901,7 @@ public class PlayerController : MonoBehaviour
         bool isFalling = !isGrounded && (rb.linearVelocity.y * gravitySign) < 0f;
         animator.SetBool("fall", isFalling);
 
-        float effectiveInput = CanPlayerControl ? horizontalInput : (isIntroWalking ? 1f : 0f);
+        float effectiveInput = CanPlayerControl ? horizontalInput : ((isIntroWalking || isOutroWalking) ? 1f : 0f);
         float speedX = useInputForRunSpeed
             ? Mathf.Abs(effectiveInput) * moveSpeed
             : Mathf.Abs(rb.linearVelocity.x);
