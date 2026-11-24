@@ -128,7 +128,7 @@ public class SignalLineRenderer : MonoBehaviour
     private const float INPUT_X_OFFSET = 0.5f;
     private const float CLOCK_X_OFFSET = 0.0f;
     private const float LEAD_IN_LENGTH = 2.0f;
-    private const float EXTEND_RIGHT_LENGTH = 4.0f;
+    private const float EXTEND_RIGHT_LENGTH = 5.0f;
     private const float BADGE_BASE_WIDTH = 3.83f * 0.92f;
     private const float BADGE_BASE_HEIGHT = 1.88f * 0.92f;
     [Header("Sorting Layers & Orders")]

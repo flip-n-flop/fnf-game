@@ -164,7 +164,7 @@ public class PlayerController : MonoBehaviour
     /// Indicates whether the player is currently allowed to control the character.
     /// Control is locked during intro walking and while the guide bar expansion animation is playing.
     /// </summary>
-    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding;
+    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding && !hasCompletedLevel;
 
     #endregion
 
@@ -176,6 +176,8 @@ public class PlayerController : MonoBehaviour
     private bool isGravityInvertedState;
     private bool isIntroWalking;
     private bool isGuideExpanding;
+    private bool isGuideCollapsing;
+    private bool hasCompletedLevel;
     private float guideExpandTimer;
     private Material guideMaterialInstance;
     private float horizontalInput;
@@ -275,6 +277,8 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         UpdateGuideExpansion();
+        UpdateGuideCollapse();
+        if (hasCompletedLevel) return;
         UpdateAnimator();
         CheckWinAndLoseConditions();
         CheckFlipTimeout();
@@ -285,6 +289,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
+        if (hasCompletedLevel) return;
         CheckIfGrounded();
         HandleMovement();
         HandleJump();
@@ -489,6 +494,38 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Starts the reverse collapse animation of the vertical guide bar when the player finishes the level.
+    /// </summary>
+    private void StartGuideCollapse()
+    {
+        guideExpandTimer = 0f;
+        isGuideExpanding = false;
+        isGuideCollapsing = true;
+    }
+
+    /// <summary>
+    /// Advances the guide bar collapse animation per frame and disables the controller once finished.
+    /// </summary>
+    private void UpdateGuideCollapse()
+    {
+        if (!isGuideCollapsing) return;
+
+        guideExpandTimer += Time.deltaTime;
+        float duration = Mathf.Max(0.05f, guideExpandDuration);
+        float t = Mathf.Clamp01(guideExpandTimer / duration);
+        float easedProgress = Mathf.Pow(1f - t, Mathf.Max(1f, guideEaseInPower));
+
+        SetGuideProgress(easedProgress);
+
+        if (t >= 1f)
+        {
+            isGuideCollapsing = false;
+            SetGuideProgress(0f);
+            this.enabled = false;
+        }
+    }
+
+    /// <summary>
     /// Updates the guide bar shader progress and renderer visibility.
     /// </summary>
     private void SetGuideProgress(float progress)
@@ -547,8 +584,9 @@ public class PlayerController : MonoBehaviour
             PlayerDeath();
         }
 
-        if (transform.position.x > LevelManager.Instance.levelEndX + 1)
+        if (transform.position.x > LevelManager.Instance.phaseEndX)
         {
+            hasCompletedLevel = true;
             scoreController.StopTimer();
 
             rb.linearVelocity = Vector2.zero;
@@ -561,7 +599,7 @@ public class PlayerController : MonoBehaviour
 
             cameraController.EnableManualControl();
 
-            this.enabled = false;
+            StartGuideCollapse();
         }
     }
 

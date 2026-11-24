@@ -84,7 +84,7 @@ public class CameraController : MonoBehaviour
         if (LevelManager.Instance != null)
         {
             float halfScreenWidth = cam.orthographicSize * cam.aspect;
-            float levelRight = LevelManager.Instance.levelEndX;
+            float levelRight = LevelManager.Instance.phaseEndX;
 
             float computedMax = (levelRight - halfScreenWidth) + endPadding;
             maxX = Mathf.Max(minX, computedMax);

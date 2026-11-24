@@ -365,7 +365,10 @@ public class LevelJsonLoader : MonoBehaviour
             tilemapRenderer.RenderClock(clockPattern, clockY, clockColor);
         }
 
-        tilemapRenderer.RenderTerrain(data.Floor, data.Ceiling, floorYRow, ceilingYRow, 3);
+        int terrainExtendRight = LevelManager.Instance != null
+            ? Mathf.CeilToInt(LevelManager.Instance.phaseSlackTiles) + 2
+            : 5;
+        tilemapRenderer.RenderTerrain(data.Floor, data.Ceiling, floorYRow, ceilingYRow, terrainExtendRight);
         tilemapRenderer.CompleteStaticScenery(floorYRow, ceilingYRow);
 
         if (data.Obstacles?.Count > 0)
