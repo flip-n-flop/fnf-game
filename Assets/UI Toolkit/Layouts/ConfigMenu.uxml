@@ -131,7 +131,11 @@
                     </Bindings>
                 </ui:Label>
                 <ui:Slider name="SliderMusica" high-value="1" low-value="0" class="config-slider"/>
-                <ui:Button name="BtnResetAudio" text="Restaurar Padrões" class="menu-button" style="align-self: center; margin-top: 10px;"/>
+                <ui:Button name="BtnResetAudio" text="Restaurar Padrões" class="menu-button" style="align-self: center; margin-top: 10px;">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:b078eccd26181e348bead05bd7da94cb" entry="Id(10293847544)"/>
+                    </Bindings>
+                </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="PanelVideo" class="config-page config-video-page" style="display: none;">
                 <ui:Label text="Contraste do Fundo" name="Label" class="config-section-title">

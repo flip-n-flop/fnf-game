@@ -2,7 +2,7 @@
     xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
     editor-extension-mode="False">
     <ui:Template name="HowToPlayMenu"
-        src="project://database/Assets/UI%20Toolkit/Layouts/HowToPlayMenu.uxml?fileID=9197481963319205126&amp;guid=bc0db67d26e0fe54f90c3c6cc9e71f26&amp;type=3#HowToPlayMenu" />
+        src="project://database/Assets/UI%20Toolkit/Layouts/TutorialMenu.uxml?fileID=9197481963319205126&amp;guid=bc0db67d26e0fe54f90c3c6cc9e71f26&amp;type=3#TutorialMenu" />
     <ui:Template name="ConfigMenu"
         src="project://database/Assets/UI%20Toolkit/Layouts/ConfigMenu.uxml?fileID=9197481963319205126&amp;guid=c9199edad8332b34db99cecc978a6c8d&amp;type=3#ConfigMenu" />
     <Style
