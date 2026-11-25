@@ -27,7 +27,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed = 5.0f;
 
     [Tooltip("Vertical impulse force applied when jumping.")]
-    [SerializeField] private float jumpForce = 12.0f;
+    [SerializeField] private float jumpForce = 12.5f;
+
+    [Range(0f, 1f)]
+    [Tooltip("Multiplier applied to vertical velocity when releasing the jump button early while ascending.")]
+    [SerializeField] private float jumpCutMultiplier = 0.5f;
 
     [Header("Ground Check Settings")]
     [Tooltip("Radius of the overlap sphere used for ground detection.")]
@@ -55,13 +59,13 @@ public class PlayerController : MonoBehaviour
 
     [Header("Movement Smoothing")]
     [Tooltip("How fast the player accelerates toward target speed (units/s^2).")]
-    [SerializeField] private float acceleration = 25f;
+    [SerializeField] private float acceleration = 35f;
 
     [Tooltip("How fast the player slows down when releasing input (units/s^2).")]
     [SerializeField] private float deceleration = 35f;
 
     [Tooltip("Multiplier applied to acceleration/deceleration while airborne.")]
-    [SerializeField] private float airControlMultiplier = 0.7f;
+    [SerializeField] private float airControlMultiplier = 1.0f;
 
     [Header("Gameplay Settings")]
     [Tooltip("World Y threshold (positive and negative) below/above which player dies.")]
@@ -188,6 +192,8 @@ public class PlayerController : MonoBehaviour
     private float horizontalInput;
     private bool isGrounded;
     private bool jumpInput;
+    private bool isJumpHeld;
+    private bool isJumping;
     private bool gravityFlipInput;
     private ActionState actionState = ActionState.None;
     private float flipStartTime;
@@ -247,6 +253,8 @@ public class PlayerController : MonoBehaviour
     {
         isIntroWalking = true;
         jumpInput = false;
+        isJumpHeld = false;
+        isJumping = false;
         gravityFlipInput = false;
 
         scoreController?.ResetAndStopTimer();
@@ -346,6 +354,7 @@ public class PlayerController : MonoBehaviour
         if (jumpAction?.action != null)
         {
             jumpAction.action.performed += OnJumpPerformed;
+            jumpAction.action.canceled += OnJumpCanceled;
             jumpAction.action.Enable();
         }
 
@@ -377,8 +386,12 @@ public class PlayerController : MonoBehaviour
         if (jumpAction?.action != null)
         {
             jumpAction.action.performed -= OnJumpPerformed;
+            jumpAction.action.canceled -= OnJumpCanceled;
             jumpAction.action.Disable();
         }
+
+        isJumpHeld = false;
+        isJumping = false;
 
         if (flipGravityAction?.action != null)
         {
@@ -410,6 +423,15 @@ public class PlayerController : MonoBehaviour
     {
         if (!CanPlayerControl) return;
         jumpInput = true;
+        isJumpHeld = true;
+    }
+
+    /// <summary>
+    /// Handles jump release callback for variable jump height.
+    /// </summary>
+    private void OnJumpCanceled(InputAction.CallbackContext ctx)
+    {
+        isJumpHeld = false;
     }
 
     /// <summary>
@@ -671,6 +693,8 @@ public class PlayerController : MonoBehaviour
             {
                 isIntroWalking = false;
                 jumpInput = false;
+                isJumpHeld = false;
+                isJumping = false;
                 gravityFlipInput = false;
                 rb.position = new Vector2(spawnTargetX, rb.position.y);
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -730,23 +754,42 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Processes jump input when grounded, applying vertical velocity in direction opposite to gravity.
+    /// Processes jump input when grounded, applying vertical velocity in direction opposite to gravity,
+    /// and scales jump height by cutting vertical velocity when the jump button is released early.
     /// </summary>
     private void HandleJump()
     {
         if (!CanPlayerControl)
         {
             jumpInput = false;
+            isJumpHeld = false;
+            isJumping = false;
             return;
         }
 
+        float jumpDirection = IsGravityInverted ? -1f : 1f;
+
         if (jumpInput && isGrounded && actionState == ActionState.None)
         {
-            float jumpDirection = IsGravityInverted ? -1f : 1f;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * jumpDirection);
             animator.SetTrigger("jump");
+            isJumping = true;
         }
         jumpInput = false;
+
+        if (!isJumping) return;
+
+        if (actionState != ActionState.None || rb.linearVelocity.y * jumpDirection <= 0f)
+        {
+            isJumping = false;
+            return;
+        }
+
+        if (!isJumpHeld)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * Mathf.Clamp01(jumpCutMultiplier));
+            isJumping = false;
+        }
     }
 
     /// <summary>
