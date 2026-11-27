@@ -1,3 +1,32 @@
+## [0.15.2](https://github.com/flip-n-flop/fnf-game/compare/v0.15.1...v0.15.2) (2026-11-27)
+
+
+### Bug Fixes
+
+* Add maxTime setting and update timer UI for game over functionality ([519158e](https://github.com/flip-n-flop/fnf-game/commit/519158eb1fcd798824c684f021107f3b72cca2c5))
+* adjust camera center ([8d8fa40](https://github.com/flip-n-flop/fnf-game/commit/8d8fa40b73b243e01978d67975d6482f9027af21))
+* Adjust gradient settings ([467b190](https://github.com/flip-n-flop/fnf-game/commit/467b19005bbfe5394818c5d3b657e8ac1dd31e28))
+* adjust loading screen fade ([b221b6e](https://github.com/flip-n-flop/fnf-game/commit/b221b6e3cf3dfb890d5bd3e8a49ed2186d0dcbbf))
+* adjust localization bindings ([20cdf56](https://github.com/flip-n-flop/fnf-game/commit/20cdf56572a344ca7ad55373a03f98316bcc474a))
+* Adjust screen resolution to 16:9 ([e00a402](https://github.com/flip-n-flop/fnf-game/commit/e00a402999064c6809918d2a475d85255363f8a2))
+* Adjust timer design ([dcdce7c](https://github.com/flip-n-flop/fnf-game/commit/dcdce7c45c678b89e5690c5211a34afa35c48e23))
+* adjust uitoolkit preview ([8a9978f](https://github.com/flip-n-flop/fnf-game/commit/8a9978f29298a124059b1ba83d29b3fa937544a3))
+* adjust web textures ([9022bd3](https://github.com/flip-n-flop/fnf-game/commit/9022bd3d0a5c7cd4c30dbe5b61491e6c627aebb5))
+* adjusto fonts resolution ([9d2594e](https://github.com/flip-n-flop/fnf-game/commit/9d2594e8e88a4421db5eae1b964cd38beeb949e2))
+* allign inputLabel texts ([4ef9d0c](https://github.com/flip-n-flop/fnf-game/commit/4ef9d0c303c7ac252b7be2b44a67684edd0d8f65))
+* apider leaves camera at level end ([3d1aed7](https://github.com/flip-n-flop/fnf-game/commit/3d1aed7ae51aebc4a5cd4d3aff99ecaf158b1dbe))
+* create death animation ([36f2b32](https://github.com/flip-n-flop/fnf-game/commit/36f2b327ffa4e7bc1370b7a158289fcf0bbdf38a))
+* create web texture for output line ([b418840](https://github.com/flip-n-flop/fnf-game/commit/b41884029552d5d37c351bc909b7be7ade8f7410))
+* extends level by 3 tiles ([190b85e](https://github.com/flip-n-flop/fnf-game/commit/190b85e1bab327f3ab0fd310d9db4406f65d4e5b))
+* extends level end ([ed2702b](https://github.com/flip-n-flop/fnf-game/commit/ed2702b87caccef0b671547c83fc4fa843468f47))
+* fix loading screen on webgl ([7dad3e1](https://github.com/flip-n-flop/fnf-game/commit/7dad3e17090f48355fa9cd2cc1a037a583e54b51))
+* improve rebind menu view ([135a779](https://github.com/flip-n-flop/fnf-game/commit/135a7796e1f5de07f0bc3340c0ab888cf82275ba))
+* loading screen images ([7422794](https://github.com/flip-n-flop/fnf-game/commit/74227940e82893e431ae2b1685121a2c36e75b77))
+* remove old dependences from depreciated input managers ([827a05e](https://github.com/flip-n-flop/fnf-game/commit/827a05e1d11303f807032775b7c285cbb99cc0c5))
+* update outline and underlay settings for font material ([aeae38c](https://github.com/flip-n-flop/fnf-game/commit/aeae38cb542e6bb20cc305009855b802b01160c2))
+
+
+
 ## [0.15.1](https://github.com/flip-n-flop/fnf-game/compare/v0.15.0...v0.15.1) (2026-11-11)
 
 
@@ -68,15 +97,6 @@
 
 * **tutorial:** add core tutorial system with strategy pattern ([12c5b12](https://github.com/flip-n-flop/fnf-game/commit/12c5b1275690d9d37b03cb77ac77835e60028c8c))
 * **tutorial:** add TutorialUI with key-name placeholder in tutorial text ([975487e](https://github.com/flip-n-flop/fnf-game/commit/975487e1e95375fd938cc8ffc54f605eefd04ea3))
-
-
-
-## [0.12.9](https://github.com/flip-n-flop/fnf-game/compare/v0.12.8...v0.12.9) (2026-09-03)
-
-
-### Bug Fixes
-
-* rename tutorial to howtoPlay ([e5a1665](https://github.com/flip-n-flop/fnf-game/commit/e5a166570b58a69b567dd64e10e9767205821d43))
 
 
 
