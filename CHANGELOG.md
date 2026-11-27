@@ -1,3 +1,12 @@
+## [0.15.3](https://github.com/flip-n-flop/fnf-game/compare/v0.15.2...v0.15.3) (2026-11-27)
+
+
+### Bug Fixes
+
+* extends level starts ([48638b6](https://github.com/flip-n-flop/fnf-game/commit/48638b6fd54cfe557b74982b9dda9bd80aabe91a))
+
+
+
 ## [0.15.2](https://github.com/flip-n-flop/fnf-game/compare/v0.15.1...v0.15.2) (2026-11-27)
 
 
@@ -87,16 +96,6 @@
 ### Features
 
 * **common:** add InputDeviceTracker for keyboard/mouse vs gamepad detection ([5ac8813](https://github.com/flip-n-flop/fnf-game/commit/5ac88132b94a72af37a53beca9f6327ff38724b2))
-
-
-
-# [0.13.0](https://github.com/flip-n-flop/fnf-game/compare/v0.12.9...v0.13.0) (2026-09-21)
-
-
-### Features
-
-* **tutorial:** add core tutorial system with strategy pattern ([12c5b12](https://github.com/flip-n-flop/fnf-game/commit/12c5b1275690d9d37b03cb77ac77835e60028c8c))
-* **tutorial:** add TutorialUI with key-name placeholder in tutorial text ([975487e](https://github.com/flip-n-flop/fnf-game/commit/975487e1e95375fd938cc8ffc54f605eefd04ea3))
 
 
 
