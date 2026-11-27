@@ -33,6 +33,12 @@ Shader "Custom/Sprite_Holographic"
         _Intensity ("Overall Opacity / Intensity", Range(0.0, 2.5)) = 2.5
         _BaseTintStrength ("Minimum Base Fill", Range(0.0, 1.0)) = 1.0
         _BreakupCutoff ("Gap Threshold (Falhas)", Range(0.0, 0.8)) = 0.0
+
+        [Header(Right Edge Camera Fade)]
+        [Toggle] _EnableRightFade ("Enable Right Screen Fade", Float) = 1.0
+        _RightFadeStart ("Right Fade Start (Screen %)", Range(0.5, 1.0)) = 0.85
+        _RightFadeEnd ("Right Fade End (Screen %)", Range(0.5, 1.1)) = 0.98
+        _BackgroundColor ("Background Color (Fade Target)", Color) = (0.1473, 0.138, 0.2075, 1.0)
     }
 
     SubShader
@@ -67,10 +73,11 @@ Shader "Custom/Sprite_Holographic"
 
             struct v2f
             {
-                float4 vertex   : SV_POSITION;
-                fixed4 color    : COLOR;
-                float2 texcoord : TEXCOORD0;
-                float2 worldPos : TEXCOORD1;
+                float4 vertex    : SV_POSITION;
+                fixed4 color     : COLOR;
+                float2 texcoord  : TEXCOORD0;
+                float2 worldPos  : TEXCOORD1;
+                float4 screenPos : TEXCOORD2;
             };
 
             sampler2D _MainTex;
@@ -100,6 +107,11 @@ Shader "Custom/Sprite_Holographic"
             float _Intensity;
             float _BaseTintStrength;
             float _BreakupCutoff;
+
+            float _EnableRightFade;
+            float _RightFadeStart;
+            float _RightFadeEnd;
+            fixed4 _BackgroundColor;
 
             float Hash21(float2 p)
             {
@@ -268,6 +280,7 @@ Shader "Custom/Sprite_Holographic"
                 OUT.vertex = UnityObjectToClipPos(IN.vertex);
                 OUT.texcoord = IN.texcoord;
                 OUT.worldPos = mul(unity_ObjectToWorld, IN.vertex).xy;
+                OUT.screenPos = ComputeScreenPos(OUT.vertex);
                 OUT.color = IN.color * _Color * _RendererColor;
                 return OUT;
             }
@@ -340,6 +353,14 @@ Shader "Custom/Sprite_Holographic"
 
                 float alphaFactor = saturate(_BaseTintStrength + holoMask * _Intensity);
                 float finalAlpha = tex.a * IN.color.a * alphaFactor;
+
+                if (_EnableRightFade > 0.5)
+                {
+                    float w = max(IN.screenPos.w, 0.0001);
+                    float screenX = IN.screenPos.x / w;
+                    float rightFade = smoothstep(_RightFadeStart, _RightFadeEnd, screenX);
+                    finalRgb = lerp(finalRgb, _BackgroundColor.rgb, rightFade * _BackgroundColor.a);
+                }
 
                 return fixed4(finalRgb, finalAlpha);
             }

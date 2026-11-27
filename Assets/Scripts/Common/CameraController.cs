@@ -32,6 +32,10 @@ public class CameraController : MonoBehaviour
     [Tooltip("Offset position relative to the target transform.")]
     public Vector3 offset;
 
+    [Tooltip("Horizontal viewport position (0 = left edge, 0.5 = center) where the camera keeps the target.")]
+    [Range(0.1f, 0.9f)]
+    [SerializeField] private float targetViewportX = 0.4f;
+
     [Header("Manual Control Configuration")]
     [Tooltip("Speed at which the camera moves in manual mode.")]
     public float manualMoveSpeed = 10f;
@@ -40,8 +44,8 @@ public class CameraController : MonoBehaviour
     [Tooltip("The minimum X position where the camera stops at the start of the level.")]
     public float minX;
 
-    [Tooltip("Padding allowing the camera to move slightly past the screen end. Set to 0 to stop at the edge.")]
-    public float endPadding = 2f;
+    [Tooltip("Extra X padding beyond the camera position at phaseEndX.")]
+    public float endPadding = 0f;
 
     #endregion
 
@@ -84,7 +88,7 @@ public class CameraController : MonoBehaviour
         if (LevelManager.Instance != null)
         {
             float halfScreenWidth = cam.orthographicSize * cam.aspect;
-            float levelRight = LevelManager.Instance.levelEndX;
+            float levelRight = LevelManager.Instance.levelEndX + 10f;
 
             float computedMax = (levelRight - halfScreenWidth) + endPadding;
             maxX = Mathf.Max(minX, computedMax);
@@ -160,7 +164,9 @@ public class CameraController : MonoBehaviour
     {
         if (target != null)
         {
-            Vector3 desiredPosition = new Vector3(target.position.x + offset.x, transform.position.y, transform.position.z);
+            float halfScreenWidth = cam != null ? cam.orthographicSize * cam.aspect : 0f;
+            float viewportOffsetX = (0.5f - targetViewportX) * (2f * halfScreenWidth);
+            Vector3 desiredPosition = new Vector3(target.position.x + offset.x + viewportOffsetX, transform.position.y, transform.position.z);
             desiredPosition.x = ClampCameraX(desiredPosition.x);
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
             transform.position = smoothedPosition;

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,7 +28,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed = 5.0f;
 
     [Tooltip("Vertical impulse force applied when jumping.")]
-    [SerializeField] private float jumpForce = 12.0f;
+    [SerializeField] private float jumpForce = 12.5f;
+
+    [Range(0f, 1f)]
+    [Tooltip("Multiplier applied to vertical velocity when releasing the jump button early while ascending.")]
+    [SerializeField] private float jumpCutMultiplier = 0.5f;
 
     [Header("Ground Check Settings")]
     [Tooltip("Radius of the overlap sphere used for ground detection.")]
@@ -55,17 +60,17 @@ public class PlayerController : MonoBehaviour
 
     [Header("Movement Smoothing")]
     [Tooltip("How fast the player accelerates toward target speed (units/s^2).")]
-    [SerializeField] private float acceleration = 25f;
+    [SerializeField] private float acceleration = 35f;
 
     [Tooltip("How fast the player slows down when releasing input (units/s^2).")]
     [SerializeField] private float deceleration = 35f;
 
     [Tooltip("Multiplier applied to acceleration/deceleration while airborne.")]
-    [SerializeField] private float airControlMultiplier = 0.7f;
+    [SerializeField] private float airControlMultiplier = 1.0f;
 
     [Header("Gameplay Settings")]
     [Tooltip("World Y threshold (positive and negative) below/above which player dies.")]
-    [SerializeField] private float fallKillThreshold = -25f;
+    [SerializeField] private float fallKillThreshold = -5f;
 
     [Tooltip("Target X position where the player finishes the intro walk and gains control.")]
     [SerializeField] private float spawnTargetX = 6f;
@@ -75,6 +80,25 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("Distance outside the left edge of the camera screen where the intro walk begins.")]
     [SerializeField] private float introOffscreenOffset = 1.5f;
+
+    [Tooltip("Extra distance the character walks forward automatically after the guide bar closes at level end.")]
+    [SerializeField] private float outroWalkDistance = 1.8f;
+
+    [Header("Death Animation")]
+    [Tooltip("Brief freeze duration before the death pop-up begins.")]
+    [SerializeField] private float deathFreezeDelay = 0.12f;
+
+    [Tooltip("Initial upward velocity for the death pop-up arc.")]
+    [SerializeField] private float deathPopUpVelocity = 12f;
+
+    [Tooltip("Downward gravity acceleration applied during the death fall.")]
+    [SerializeField] private float deathFallGravity = 35f;
+
+    [Tooltip("Extra margin below the bottom of the camera before showing the post-death screen.")]
+    [SerializeField] private float deathOffscreenMargin = 2f;
+
+    [Tooltip("Maximum safety duration (seconds) for the death fall before showing the post-death screen.")]
+    [SerializeField] private float deathMaxDuration = 2.0f;
 
     [Header("Guide Bar Settings")]
     [Tooltip("SpriteRenderer of the vertical tolerance guide bar (child named 'Guide').")]
@@ -87,7 +111,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float guideEaseInPower = 2.5f;
 
     [Tooltip("Maximum vertical half-height in world units reached by the guide bar.")]
-    [SerializeField] private float guideMaxWorldRadius = 12f;
+    [SerializeField] private float guideMaxWorldRadius = 25f;
 
     [Tooltip("Normalized softness (0..0.9) of the top/bottom fade-out blur on the guide bar.")]
     [Range(0.05f, 0.9f)]
@@ -164,7 +188,7 @@ public class PlayerController : MonoBehaviour
     /// Indicates whether the player is currently allowed to control the character.
     /// Control is locked during intro walking and while the guide bar expansion animation is playing.
     /// </summary>
-    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding;
+    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding && !hasCompletedLevel && !isDead;
 
     #endregion
 
@@ -176,11 +200,18 @@ public class PlayerController : MonoBehaviour
     private bool isGravityInvertedState;
     private bool isIntroWalking;
     private bool isGuideExpanding;
+    private bool isGuideCollapsing;
+    private bool isOutroWalking;
+    private bool hasCompletedLevel;
+    private bool isDead;
+    private float outroTargetX;
     private float guideExpandTimer;
     private Material guideMaterialInstance;
     private float horizontalInput;
     private bool isGrounded;
     private bool jumpInput;
+    private bool isJumpHeld;
+    private bool isJumping;
     private bool gravityFlipInput;
     private ActionState actionState = ActionState.None;
     private float flipStartTime;
@@ -240,6 +271,8 @@ public class PlayerController : MonoBehaviour
     {
         isIntroWalking = true;
         jumpInput = false;
+        isJumpHeld = false;
+        isJumping = false;
         gravityFlipInput = false;
 
         scoreController?.ResetAndStopTimer();
@@ -274,7 +307,14 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        UpdateGuideCollapse();
+        if (isDead) return;
         UpdateGuideExpansion();
+        if (hasCompletedLevel)
+        {
+            if (isOutroWalking) UpdateAnimator();
+            return;
+        }
         UpdateAnimator();
         CheckWinAndLoseConditions();
         CheckFlipTimeout();
@@ -285,6 +325,16 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
+        if (isDead) return;
+        if (hasCompletedLevel)
+        {
+            if (isOutroWalking)
+            {
+                CheckIfGrounded();
+                HandleOutroWalk();
+            }
+            return;
+        }
         CheckIfGrounded();
         HandleMovement();
         HandleJump();
@@ -324,6 +374,7 @@ public class PlayerController : MonoBehaviour
         if (jumpAction?.action != null)
         {
             jumpAction.action.performed += OnJumpPerformed;
+            jumpAction.action.canceled += OnJumpCanceled;
             jumpAction.action.Enable();
         }
 
@@ -355,8 +406,12 @@ public class PlayerController : MonoBehaviour
         if (jumpAction?.action != null)
         {
             jumpAction.action.performed -= OnJumpPerformed;
+            jumpAction.action.canceled -= OnJumpCanceled;
             jumpAction.action.Disable();
         }
+
+        isJumpHeld = false;
+        isJumping = false;
 
         if (flipGravityAction?.action != null)
         {
@@ -388,6 +443,15 @@ public class PlayerController : MonoBehaviour
     {
         if (!CanPlayerControl) return;
         jumpInput = true;
+        isJumpHeld = true;
+    }
+
+    /// <summary>
+    /// Handles jump release callback for variable jump height.
+    /// </summary>
+    private void OnJumpCanceled(InputAction.CallbackContext ctx)
+    {
+        isJumpHeld = false;
     }
 
     /// <summary>
@@ -489,6 +553,76 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Starts the reverse collapse animation of the vertical guide bar when the player finishes the level.
+    /// </summary>
+    private void StartGuideCollapse()
+    {
+        guideExpandTimer = 0f;
+        isGuideExpanding = false;
+        isGuideCollapsing = true;
+    }
+
+    /// <summary>
+    /// Advances the guide bar collapse animation per frame and disables the controller once finished.
+    /// </summary>
+    private void UpdateGuideCollapse()
+    {
+        if (!isGuideCollapsing) return;
+
+        guideExpandTimer += Time.deltaTime;
+        float duration = Mathf.Max(0.05f, guideExpandDuration);
+        float t = Mathf.Clamp01(guideExpandTimer / duration);
+        float easedProgress = Mathf.Pow(1f - t, Mathf.Max(1f, guideEaseInPower));
+
+        SetGuideProgress(easedProgress);
+
+        if (t >= 1f)
+        {
+            isGuideCollapsing = false;
+            SetGuideProgress(0f);
+            if (!isDead)
+            {
+                StartOutroWalk();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts the short automatic walk forward once the guide bar has closed at the end of the level.
+    /// </summary>
+    private void StartOutroWalk()
+    {
+        if (outroWalkDistance <= 0.01f)
+        {
+            this.enabled = false;
+            return;
+        }
+
+        outroTargetX = rb.position.x + outroWalkDistance;
+        isOutroWalking = true;
+    }
+
+    /// <summary>
+    /// Moves the character forward during the post-finish outro walk and disables the controller upon arrival.
+    /// </summary>
+    private void HandleOutroWalk()
+    {
+        if (rb.position.x >= outroTargetX)
+        {
+            isOutroWalking = false;
+            rb.position = new Vector2(outroTargetX, rb.position.y);
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            animator.SetBool("run", false);
+            animator.SetFloat("speed", 0f);
+            this.enabled = false;
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
+        spriteRenderer.flipX = false ^ IsGravityInverted;
+    }
+
+    /// <summary>
     /// Updates the guide bar shader progress and renderer visibility.
     /// </summary>
     private void SetGuideProgress(float progress)
@@ -547,8 +681,9 @@ public class PlayerController : MonoBehaviour
             PlayerDeath();
         }
 
-        if (transform.position.x > LevelManager.Instance.levelEndX + 1)
+        if (transform.position.x > LevelManager.Instance.phaseEndX)
         {
+            hasCompletedLevel = true;
             scoreController.StopTimer();
 
             rb.linearVelocity = Vector2.zero;
@@ -561,7 +696,7 @@ public class PlayerController : MonoBehaviour
 
             cameraController.EnableManualControl();
 
-            this.enabled = false;
+            StartGuideCollapse();
         }
     }
 
@@ -581,6 +716,8 @@ public class PlayerController : MonoBehaviour
             {
                 isIntroWalking = false;
                 jumpInput = false;
+                isJumpHeld = false;
+                isJumping = false;
                 gravityFlipInput = false;
                 rb.position = new Vector2(spawnTargetX, rb.position.y);
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -640,23 +777,42 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Processes jump input when grounded, applying vertical velocity in direction opposite to gravity.
+    /// Processes jump input when grounded, applying vertical velocity in direction opposite to gravity,
+    /// and scales jump height by cutting vertical velocity when the jump button is released early.
     /// </summary>
     private void HandleJump()
     {
         if (!CanPlayerControl)
         {
             jumpInput = false;
+            isJumpHeld = false;
+            isJumping = false;
             return;
         }
 
+        float jumpDirection = IsGravityInverted ? -1f : 1f;
+
         if (jumpInput && isGrounded && actionState == ActionState.None)
         {
-            float jumpDirection = IsGravityInverted ? -1f : 1f;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * jumpDirection);
             animator.SetTrigger("jump");
+            isJumping = true;
         }
         jumpInput = false;
+
+        if (!isJumping) return;
+
+        if (actionState != ActionState.None || rb.linearVelocity.y * jumpDirection <= 0f)
+        {
+            isJumping = false;
+            return;
+        }
+
+        if (!isJumpHeld)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * Mathf.Clamp01(jumpCutMultiplier));
+            isJumping = false;
+        }
     }
 
     /// <summary>
@@ -758,17 +914,93 @@ public class PlayerController : MonoBehaviour
     #region Collision & Death
 
     /// <summary>
-    /// Triggers death sequence by stopping timers, enabling manual camera control, and finalizing path verification.
+    /// Triggers the death animation (static idle pose, pop-up arc, fall off-screen) and then
+    /// enables manual camera control and finalizes path verification to show the post-death screen.
     /// Interacts with <see cref="ScoreController"/>, <see cref="CameraController"/>, and <see cref="PathVerifier"/>.
     /// </summary>
-    private void PlayerDeath()
+    public void PlayerDeath()
     {
-        scoreController.StopTimer();
+        if (isDead || hasCompletedLevel) return;
+        isDead = true;
 
-        cameraController.EnableManualControlWithRightLimit(transform.position.x);
+        float deathX = transform.position.x;
 
-        pathVerifier.FinalizeAndCheckPath(transform.position.x);
+        scoreController?.StopTimer();
+        StartGuideCollapse();
 
+        horizontalInput = 0f;
+        jumpInput = false;
+        gravityFlipInput = false;
+        actionState = ActionState.None;
+
+        Collider2D[] colliders = GetComponents<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.gravityScale = 0f;
+            rb.simulated = false;
+        }
+
+        if (animator != null)
+        {
+            animator.SetBool("run", false);
+            animator.SetBool("fall", false);
+            animator.SetBool("grounded", true);
+            animator.SetFloat("speed", 0f);
+            animator.Update(0f);
+            animator.speed = 0f;
+        }
+
+        StartCoroutine(DeathAnimationRoutine(deathX));
+    }
+
+    private IEnumerator DeathAnimationRoutine(float deathX)
+    {
+        Camera cam = cameraController != null ? cameraController.GetComponent<Camera>() : Camera.main;
+        float camBottomY = cam != null ? cam.transform.position.y - cam.orthographicSize : transform.position.y - 12f;
+        float camTopY = cam != null ? cam.transform.position.y + cam.orthographicSize : transform.position.y + 12f;
+
+        Vector3 pos = transform.position;
+        if (pos.y < camBottomY - 0.5f)
+        {
+            pos.y = camBottomY - 0.5f;
+            transform.position = pos;
+        }
+        else if (pos.y > camTopY + 0.5f)
+        {
+            pos.y = camTopY + 0.5f;
+            transform.position = pos;
+        }
+
+        if (deathFreezeDelay > 0f)
+        {
+            yield return new WaitForSeconds(deathFreezeDelay);
+        }
+
+        float velY = deathPopUpVelocity;
+        float exitY = camBottomY - deathOffscreenMargin;
+        float elapsed = 0f;
+
+        while (transform.position.y > exitY && elapsed < deathMaxDuration)
+        {
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            velY -= deathFallGravity * dt;
+
+            pos = transform.position;
+            pos.y += velY * dt;
+            transform.position = pos;
+
+            yield return null;
+        }
+
+        cameraController?.EnableManualControlWithRightLimit(deathX);
+        pathVerifier?.FinalizeAndCheckPath(deathX);
         gameObject.SetActive(false);
     }
 
@@ -811,7 +1043,7 @@ public class PlayerController : MonoBehaviour
         bool isFalling = !isGrounded && (rb.linearVelocity.y * gravitySign) < 0f;
         animator.SetBool("fall", isFalling);
 
-        float effectiveInput = CanPlayerControl ? horizontalInput : (isIntroWalking ? 1f : 0f);
+        float effectiveInput = CanPlayerControl ? horizontalInput : ((isIntroWalking || isOutroWalking) ? 1f : 0f);
         float speedX = useInputForRunSpeed
             ? Mathf.Abs(effectiveInput) * moveSpeed
             : Mathf.Abs(rb.linearVelocity.x);

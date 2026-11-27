@@ -201,7 +201,7 @@ public class RebindManager : MonoBehaviour
         row.style.flexDirection = FlexDirection.Row;
         row.style.justifyContent = Justify.Center;
         row.style.alignItems = Align.Center;
-        row.style.marginBottom = 15;
+        row.style.marginBottom = 10;
         row.style.width = Length.Percent(100);
 
         Label label = new();
@@ -219,7 +219,8 @@ public class RebindManager : MonoBehaviour
         Button button = new();
         button.AddToClassList("menu-button");
         button.style.width = 200;
-        button.style.height = 50;
+        button.style.height = 44;
+        button.style.marginBottom = 0;
 
         UpdateButtonText(button, setup);
 

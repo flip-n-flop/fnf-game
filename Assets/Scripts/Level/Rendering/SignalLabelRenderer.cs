@@ -282,12 +282,13 @@ public class SignalLabelRenderer : MonoBehaviour
             worldPos,
             mainCamera
         );
+        Vector2 localPos = uiDocument.rootVisualElement.WorldToLocal(panelPos);
 
         float scaledSize = labelSizePixels * labelScale;
         label.style.width = scaledSize;
         label.style.height = scaledSize;
         label.style.left = xOffset;
-        label.style.top = panelPos.y - (scaledSize / 2f) + yOffset;
+        label.style.top = localPos.y - (scaledSize / 2f) + yOffset;
     }
 
     #endregion

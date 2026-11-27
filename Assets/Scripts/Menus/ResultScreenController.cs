@@ -250,7 +250,7 @@ public class ResultScreenController : MonoBehaviour
         LevelSequenceManager.CurrentLevelIndex++;
         MenuManager.LevelToLoadJSON = LevelSequenceManager.Levels[LevelSequenceManager.CurrentLevelIndex];
 
-        SceneManager.LoadScene(customLevelName);
+        LoadingScreenManager.Load(customLevelName);
     }
 
     /// <summary>

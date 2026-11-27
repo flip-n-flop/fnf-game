@@ -24,6 +24,11 @@ public class SignalLabelGroup : MonoBehaviour
     [Tooltip("Optional local positional offset specific to this badge.")]
     [SerializeField] private Vector2 individualOffset = Vector2.zero;
 
+    [Tooltip("Vertical offset applied to the label text when the overline negation bar is disabled.")]
+    [SerializeField] private float noOverlineTextOffsetY = 0.08f;
+
+    [SerializeField, HideInInspector] private float appliedNoOverlineOffsetY;
+
     [Header("Bright & Holo Dynamic State")]
     [Tooltip("RectTransform of the LabelBright highlight sprite.")]
     [SerializeField] private RectTransform brightRect;
@@ -48,9 +53,6 @@ public class SignalLabelGroup : MonoBehaviour
 
     [Tooltip("Smoothing time (in seconds) for LabelHolo to fade in and fade out.")]
     [SerializeField] private float holoSmoothTime = 0.12f;
-
-    [Tooltip("Speed of vertical and alpha transition when signal logic state flips.")]
-    [SerializeField] private float transitionSpeed = 15f;
 
     #endregion
 
@@ -144,6 +146,8 @@ public class SignalLabelGroup : MonoBehaviour
         {
             overlineObject.SetActive(showOverline);
         }
+
+        UpdateTextVerticalOffset(showOverline);
 
         ApplyColor(signalColor);
     }
@@ -266,6 +270,11 @@ public class SignalLabelGroup : MonoBehaviour
     {
         SyncOverlineHierarchy();
 
+        if (overlineObject != null)
+        {
+            UpdateTextVerticalOffset(overlineObject.activeSelf);
+        }
+
         if (brightRect == null)
         {
             Transform bright = transform.Find("White_Box/LabelBright");
@@ -319,6 +328,41 @@ public class SignalLabelGroup : MonoBehaviour
             holoRenderer.maskInteraction = SpriteMaskInteraction.None;
             holoRenderer.sortingOrder = 7;
         }
+    }
+
+    /// <summary>
+    /// Shifts the label text vertically when the active-low overline bar is disabled.
+    /// </summary>
+    private void UpdateTextVerticalOffset(bool showOverline)
+    {
+        if (labelText == null) return;
+
+        float targetOffset = showOverline ? 0f : noOverlineTextOffsetY;
+        float delta = targetOffset - appliedNoOverlineOffsetY;
+        if (Mathf.Approximately(delta, 0f)) return;
+
+        if (labelText.TryGetComponent(out RectTransform textRt))
+        {
+            Vector2 pos = textRt.anchoredPosition;
+            pos.y += delta;
+            textRt.anchoredPosition = pos;
+        }
+        else
+        {
+            Vector3 pos = labelText.transform.localPosition;
+            pos.y += delta;
+            labelText.transform.localPosition = pos;
+        }
+
+        appliedNoOverlineOffsetY = targetOffset;
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(labelText.gameObject);
+        }
+#endif
     }
 
     private void SyncOverlineHierarchy()
@@ -460,7 +504,7 @@ public class SignalLabelGroup : MonoBehaviour
                 prefabAsset.EnsureReferences();
             }
 
-            SignalLabelGroup[] sceneGroups = FindObjectsByType<SignalLabelGroup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            SignalLabelGroup[] sceneGroups = FindObjectsByType<SignalLabelGroup>(FindObjectsInactive.Include);
             foreach (SignalLabelGroup group in sceneGroups)
             {
                 if (group == null) continue;
@@ -474,6 +518,7 @@ public class SignalLabelGroup : MonoBehaviour
                         group.overlineObject.SetActive(shouldShow);
                         UnityEditor.EditorUtility.SetDirty(group.overlineObject);
                     }
+                    group.UpdateTextVerticalOffset(group.overlineObject.activeSelf);
                 }
             }
         };

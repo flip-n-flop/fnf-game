@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
+  - _ENABLERIGHTFADE_ON
   - _USEWORLDSPACE_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -35,12 +36,15 @@ Material:
     - _Blur: 0.8
     - _BreakupCutoff: 0
     - _EdgeStrength: 0.12
+    - _EnableRightFade: 1
     - _FaceBend: 0.45
     - _FaceStrength: 0.6
     - _Highlight: 0
     - _HoloColorMix: 0.15
     - _Intensity: 2.5
     - _Iridescence: 1
+    - _RightFadeEnd: 1.05
+    - _RightFadeStart: 0.575
     - _Scale: 3.92
     - _ShadowDepth: 1
     - _Sharpening: 1
@@ -50,6 +54,7 @@ Material:
     - _WarpStrength: 0.45
     - _WorldScale: 0.35
     m_Colors:
+    - _BackgroundColor: {r: 0.38915095, g: 0.30660376, b: 0.4716981, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _HoloColor: {r: 1, g: 0.36, b: 0.76, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}

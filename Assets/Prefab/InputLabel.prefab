@@ -56,6 +56,8 @@ MonoBehaviour:
   - {fileID: 8996410697574241555}
   - {fileID: 4192837465019283748}
   individualOffset: {x: 0, y: 0}
+  noOverlineTextOffsetY: 0.12
+  appliedNoOverlineOffsetY: 0
   brightRect: {fileID: 4091479074205448384}
   brightHighY: 0
   brightLowY: -0.98
