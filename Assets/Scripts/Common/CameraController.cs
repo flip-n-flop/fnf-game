@@ -32,6 +32,10 @@ public class CameraController : MonoBehaviour
     [Tooltip("Offset position relative to the target transform.")]
     public Vector3 offset;
 
+    [Tooltip("Horizontal viewport position (0 = left edge, 0.5 = center) where the camera keeps the target.")]
+    [Range(0.1f, 0.9f)]
+    [SerializeField] private float targetViewportX = 0.4f;
+
     [Header("Manual Control Configuration")]
     [Tooltip("Speed at which the camera moves in manual mode.")]
     public float manualMoveSpeed = 10f;
@@ -160,7 +164,9 @@ public class CameraController : MonoBehaviour
     {
         if (target != null)
         {
-            Vector3 desiredPosition = new Vector3(target.position.x + offset.x, transform.position.y, transform.position.z);
+            float halfScreenWidth = cam != null ? cam.orthographicSize * cam.aspect : 0f;
+            float viewportOffsetX = (0.5f - targetViewportX) * (2f * halfScreenWidth);
+            Vector3 desiredPosition = new Vector3(target.position.x + offset.x + viewportOffsetX, transform.position.y, transform.position.z);
             desiredPosition.x = ClampCameraX(desiredPosition.x);
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
             transform.position = smoothedPosition;
