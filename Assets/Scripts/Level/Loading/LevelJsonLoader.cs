@@ -33,7 +33,7 @@ public class LevelJsonLoader : MonoBehaviour
     [SerializeField] private TileBase wallTile;
 
     [Header("Placement Settings")]
-    [SerializeField] private int startX = 4;
+    [SerializeField] private int startX = 10;
     [SerializeField] private int floorYRow = 0;
     [SerializeField] private int ceilingYRow = 12;
 

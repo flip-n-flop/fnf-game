@@ -341,7 +341,8 @@ public class SignalLineRenderer : MonoBehaviour
         if (hasClock)
         {
             bool[] clockBool = ConvertPatternToBoolArray(clockPattern);
-            RenderChannel("Clock_Line", clockBool, computedClockY, CLOCK_X_OFFSET, baseXOffset, clockColor, clockLabel != null ? clockLabel.transform : transform);
+            // Clock lead-in stays fixed at 0 for rising-edge levels and fixed at 1 for falling-edge levels
+            RenderChannel("Clock_Line", clockBool, computedClockY, CLOCK_X_OFFSET, baseXOffset, clockColor, clockLabel != null ? clockLabel.transform : transform, leadInValue: !isClockRisingEdge);
             clockLabel?.Configure("CLK", clockColor, !isClockRisingEdge, GetChannelCenterY(computedClockY), labelScale);
         }
         else
@@ -460,7 +461,7 @@ public class SignalLineRenderer : MonoBehaviour
         }
     }
 
-    private void RenderChannel(string lineName, bool[] signal, float baseY, float xOffset, float effectiveStartX, Color color, Transform targetParent)
+    private void RenderChannel(string lineName, bool[] signal, float baseY, float xOffset, float effectiveStartX, Color color, Transform targetParent, bool? leadInValue = null)
     {
         if (signal == null || signal.Length == 0)
         {
@@ -468,7 +469,7 @@ public class SignalLineRenderer : MonoBehaviour
             return;
         }
 
-        Vector3[] points = BuildSignalPoints(signal, baseY, signalHeight, xOffset, effectiveStartX);
+        Vector3[] points = BuildSignalPoints(signal, baseY, signalHeight, xOffset, effectiveStartX, leadInValue);
         rawLinePoints[lineName] = points;
 
         LineRenderer mainLine = GetOrCreateLine(lineName, color, mainSortingOrder, targetParent);
@@ -498,19 +499,26 @@ public class SignalLineRenderer : MonoBehaviour
     /// All lines (including Clock) share the exact same starting X coordinate (<c>effectiveStartX - LEAD_IN_LENGTH</c>)
     /// underneath the labels, while the Clock transitions remain shifted by <c>-0.5</c> relative to input transitions.
     /// </summary>
-    private Vector3[] BuildSignalPoints(bool[] signal, float baseY, float height, float xOffset, float effectiveStartX)
+    private Vector3[] BuildSignalPoints(bool[] signal, float baseY, float height, float xOffset, float effectiveStartX, bool? leadInValue = null)
     {
         var points = new List<Vector3>(signal.Length * 3);
 
         float lineStartX = effectiveStartX - LEAD_IN_LENGTH;
         float originX = effectiveStartX + xOffset;
-        float initialY = signal[0] ? (baseY + height) : baseY;
+        bool startHigh = leadInValue ?? signal[0];
+        float leadInY = startHigh ? (baseY + height) : baseY;
+        float firstSignalY = signal[0] ? (baseY + height) : baseY;
 
-        points.Add(new Vector3(lineStartX, initialY, 0f));
+        points.Add(new Vector3(lineStartX, leadInY, 0f));
 
         if (originX > lineStartX)
         {
-            points.Add(new Vector3(originX, initialY, 0f));
+            points.Add(new Vector3(originX, leadInY, 0f));
+        }
+
+        if (Mathf.Abs(firstSignalY - leadInY) > 0.001f)
+        {
+            points.Add(new Vector3(originX, firstSignalY, 0f));
         }
 
         for (int i = 0; i < signal.Length; i++)
