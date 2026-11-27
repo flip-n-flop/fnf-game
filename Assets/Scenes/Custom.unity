@@ -5109,7 +5109,7 @@ PrefabInstance:
       objectReference: {fileID: 3506434624590365720, guid: cbc2af35a9502f14eaf2db9b7d191ca4, type: 3}
     - target: {fileID: 1606421330312910537, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
       propertyPath: outroWalkDistance
-      value: 5
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1606421330312910537, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
       propertyPath: toggleHintsAction

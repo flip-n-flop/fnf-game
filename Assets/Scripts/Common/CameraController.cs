@@ -44,8 +44,8 @@ public class CameraController : MonoBehaviour
     [Tooltip("The minimum X position where the camera stops at the start of the level.")]
     public float minX;
 
-    [Tooltip("Padding allowing the camera to move slightly past the screen end. Set to 0 to stop at the edge.")]
-    public float endPadding = 2f;
+    [Tooltip("Extra X padding beyond the camera position at phaseEndX.")]
+    public float endPadding = 0f;
 
     #endregion
 
@@ -88,7 +88,7 @@ public class CameraController : MonoBehaviour
         if (LevelManager.Instance != null)
         {
             float halfScreenWidth = cam.orthographicSize * cam.aspect;
-            float levelRight = LevelManager.Instance.phaseEndX;
+            float levelRight = LevelManager.Instance.levelEndX + 10f;
 
             float computedMax = (levelRight - halfScreenWidth) + endPadding;
             maxX = Mathf.Max(minX, computedMax);

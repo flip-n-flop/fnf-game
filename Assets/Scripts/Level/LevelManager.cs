@@ -20,10 +20,10 @@ public class LevelManager : MonoBehaviour
     public float diagramEndX = 25f;
 
     [Tooltip("Extra slack space after the diagram to allow processing the final transition before ending.")]
-    public float phaseSlackTiles = 3f;
+    public float phaseSlackTiles = 2f;
 
     [Tooltip("Total playable length (diagramEndX + phaseSlackTiles). Used in phase completion checks.")]
-    public float phaseEndX = 28f;
+    public float phaseEndX = 27f;
 
     [Tooltip("Legacy value representing the logical end of the diagram (without slack). Used by diagram-related systems.")]
     public float levelEndX = 25f;
