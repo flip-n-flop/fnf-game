@@ -5097,7 +5097,7 @@ PrefabInstance:
       objectReference: {fileID: 103264247}
     - target: {fileID: 1606421330312910537, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
       propertyPath: fallKillThreshold
-      value: -10
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 1606421330312910537, guid: 1d32c5024f5c1a9e2aa8a50b6d5e01e7, type: 3}
       propertyPath: flipGravityAction

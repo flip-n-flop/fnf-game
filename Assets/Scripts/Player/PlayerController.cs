@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -65,7 +66,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Gameplay Settings")]
     [Tooltip("World Y threshold (positive and negative) below/above which player dies.")]
-    [SerializeField] private float fallKillThreshold = -25f;
+    [SerializeField] private float fallKillThreshold = -5f;
 
     [Tooltip("Target X position where the player finishes the intro walk and gains control.")]
     [SerializeField] private float spawnTargetX = 6f;
@@ -78,6 +79,22 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("Extra distance the character walks forward automatically after the guide bar closes at level end.")]
     [SerializeField] private float outroWalkDistance = 1.8f;
+
+    [Header("Death Animation")]
+    [Tooltip("Brief freeze duration before the death pop-up begins.")]
+    [SerializeField] private float deathFreezeDelay = 0.12f;
+
+    [Tooltip("Initial upward velocity for the death pop-up arc.")]
+    [SerializeField] private float deathPopUpVelocity = 12f;
+
+    [Tooltip("Downward gravity acceleration applied during the death fall.")]
+    [SerializeField] private float deathFallGravity = 35f;
+
+    [Tooltip("Extra margin below the bottom of the camera before showing the post-death screen.")]
+    [SerializeField] private float deathOffscreenMargin = 2f;
+
+    [Tooltip("Maximum safety duration (seconds) for the death fall before showing the post-death screen.")]
+    [SerializeField] private float deathMaxDuration = 2.0f;
 
     [Header("Guide Bar Settings")]
     [Tooltip("SpriteRenderer of the vertical tolerance guide bar (child named 'Guide').")]
@@ -167,7 +184,7 @@ public class PlayerController : MonoBehaviour
     /// Indicates whether the player is currently allowed to control the character.
     /// Control is locked during intro walking and while the guide bar expansion animation is playing.
     /// </summary>
-    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding && !hasCompletedLevel;
+    public bool CanPlayerControl => !isIntroWalking && !isGuideExpanding && !hasCompletedLevel && !isDead;
 
     #endregion
 
@@ -182,6 +199,7 @@ public class PlayerController : MonoBehaviour
     private bool isGuideCollapsing;
     private bool isOutroWalking;
     private bool hasCompletedLevel;
+    private bool isDead;
     private float outroTargetX;
     private float guideExpandTimer;
     private Material guideMaterialInstance;
@@ -281,8 +299,9 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        UpdateGuideExpansion();
         UpdateGuideCollapse();
+        if (isDead) return;
+        UpdateGuideExpansion();
         if (hasCompletedLevel)
         {
             if (isOutroWalking) UpdateAnimator();
@@ -298,6 +317,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
+        if (isDead) return;
         if (hasCompletedLevel)
         {
             if (isOutroWalking)
@@ -538,7 +558,10 @@ public class PlayerController : MonoBehaviour
         {
             isGuideCollapsing = false;
             SetGuideProgress(0f);
-            StartOutroWalk();
+            if (!isDead)
+            {
+                StartOutroWalk();
+            }
         }
     }
 
@@ -848,17 +871,93 @@ public class PlayerController : MonoBehaviour
     #region Collision & Death
 
     /// <summary>
-    /// Triggers death sequence by stopping timers, enabling manual camera control, and finalizing path verification.
+    /// Triggers the death animation (static idle pose, pop-up arc, fall off-screen) and then
+    /// enables manual camera control and finalizes path verification to show the post-death screen.
     /// Interacts with <see cref="ScoreController"/>, <see cref="CameraController"/>, and <see cref="PathVerifier"/>.
     /// </summary>
     public void PlayerDeath()
     {
-        scoreController.StopTimer();
+        if (isDead || hasCompletedLevel) return;
+        isDead = true;
 
-        cameraController.EnableManualControlWithRightLimit(transform.position.x);
+        float deathX = transform.position.x;
 
-        pathVerifier.FinalizeAndCheckPath(transform.position.x);
+        scoreController?.StopTimer();
+        StartGuideCollapse();
 
+        horizontalInput = 0f;
+        jumpInput = false;
+        gravityFlipInput = false;
+        actionState = ActionState.None;
+
+        Collider2D[] colliders = GetComponents<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.gravityScale = 0f;
+            rb.simulated = false;
+        }
+
+        if (animator != null)
+        {
+            animator.SetBool("run", false);
+            animator.SetBool("fall", false);
+            animator.SetBool("grounded", true);
+            animator.SetFloat("speed", 0f);
+            animator.Update(0f);
+            animator.speed = 0f;
+        }
+
+        StartCoroutine(DeathAnimationRoutine(deathX));
+    }
+
+    private IEnumerator DeathAnimationRoutine(float deathX)
+    {
+        Camera cam = cameraController != null ? cameraController.GetComponent<Camera>() : Camera.main;
+        float camBottomY = cam != null ? cam.transform.position.y - cam.orthographicSize : transform.position.y - 12f;
+        float camTopY = cam != null ? cam.transform.position.y + cam.orthographicSize : transform.position.y + 12f;
+
+        Vector3 pos = transform.position;
+        if (pos.y < camBottomY - 0.5f)
+        {
+            pos.y = camBottomY - 0.5f;
+            transform.position = pos;
+        }
+        else if (pos.y > camTopY + 0.5f)
+        {
+            pos.y = camTopY + 0.5f;
+            transform.position = pos;
+        }
+
+        if (deathFreezeDelay > 0f)
+        {
+            yield return new WaitForSeconds(deathFreezeDelay);
+        }
+
+        float velY = deathPopUpVelocity;
+        float exitY = camBottomY - deathOffscreenMargin;
+        float elapsed = 0f;
+
+        while (transform.position.y > exitY && elapsed < deathMaxDuration)
+        {
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            velY -= deathFallGravity * dt;
+
+            pos = transform.position;
+            pos.y += velY * dt;
+            transform.position = pos;
+
+            yield return null;
+        }
+
+        cameraController?.EnableManualControlWithRightLimit(deathX);
+        pathVerifier?.FinalizeAndCheckPath(deathX);
         gameObject.SetActive(false);
     }
 
